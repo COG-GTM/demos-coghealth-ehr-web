@@ -41,7 +41,22 @@ export default function Pipeline() {
     setLoading(false);
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      applicationsApi.getAll(),
+      candidatesApi.getAll(),
+      jobsApi.getAll(),
+    ]).then(([apps, cands, jbs]) => {
+      if (!cancelled) {
+        setApplications(apps);
+        setCandidates(cands);
+        setJobs(jbs);
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleStageChange = async (appId: number, newStage: string) => {
     await applicationsApi.updateStage(appId, newStage);

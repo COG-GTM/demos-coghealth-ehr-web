@@ -1,29 +1,33 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Tahoma&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @theme {
-  --color-primary-50: #e8f4fc;
-  --color-primary-100: #d1e9f9;
-  --color-primary-200: #a3d3f3;
-  --color-primary-300: #75bded;
-  --color-primary-400: #47a7e7;
-  --color-primary-500: #1a91e1;
-  --color-primary-600: #1574b4;
-  --color-primary-700: #105787;
-  --color-primary-800: #0a3a5a;
-  --color-primary-900: #051d2d;
-  --color-primary-950: #020e16;
+  --color-primary-50: #f5f3ff;
+  --color-primary-100: #ede9fe;
+  --color-primary-200: #ddd6fe;
+  --color-primary-300: #c4b5fd;
+  --color-primary-400: #a78bfa;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+  --color-primary-800: #5b21b6;
+  --color-primary-900: #4c1d95;
+  --color-primary-950: #2e1065;
   
-  --font-family-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 body {
-  font-size: 11px;
-  background-color: #d4d0c8;
+  font-size: 14px;
+  background-color: #f8f9fa;
+  color: #1a1a2e;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 input, select, textarea, button {
-  font-size: 11px;
+  font-size: 13px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 table {
@@ -31,208 +35,285 @@ table {
 }
 
 th {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e8e8e8 100%);
-  border: 1px solid #999;
-  font-weight: 600;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
 }
 
 td {
-  border: 1px solid #ccc;
+  border-bottom: 1px solid #f3f4f6;
 }
 
+/* Modern panel card */
 .ehr-panel {
-  background: #f5f5f5;
-  border: 1px solid #999;
-  box-shadow: inset 1px 1px 0 #fff, 1px 1px 2px rgba(0,0,0,0.1);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
 }
 
+/* Modern flat button */
 .ehr-button {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
-  border: 1px solid #888;
-  padding: 2px 8px;
-  font-size: 11px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: 1px 1px 0 #fff inset, -1px -1px 0 #999 inset;
+  border-radius: 6px;
+  color: #374151;
+  transition: all 0.15s ease;
 }
 
 .ehr-button:hover {
-  background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
+  background: #f9fafb;
+  border-color: #d1d5db;
 }
 
 .ehr-button:active {
-  background: linear-gradient(to bottom, #d8d8d8 0%, #e8e8e8 100%);
-  box-shadow: -1px -1px 0 #fff inset, 1px 1px 0 #999 inset;
+  background: #f3f4f6;
 }
 
 .ehr-button-primary {
-  background: linear-gradient(to bottom, #4a90d9 0%, #2a5db0 100%);
-  border: 1px solid #1a4080;
+  background: #5e6ad2;
+  border: 1px solid #5e6ad2;
   color: white;
 }
 
 .ehr-button-primary:hover {
-  background: linear-gradient(to bottom, #5aa0e9 0%, #3a6dc0 100%);
+  background: #4f5bc0;
+  border-color: #4f5bc0;
 }
 
+/* Modern input */
 .ehr-input {
-  border: 1px solid #7f9db9;
-  padding: 2px 4px;
+  border: 1px solid #e5e7eb;
+  padding: 6px 10px;
   background: white;
-  font-size: 11px;
+  font-size: 13px;
+  border-radius: 6px;
+  color: #1a1a2e;
+  transition: all 0.15s ease;
 }
 
 .ehr-input:focus {
   outline: none;
-  border-color: #4a90d9;
-  box-shadow: 0 0 2px rgba(74, 144, 217, 0.5);
+  border-color: #5e6ad2;
+  box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.12);
 }
 
+/* Modern fieldset */
 .ehr-fieldset {
-  border: 1px solid #999;
-  padding: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 12px;
   margin: 4px 0;
-  background: #fafafa;
+  background: #ffffff;
+  border-radius: 8px;
 }
 
 .ehr-fieldset legend {
-  font-weight: 600;
-  padding: 0 4px;
-  color: #333;
+  font-weight: 500;
+  padding: 0 6px;
+  color: #6b7280;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .ehr-checkbox {
-  margin-right: 4px;
+  margin-right: 6px;
+  accent-color: #5e6ad2;
 }
 
 .ehr-label {
-  color: #333;
-  font-size: 11px;
+  color: #374151;
+  font-size: 13px;
 }
 
+/* Modern header bar for panels */
 .ehr-header {
-  background: linear-gradient(to bottom, #6699cc 0%, #336699 100%);
-  color: white;
-  padding: 4px 8px;
+  background: #f9fafb;
+  color: #1a1a2e;
+  padding: 10px 14px;
   font-weight: 600;
-  border-bottom: 1px solid #1a4080;
+  font-size: 13px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .ehr-subheader {
-  background: linear-gradient(to bottom, #e8e8e8 0%, #d0d0d0 100%);
-  color: #333;
-  padding: 2px 6px;
-  font-weight: 600;
-  border-bottom: 1px solid #999;
-  font-size: 10px;
+  background: #ffffff;
+  color: #6b7280;
+  padding: 6px 14px;
+  font-weight: 500;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 12px;
 }
 
 .ehr-tree-item {
-  padding: 1px 4px;
+  padding: 4px 10px;
   cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s ease;
 }
 
 .ehr-tree-item:hover {
-  background: #e0e8f0;
+  background: #f3f4f6;
 }
 
 .ehr-tree-item.selected {
-  background: #316ac5;
-  color: white;
+  background: #eff0ff;
+  color: #5e6ad2;
 }
 
 .ehr-status-bar {
-  background: #ece9d8;
-  border-top: 1px solid #fff;
-  padding: 2px 8px;
-  font-size: 10px;
-  color: #333;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  padding: 6px 16px;
+  font-size: 12px;
+  color: #9ca3af;
 }
 
+/* Modern tabs */
 .ehr-tab {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
-  border: 1px solid #888;
-  border-bottom: none;
-  padding: 3px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 6px 12px;
   margin-right: 2px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #9ca3af;
+  transition: all 0.15s ease;
+  border-radius: 0;
+}
+
+.ehr-tab:hover {
+  color: #6b7280;
 }
 
 .ehr-tab.active {
-  background: #fff;
-  border-bottom: 1px solid #fff;
-  margin-bottom: -1px;
-  position: relative;
-  z-index: 1;
+  color: #5e6ad2;
+  border-bottom-color: #5e6ad2;
+  background: transparent;
 }
 
 .ehr-tab-content {
-  border: 1px solid #888;
+  border: 1px solid #e5e7eb;
   background: #fff;
-  padding: 8px;
+  padding: 12px;
+  border-radius: 0 0 8px 8px;
 }
 
 .ehr-grid-row:nth-child(even) {
-  background: #f0f4f8;
+  background: #fafbfc;
 }
 
 .ehr-grid-row:hover {
-  background: #d0e0f0;
+  background: #f3f4f6;
 }
 
 .ehr-grid-row.selected {
-  background: #316ac5;
-  color: white;
+  background: #eff0ff;
+  color: #5e6ad2;
 }
 
+/* Modern alert styles */
 .ehr-alert-critical {
-  background: #ffcccc;
-  border: 1px solid #cc0000;
-  color: #990000;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  border-radius: 8px;
 }
 
 .ehr-alert-warning {
-  background: #fff3cd;
-  border: 1px solid #cc9900;
-  color: #664d00;
+  background: #fffbeb;
+  border: 1px solid #fed7aa;
+  color: #92400e;
+  border-radius: 8px;
 }
 
 .ehr-alert-info {
-  background: #cce5ff;
-  border: 1px solid #0066cc;
-  color: #004085;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  border-radius: 8px;
 }
 
+/* Modern toolbar */
 .ehr-toolbar {
-  background: linear-gradient(to bottom, #f5f5f5 0%, #e5e5e5 100%);
-  border-bottom: 1px solid #999;
-  padding: 2px 4px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 6px 14px;
 }
 
 .ehr-toolbar-button {
   background: transparent;
   border: 1px solid transparent;
-  padding: 2px 6px;
+  padding: 5px 10px;
   cursor: pointer;
+  border-radius: 6px;
+  color: #6b7280;
+  font-size: 13px;
+  transition: all 0.15s ease;
 }
 
 .ehr-toolbar-button:hover {
-  background: #e0e8f0;
-  border: 1px solid #999;
+  background: #f3f4f6;
+  color: #374151;
 }
 
 .ehr-toolbar-button-active {
-  background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
-  border: 1px solid #888;
-  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15);
+  background: #eff0ff;
+  color: #5e6ad2;
+  font-weight: 500;
 }
 
 .ehr-splitter {
-  background: #d4d0c8;
+  background: #e5e7eb;
   cursor: col-resize;
-  width: 4px;
+  width: 2px;
 }
 
 .ehr-splitter:hover {
-  background: #b0b0b0;
+  background: #5e6ad2;
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
 }

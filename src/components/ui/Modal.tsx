@@ -36,32 +36,28 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col`} style={{ fontFamily: 'Tahoma, sans-serif' }}>
-        {/* Window frame */}
-        <div className="bg-white border-2 border-gray-400 shadow-lg flex flex-col" style={{ boxShadow: '2px 2px 8px rgba(0,0,0,0.3)' }}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col animate-fade-in`}>
+        <div className="bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">
           {/* Title bar */}
-          <div 
-            className="flex items-center justify-between px-2 py-1"
-            style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
-          >
-            <span className="text-white font-semibold text-[11px]">{title}</span>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <span className="font-semibold text-[15px] text-gray-900">{title}</span>
             <button 
               onClick={onClose}
-              className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
           
           {/* Content */}
-          <div className="flex-1 overflow-auto p-3 bg-[#ece9d8]">
+          <div className="flex-1 overflow-auto p-5">
             {children}
           </div>
           
           {/* Footer */}
           {footer && (
-            <div className="px-3 py-2 bg-[#ece9d8] border-t border-gray-400 flex justify-end space-x-2">
+            <div className="px-5 py-4 bg-gray-50 border-t border-gray-100 flex justify-end space-x-2">
               {footer}
             </div>
           )}
@@ -105,15 +101,14 @@ export function ConfirmDialog({
           </button>
           <button 
             onClick={() => { onConfirm(); onClose(); }} 
-            className={`ehr-button px-4 ${type === 'danger' ? '' : 'ehr-button-primary'}`}
-            style={type === 'danger' ? { background: 'linear-gradient(to bottom, #e87458 0%, #c84030 100%)', color: 'white', border: '1px solid #a02010' } : undefined}
+            className={`ehr-button px-4 ${type === 'danger' ? 'bg-red-600 border-red-600 text-white hover:bg-red-700' : 'ehr-button-primary'}`}
           >
             {confirmText}
           </button>
         </>
       }
     >
-      <p className="text-[11px] text-gray-700">{message}</p>
+      <p className="text-[14px] text-gray-600 leading-relaxed">{message}</p>
     </Modal>
   );
 }
@@ -128,10 +123,10 @@ interface AlertDialogProps {
 
 export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: AlertDialogProps) {
   const bgColors = {
-    info: '#cce5ff',
-    success: '#d4edda',
-    warning: '#fff3cd',
-    error: '#f8d7da',
+    info: 'bg-blue-50 border-blue-200 text-blue-800',
+    success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    warning: 'bg-amber-50 border-amber-200 text-amber-800',
+    error: 'bg-red-50 border-red-200 text-red-800',
   };
   
   return (
@@ -146,8 +141,8 @@ export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: 
         </button>
       }
     >
-      <div className="p-2 border border-gray-400" style={{ background: bgColors[type] }}>
-        <p className="text-[11px]">{message}</p>
+      <div className={`p-4 rounded-lg border ${bgColors[type]}`}>
+        <p className="text-[14px] leading-relaxed">{message}</p>
       </div>
     </Modal>
   );

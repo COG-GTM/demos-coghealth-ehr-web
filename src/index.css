@@ -50,7 +50,9 @@ th {
 }
 
 td {
-  border: none;
+  border-top: none;
+  border-right: none;
+  border-left: none;
   border-bottom: 1px solid #f3f3f3;
 }
 

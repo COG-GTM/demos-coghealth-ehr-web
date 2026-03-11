@@ -126,12 +126,12 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
       width="lg"
       footer={
         <>
-          <button onClick={onClose} className="ehr-button px-4">
+          <button onClick={onClose} className="px-5 py-2.5 bg-white border border-[#dddddd] rounded-lg text-sm font-medium text-[#222222] hover:bg-[#f7f7f7] transition-colors">
             Cancel
           </button>
           <button 
             onClick={handleSubmit} 
-            className="ehr-button ehr-button-primary px-4"
+            className="px-5 py-2.5 bg-[#FF385C] text-white rounded-lg text-sm font-medium hover:bg-[#e31c5f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!selectedMed || !prescription.strength}
           >
             Sign & Send to Pharmacy
@@ -139,76 +139,75 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
         </>
       }
     >
-      <div className="space-y-3">
+      <div className="space-y-5">
         {/* Patient Info & Allergies */}
-        <div className="flex space-x-2">
+        <div className="flex space-x-3">
           {patientName && (
-            <div className="ehr-alert-info p-2 flex-1">
-              <span className="text-[11px]">
+            <div className="flex-1 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+              <span className="text-sm text-blue-800">
                 <strong>Patient:</strong> {patientName} {patientMrn && `(${patientMrn})`}
               </span>
             </div>
           )}
           {patientAllergies.length > 0 && (
-            <div className="ehr-alert-critical p-2 flex items-center">
-              <AlertCircle className="w-4 h-4 mr-1" />
-              <span className="text-[11px]">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center">
+              <AlertCircle className="w-4 h-4 mr-2 text-red-600" />
+              <span className="text-sm text-red-800">
                 <strong>Allergies:</strong> {patientAllergies.join(', ')}
               </span>
             </div>
           )}
         </div>
 
-        <div className="flex space-x-3">
+        <div className="flex space-x-4">
           {/* Medication Search */}
           <div className="w-64">
-            <fieldset className="ehr-fieldset h-56 flex flex-col">
-              <legend>Select Medication</legend>
-              <div className="flex items-center space-x-2 mb-2">
-                <Search className="w-3.5 h-3.5 text-gray-500" />
+            <label className="block text-xs font-semibold text-[#222222] mb-2 uppercase tracking-wider">Select Medication</label>
+            <div className="flex flex-col h-56">
+              <div className="flex items-center space-x-2 mb-2 px-3 py-2 border border-[#dddddd] rounded-lg">
+                <Search className="w-4 h-4 text-[#717171]" />
                 <input
                   type="text"
                   placeholder="Search medications..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="ehr-input flex-1"
+                  className="flex-1 text-sm focus:outline-none placeholder-[#b0b0b0]"
                 />
               </div>
-              <div className="flex-1 overflow-auto border border-gray-300 bg-white">
+              <div className="flex-1 overflow-auto border border-[#ebebeb] rounded-xl bg-white">
                 {filteredMeds.map((med) => (
                   <div
                     key={med.name}
                     onClick={() => selectMedication(med)}
-                    className={`px-2 py-1 text-[11px] cursor-pointer border-b border-gray-200 ${
-                      selectedMed?.name === med.name ? 'bg-blue-100' : 'hover:bg-blue-50'
+                    className={`px-3 py-2 text-sm cursor-pointer border-b border-[#f0f0f0] transition-colors ${
+                      selectedMed?.name === med.name ? 'bg-[#FF385C]/5 border-l-2 border-l-[#FF385C]' : 'hover:bg-[#fafafa]'
                     }`}
                   >
-                    <div className="font-medium">{med.name}</div>
-                    <div className="text-[10px] text-gray-500">{med.class} • {med.form}</div>
+                    <div className="font-medium text-[#222222]">{med.name}</div>
+                    <div className="text-xs text-[#717171]">{med.class} &middot; {med.form}</div>
                   </div>
                 ))}
               </div>
-            </fieldset>
+            </div>
           </div>
 
           {/* Prescription Details */}
           <div className="flex-1">
-            <fieldset className="ehr-fieldset">
-              <legend>Prescription Details</legend>
+            <label className="block text-xs font-semibold text-[#222222] mb-2 uppercase tracking-wider">Prescription Details</label>
               {selectedMed ? (
-                <div className="space-y-2">
-                  <div className="p-2 bg-gray-100 border border-gray-400 mb-2">
-                    <div className="font-semibold text-[12px]">{selectedMed.name}</div>
-                    <div className="text-[10px] text-gray-600">{selectedMed.class} • {selectedMed.form}</div>
+                <div className="space-y-3">
+                  <div className="p-3 bg-[#f7f7f7] rounded-xl">
+                    <div className="font-semibold text-sm text-[#222222]">{selectedMed.name}</div>
+                    <div className="text-xs text-[#717171]">{selectedMed.class} &middot; {selectedMed.form}</div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">Strength</label>
+                      <label className="block text-xs text-[#717171] mb-1">Strength</label>
                       <select
                         value={prescription.strength}
                         onChange={(e) => setPrescription({ ...prescription, strength: e.target.value })}
-                        className="ehr-input w-full"
+                        className="w-full px-3 py-2 border border-[#dddddd] rounded-lg text-sm focus:outline-none focus:border-[#222222] transition-colors bg-white"
                       >
                         {selectedMed.strengths.map(s => (
                           <option key={s} value={s}>{s}</option>
@@ -216,22 +215,22 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">Quantity</label>
+                      <label className="block text-xs text-[#717171] mb-1">Quantity</label>
                       <input
                         type="number"
                         value={prescription.quantity}
                         onChange={(e) => setPrescription({ ...prescription, quantity: parseInt(e.target.value) || 0 })}
-                        className="ehr-input w-full"
+                        className="w-full px-3 py-2 border border-[#dddddd] rounded-lg text-sm focus:outline-none focus:border-[#222222] transition-colors"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Sig (Directions)</label>
+                    <label className="block text-xs text-[#717171] mb-1">Sig (Directions)</label>
                     <select
                       value={prescription.sig}
                       onChange={(e) => setPrescription({ ...prescription, sig: e.target.value })}
-                      className="ehr-input w-full mb-1"
+                      className="w-full px-3 py-2 border border-[#dddddd] rounded-lg text-sm focus:outline-none focus:border-[#222222] transition-colors bg-white mb-2"
                     >
                       {sigTemplates.map(sig => (
                         <option key={sig} value={sig}>{sig}</option>
@@ -241,18 +240,18 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                       type="text"
                       value={prescription.sig}
                       onChange={(e) => setPrescription({ ...prescription, sig: e.target.value })}
-                      className="ehr-input w-full"
+                      className="w-full px-3 py-2 border border-[#dddddd] rounded-lg text-sm focus:outline-none focus:border-[#222222] transition-colors"
                       placeholder="Or type custom directions..."
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">Refills</label>
+                      <label className="block text-xs text-[#717171] mb-1">Refills</label>
                       <select
                         value={prescription.refills}
                         onChange={(e) => setPrescription({ ...prescription, refills: parseInt(e.target.value) })}
-                        className="ehr-input w-full"
+                        className="w-full px-3 py-2 border border-[#dddddd] rounded-lg text-sm focus:outline-none focus:border-[#222222] transition-colors bg-white"
                       >
                         {[0, 1, 2, 3, 4, 5, 6, 11].map(n => (
                           <option key={n} value={n}>{n} {n === 11 ? '(PRN)' : ''}</option>
@@ -260,25 +259,25 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">DAW</label>
-                      <label className="flex items-center mt-1 cursor-pointer">
+                      <label className="block text-xs text-[#717171] mb-1">DAW</label>
+                      <label className="flex items-center mt-2 cursor-pointer group">
                         <input
                           type="checkbox"
                           checked={prescription.daw}
                           onChange={(e) => setPrescription({ ...prescription, daw: e.target.checked })}
-                          className="ehr-checkbox"
+                          className="w-4 h-4 rounded border-[#dddddd] text-[#FF385C] focus:ring-[#FF385C]"
                         />
-                        <span className="ehr-label">Dispense as Written</span>
+                        <span className="ml-2 text-sm text-[#222222]">Dispense as Written</span>
                       </label>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Pharmacy</label>
+                    <label className="block text-xs text-[#717171] mb-1">Pharmacy</label>
                     <select
                       value={prescription.pharmacy}
                       onChange={(e) => setPrescription({ ...prescription, pharmacy: e.target.value })}
-                      className="ehr-input w-full"
+                      className="w-full px-3 py-2 border border-[#dddddd] rounded-lg text-sm focus:outline-none focus:border-[#222222] transition-colors bg-white"
                     >
                       {pharmacies.map(p => (
                         <option key={p} value={p}>{p}</option>
@@ -287,22 +286,21 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                   </div>
                 </div>
               ) : (
-                <div className="h-40 flex items-center justify-center text-gray-500 text-[11px]">
+                <div className="h-40 flex items-center justify-center text-[#b0b0b0] text-sm">
                   <Pill className="w-5 h-5 mr-2 opacity-50" />
                   Select a medication from the list
                 </div>
               )}
-            </fieldset>
           </div>
         </div>
 
         {selectedMed && (
-          <div className="ehr-alert-warning p-2 flex items-start text-[10px]">
-            <AlertTriangle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-            <div>
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start text-xs">
+            <AlertTriangle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-amber-600" />
+            <div className="text-amber-800">
               <strong>Drug Interaction Check:</strong> No significant interactions found with current medications.
               <br />
-              <span className="text-gray-600">Always verify patient's complete medication list before prescribing.</span>
+              <span className="text-amber-600">Always verify patient&apos;s complete medication list before prescribing.</span>
             </div>
           </div>
         )}

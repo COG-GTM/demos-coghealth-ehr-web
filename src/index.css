@@ -1,238 +1,348 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Tahoma&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 @theme {
-  --color-primary-50: #e8f4fc;
-  --color-primary-100: #d1e9f9;
-  --color-primary-200: #a3d3f3;
-  --color-primary-300: #75bded;
-  --color-primary-400: #47a7e7;
-  --color-primary-500: #1a91e1;
-  --color-primary-600: #1574b4;
-  --color-primary-700: #105787;
-  --color-primary-800: #0a3a5a;
-  --color-primary-900: #051d2d;
-  --color-primary-950: #020e16;
+  --color-primary-50: #fff1f2;
+  --color-primary-100: #ffe4e6;
+  --color-primary-200: #fecdd3;
+  --color-primary-300: #fda4af;
+  --color-primary-400: #fb7185;
+  --color-primary-500: #FF385C;
+  --color-primary-600: #e11d48;
+  --color-primary-700: #be123c;
+  --color-primary-800: #9f1239;
+  --color-primary-900: #881337;
+  --color-primary-950: #4c0519;
   
-  --font-family-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-family-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════
+   AIRBNB-INSPIRED DESIGN SYSTEM FOR COGHEALTH EHR
+   ═══════════════════════════════════════════════════════ */
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  font-size: 11px;
-  background-color: #d4d0c8;
+  font-size: 14px;
+  background-color: #ffffff;
+  color: #222222;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 input, select, textarea, button {
-  font-size: 11px;
+  font-size: 14px;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
+/* ── Tables ── */
 table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 th {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e8e8e8 100%);
-  border: 1px solid #999;
+  background: #f7f7f7;
+  border: none;
+  border-bottom: 1px solid #ebebeb;
   font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #717171;
 }
 
 td {
-  border: 1px solid #ccc;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
 }
 
+/* ── Panels / Cards ── */
 .ehr-panel {
-  background: #f5f5f5;
-  border: 1px solid #999;
-  box-shadow: inset 1px 1px 0 #fff, 1px 1px 2px rgba(0,0,0,0.1);
+  background: #ffffff;
+  border: 1px solid #ebebeb;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
 }
 
+.ehr-panel:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Buttons ── */
 .ehr-button {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
-  border: 1px solid #888;
-  padding: 2px 8px;
-  font-size: 11px;
+  background: #ffffff;
+  border: 1px solid #dddddd;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: 1px 1px 0 #fff inset, -1px -1px 0 #999 inset;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  box-shadow: none;
+  color: #222222;
 }
 
 .ehr-button:hover {
-  background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
+  background: #f7f7f7;
+  border-color: #222222;
 }
 
 .ehr-button:active {
-  background: linear-gradient(to bottom, #d8d8d8 0%, #e8e8e8 100%);
-  box-shadow: -1px -1px 0 #fff inset, 1px 1px 0 #999 inset;
+  transform: scale(0.98);
+  background: #f0f0f0;
 }
 
 .ehr-button-primary {
-  background: linear-gradient(to bottom, #4a90d9 0%, #2a5db0 100%);
-  border: 1px solid #1a4080;
+  background: #FF385C;
+  border: none;
   color: white;
+  font-weight: 600;
 }
 
 .ehr-button-primary:hover {
-  background: linear-gradient(to bottom, #5aa0e9 0%, #3a6dc0 100%);
+  background: #e31c5f;
 }
 
+.ehr-button-primary:active {
+  background: #d70466;
+}
+
+/* ── Inputs ── */
 .ehr-input {
-  border: 1px solid #7f9db9;
-  padding: 2px 4px;
+  border: 1px solid #dddddd;
+  padding: 8px 12px;
   background: white;
-  font-size: 11px;
+  font-size: 14px;
+  border-radius: 8px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .ehr-input:focus {
   outline: none;
-  border-color: #4a90d9;
-  box-shadow: 0 0 2px rgba(74, 144, 217, 0.5);
+  border-color: #222222;
+  box-shadow: 0 0 0 1px #222222;
 }
 
+/* ── Fieldset ── */
 .ehr-fieldset {
-  border: 1px solid #999;
-  padding: 8px;
-  margin: 4px 0;
-  background: #fafafa;
+  border: 1px solid #ebebeb;
+  padding: 16px;
+  margin: 8px 0;
+  background: #ffffff;
+  border-radius: 12px;
 }
 
 .ehr-fieldset legend {
   font-weight: 600;
-  padding: 0 4px;
-  color: #333;
+  padding: 0 8px;
+  color: #222222;
+  font-size: 14px;
 }
 
+/* ── Checkbox ── */
 .ehr-checkbox {
-  margin-right: 4px;
+  margin-right: 8px;
+  accent-color: #FF385C;
 }
 
 .ehr-label {
-  color: #333;
-  font-size: 11px;
+  color: #222222;
+  font-size: 14px;
 }
 
+/* ── Header (Navigation bar) ── */
 .ehr-header {
-  background: linear-gradient(to bottom, #6699cc 0%, #336699 100%);
-  color: white;
-  padding: 4px 8px;
+  background: #ffffff;
+  color: #222222;
+  padding: 8px 16px;
   font-weight: 600;
-  border-bottom: 1px solid #1a4080;
+  border-bottom: 1px solid #ebebeb;
+  font-size: 14px;
 }
 
+/* ── Subheader ── */
 .ehr-subheader {
-  background: linear-gradient(to bottom, #e8e8e8 0%, #d0d0d0 100%);
-  color: #333;
-  padding: 2px 6px;
-  font-weight: 600;
-  border-bottom: 1px solid #999;
-  font-size: 10px;
+  background: #f7f7f7;
+  color: #222222;
+  padding: 8px 12px;
+  font-weight: 500;
+  border-bottom: 1px solid #ebebeb;
+  font-size: 13px;
 }
 
+/* ── Tree Items ── */
 .ehr-tree-item {
-  padding: 1px 4px;
+  padding: 4px 8px;
   cursor: pointer;
+  border-radius: 8px;
 }
 
 .ehr-tree-item:hover {
-  background: #e0e8f0;
+  background: #f7f7f7;
 }
 
 .ehr-tree-item.selected {
-  background: #316ac5;
+  background: #FF385C;
   color: white;
 }
 
+/* ── Status Bar ── */
 .ehr-status-bar {
-  background: #ece9d8;
-  border-top: 1px solid #fff;
-  padding: 2px 8px;
-  font-size: 10px;
-  color: #333;
+  background: #f7f7f7;
+  border-top: 1px solid #ebebeb;
+  padding: 6px 16px;
+  font-size: 12px;
+  color: #717171;
 }
 
+/* ── Tabs (Pill-style like Airbnb filters) ── */
 .ehr-tab {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
-  border: 1px solid #888;
-  border-bottom: none;
-  padding: 3px 12px;
-  margin-right: 2px;
+  background: transparent;
+  border: 1px solid #dddddd;
+  border-radius: 20px;
+  padding: 6px 14px;
+  margin-right: 6px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #222222;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ehr-tab:hover {
+  background: #f7f7f7;
+  border-color: #222222;
 }
 
 .ehr-tab.active {
-  background: #fff;
-  border-bottom: 1px solid #fff;
-  margin-bottom: -1px;
+  background: #222222;
+  color: #ffffff;
+  border-color: #222222;
   position: relative;
   z-index: 1;
+  margin-bottom: 0;
 }
 
+/* ── Tab Content ── */
 .ehr-tab-content {
-  border: 1px solid #888;
-  background: #fff;
-  padding: 8px;
+  border: 1px solid #ebebeb;
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
 }
 
+/* ── Grid Rows ── */
 .ehr-grid-row:nth-child(even) {
-  background: #f0f4f8;
+  background: #fafafa;
 }
 
 .ehr-grid-row:hover {
-  background: #d0e0f0;
+  background: #f7f7f7;
 }
 
 .ehr-grid-row.selected {
-  background: #316ac5;
-  color: white;
+  background: #fff1f2;
+  color: #222222;
 }
 
+/* ── Alerts ── */
 .ehr-alert-critical {
-  background: #ffcccc;
-  border: 1px solid #cc0000;
-  color: #990000;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  border-radius: 8px;
 }
 
 .ehr-alert-warning {
-  background: #fff3cd;
-  border: 1px solid #cc9900;
-  color: #664d00;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  border-radius: 8px;
 }
 
 .ehr-alert-info {
-  background: #cce5ff;
-  border: 1px solid #0066cc;
-  color: #004085;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  border-radius: 8px;
 }
 
+/* ── Toolbar ── */
 .ehr-toolbar {
-  background: linear-gradient(to bottom, #f5f5f5 0%, #e5e5e5 100%);
-  border-bottom: 1px solid #999;
-  padding: 2px 4px;
+  background: #ffffff;
+  border-bottom: 1px solid #ebebeb;
+  padding: 8px 16px;
 }
 
 .ehr-toolbar-button {
   background: transparent;
   border: 1px solid transparent;
-  padding: 2px 6px;
+  padding: 6px 12px;
   cursor: pointer;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  color: #222222;
+  font-size: 13px;
 }
 
 .ehr-toolbar-button:hover {
-  background: #e0e8f0;
-  border: 1px solid #999;
+  background: #f7f7f7;
+  border-color: #dddddd;
 }
 
 .ehr-toolbar-button-active {
-  background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
-  border: 1px solid #888;
-  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15);
+  background: #f7f7f7;
+  border: 1px solid #dddddd;
+  box-shadow: none;
+  font-weight: 600;
 }
 
+/* ── Splitter ── */
 .ehr-splitter {
-  background: #d4d0c8;
+  background: #ebebeb;
   cursor: col-resize;
-  width: 4px;
+  width: 1px;
 }
 
 .ehr-splitter:hover {
+  background: #dddddd;
+}
+
+/* ── Scrollbar styling ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dddddd;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
   background: #b0b0b0;
+}
+
+/* ── Smooth transitions ── */
+a, button {
+  transition: all 0.15s ease;
+}
+
+/* ── Focus ring (accessibility) ── */
+:focus-visible {
+  outline: 2px solid #FF385C;
+  outline-offset: 2px;
+  border-radius: 4px;
 }

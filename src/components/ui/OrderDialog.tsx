@@ -106,12 +106,12 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
       width="lg"
       footer={
         <>
-          <button onClick={onClose} className="ehr-button px-4">
+          <button onClick={onClose} className="px-5 py-2.5 bg-white border border-[#dddddd] rounded-lg text-sm font-medium text-[#222222] hover:bg-[#f7f7f7] transition-colors">
             Cancel
           </button>
           <button 
             onClick={handleSubmit} 
-            className="ehr-button ehr-button-primary px-4"
+            className="px-5 py-2.5 bg-[#FF385C] text-white rounded-lg text-sm font-medium hover:bg-[#e31c5f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={selectedOrders.length === 0}
           >
             Sign & Submit ({selectedOrders.length})
@@ -122,121 +122,117 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
       <div className="space-y-3">
         {/* Patient Info */}
         {patientName && (
-          <div className="ehr-alert-info p-2 flex items-center justify-between">
-            <span className="text-[11px]">
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between">
+            <span className="text-sm text-blue-800">
               <strong>Patient:</strong> {patientName} {patientMrn && `(${patientMrn})`}
             </span>
-            <span className="text-[10px] text-gray-600">Orders will be signed by Dr. Sarah Anderson</span>
+            <span className="text-xs text-blue-600">Orders will be signed by Dr. Sarah Anderson</span>
           </div>
         )}
 
         <div className="flex space-x-3">
           {/* Order Selection */}
           <div className="flex-1">
-            <fieldset className="ehr-fieldset h-64 flex flex-col">
-              <legend>Available {type === 'lab' ? 'Tests' : 'Studies'}</legend>
-              <div className="flex items-center space-x-2 mb-2">
-                <Search className="w-3.5 h-3.5 text-gray-500" />
+            <label className="block text-xs font-semibold text-[#222222] mb-2 uppercase tracking-wider">Available {type === 'lab' ? 'Tests' : 'Studies'}</label>
+            <div className="flex flex-col h-64">
+              <div className="flex items-center space-x-2 mb-2 px-3 py-2 border border-[#dddddd] rounded-lg">
+                <Search className="w-4 h-4 text-[#717171]" />
                 <input
                   type="text"
                   placeholder={`Search ${type === 'lab' ? 'tests' : 'studies'}...`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="ehr-input flex-1"
+                  className="flex-1 text-sm focus:outline-none placeholder-[#b0b0b0]"
                 />
               </div>
-              <div className="flex-1 overflow-auto border border-gray-300 bg-white">
+              <div className="flex-1 overflow-auto border border-[#ebebeb] rounded-xl bg-white">
                 {filteredItems.map((item) => {
                   const isSelected = selectedOrders.some(o => o.code === item.code);
                   return (
                     <div
                       key={item.code}
                       onClick={() => !isSelected && addOrder(item)}
-                      className={`px-2 py-1 text-[11px] cursor-pointer border-b border-gray-200 flex items-center justify-between ${
-                        isSelected ? 'bg-gray-200 text-gray-500' : 'hover:bg-blue-50'
+                      className={`px-3 py-2 text-sm cursor-pointer border-b border-[#f0f0f0] flex items-center justify-between transition-colors ${
+                        isSelected ? 'bg-[#f7f7f7] text-[#b0b0b0]' : 'hover:bg-[#fafafa]'
                       }`}
                     >
                       <div>
-                        <span className="font-mono text-[10px] text-gray-500 mr-2">{item.code}</span>
-                        <span>{item.name}</span>
+                        <span className="font-mono text-xs text-[#717171] mr-2">{item.code}</span>
+                        <span className="text-[#222222]">{item.name}</span>
                       </div>
-                      {!isSelected && <Plus className="w-3 h-3 text-blue-600" />}
+                      {!isSelected && <Plus className="w-4 h-4 text-[#FF385C]" />}
                     </div>
                   );
                 })}
               </div>
-            </fieldset>
+            </div>
           </div>
 
           {/* Selected Orders */}
           <div className="w-64">
-            <fieldset className="ehr-fieldset h-64 flex flex-col">
-              <legend>Selected Orders ({selectedOrders.length})</legend>
-              <div className="flex-1 overflow-auto border border-gray-300 bg-white">
+            <label className="block text-xs font-semibold text-[#222222] mb-2 uppercase tracking-wider">Selected Orders ({selectedOrders.length})</label>
+            <div className="flex flex-col h-64">
+              <div className="flex-1 overflow-auto border border-[#ebebeb] rounded-xl bg-white">
                 {selectedOrders.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500 text-[11px]">
+                  <div className="p-6 text-center text-[#b0b0b0] text-sm">
                     Click items on the left to add orders
                   </div>
                 ) : (
                   selectedOrders.map((order) => (
-                    <div key={order.id} className="px-2 py-1 text-[11px] border-b border-gray-200 flex items-center justify-between">
+                    <div key={order.id} className="px-3 py-2 text-sm border-b border-[#f0f0f0] flex items-center justify-between hover:bg-[#fafafa] transition-colors">
                       <div>
-                        <div className="font-medium">{order.code}</div>
-                        <div className="text-[10px] text-gray-500 truncate max-w-[180px]">{order.name}</div>
+                        <div className="font-medium text-[#222222]">{order.code}</div>
+                        <div className="text-xs text-[#717171] truncate max-w-[180px]">{order.name}</div>
                       </div>
-                      <button onClick={() => removeOrder(order.id)} className="text-red-600 hover:text-red-800">
-                        <X className="w-3 h-3" />
+                      <button onClick={() => removeOrder(order.id)} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-50 text-[#b0b0b0] hover:text-red-500 transition-colors">
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))
                 )}
               </div>
-            </fieldset>
+            </div>
           </div>
         </div>
 
         {/* Order Options */}
-        <div className="flex space-x-3">
-          <fieldset className="ehr-fieldset flex-1">
-            <legend>Priority</legend>
-            <div className="flex space-x-4">
-              {[
-                { value: 'routine', label: 'Routine' },
-                { value: 'asap', label: 'ASAP' },
-                { value: 'stat', label: 'STAT' },
-              ].map((p) => (
-                <label key={p.value} className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="priority"
-                    value={p.value}
-                    checked={priority === p.value}
-                    onChange={(e) => setPriority(e.target.value as typeof priority)}
-                    className="mr-1"
-                  />
-                  <span className={`ehr-label ${p.value === 'stat' ? 'text-red-700 font-semibold' : ''}`}>
-                    {p.label}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
+        <div>
+          <label className="block text-xs font-semibold text-[#222222] mb-2 uppercase tracking-wider">Priority</label>
+          <div className="flex space-x-2">
+            {[
+              { value: 'routine', label: 'Routine' },
+              { value: 'asap', label: 'ASAP' },
+              { value: 'stat', label: 'STAT' },
+            ].map((p) => (
+              <button
+                key={p.value}
+                onClick={() => setPriority(p.value as typeof priority)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  priority === p.value
+                    ? p.value === 'stat' ? 'bg-red-600 text-white' : 'bg-[#222222] text-white'
+                    : 'bg-white border border-[#dddddd] text-[#222222] hover:border-[#222222]'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <fieldset className="ehr-fieldset">
-          <legend>Clinical Notes / Indication</legend>
+        <div>
+          <label className="block text-xs font-semibold text-[#222222] mb-2 uppercase tracking-wider">Clinical Notes / Indication</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Enter clinical indication or special instructions..."
-            className="ehr-input w-full h-16 resize-none"
+            className="w-full px-3 py-2 border border-[#dddddd] rounded-xl text-sm h-20 resize-none focus:outline-none focus:border-[#222222] transition-colors"
           />
-        </fieldset>
+        </div>
 
         {priority === 'stat' && (
-          <div className="ehr-alert-warning p-2 flex items-center text-[11px]">
-            <AlertTriangle className="w-4 h-4 mr-2" />
-            <span><strong>STAT orders</strong> should only be used for emergent situations. Results expected within 1 hour.</span>
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center text-xs">
+            <AlertTriangle className="w-4 h-4 mr-2 text-red-600" />
+            <span className="text-red-800"><strong>STAT orders</strong> should only be used for emergent situations. Results expected within 1 hour.</span>
           </div>
         )}
       </div>

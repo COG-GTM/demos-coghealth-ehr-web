@@ -44,7 +44,9 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #717171;
-  border: none;
+  border-top: none;
+  border-right: none;
+  border-left: none;
 }
 
 td {

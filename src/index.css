@@ -1,238 +1,336 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Tahoma&display=swap');
 
 @theme {
-  --color-primary-50: #e8f4fc;
-  --color-primary-100: #d1e9f9;
-  --color-primary-200: #a3d3f3;
-  --color-primary-300: #75bded;
-  --color-primary-400: #47a7e7;
-  --color-primary-500: #1a91e1;
-  --color-primary-600: #1574b4;
-  --color-primary-700: #105787;
-  --color-primary-800: #0a3a5a;
-  --color-primary-900: #051d2d;
-  --color-primary-950: #020e16;
-  
-  --font-family-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --color-primary-50: #fff1f2;
+  --color-primary-100: #ffe4e6;
+  --color-primary-200: #fecdd3;
+  --color-primary-300: #fda4af;
+  --color-primary-400: #fb7185;
+  --color-primary-500: #FF385C;
+  --color-primary-600: #e11d48;
+  --color-primary-700: #be123c;
+  --color-primary-800: #9f1239;
+  --color-primary-900: #881337;
+  --color-primary-950: #4c0519;
+
+  --font-family-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
 }
 
+/* ─── Base ─── */
 body {
-  font-size: 11px;
-  background-color: #d4d0c8;
+  font-size: 14px;
+  background-color: #ffffff;
+  color: #222222;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 input, select, textarea, button {
-  font-size: 11px;
+  font-size: 14px;
+  font-family: inherit;
 }
 
+/* ─── Tables ─── */
 table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 th {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e8e8e8 100%);
-  border: 1px solid #999;
+  background: #fafafa;
+  border-bottom: 1px solid #ebebeb;
   font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #717171;
+  border: none;
 }
 
 td {
-  border: 1px solid #ccc;
+  border: none;
+  border-bottom: 1px solid #f3f3f3;
 }
 
+/* ─── Panels / Cards ─── */
 .ehr-panel {
-  background: #f5f5f5;
-  border: 1px solid #999;
-  box-shadow: inset 1px 1px 0 #fff, 1px 1px 2px rgba(0,0,0,0.1);
+  background: #ffffff;
+  border: 1px solid #ebebeb;
+  border-radius: 16px;
+  box-shadow: none;
+  overflow: hidden;
 }
 
+/* ─── Buttons ─── */
 .ehr-button {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
-  border: 1px solid #888;
-  padding: 2px 8px;
-  font-size: 11px;
+  background: #ffffff;
+  border: 1px solid #dddddd;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: 1px 1px 0 #fff inset, -1px -1px 0 #999 inset;
+  border-radius: 24px;
+  color: #222222;
+  transition: all 0.15s ease;
+  box-shadow: none;
 }
 
 .ehr-button:hover {
-  background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
+  background: #f7f7f7;
+  border-color: #222222;
 }
 
 .ehr-button:active {
-  background: linear-gradient(to bottom, #d8d8d8 0%, #e8e8e8 100%);
-  box-shadow: -1px -1px 0 #fff inset, 1px 1px 0 #999 inset;
+  background: #f0f0f0;
+  transform: scale(0.98);
+  box-shadow: none;
 }
 
 .ehr-button-primary {
-  background: linear-gradient(to bottom, #4a90d9 0%, #2a5db0 100%);
-  border: 1px solid #1a4080;
+  background: #FF385C;
+  border: none;
   color: white;
+  font-weight: 600;
 }
 
 .ehr-button-primary:hover {
-  background: linear-gradient(to bottom, #5aa0e9 0%, #3a6dc0 100%);
+  background: #e0314f;
 }
 
+/* ─── Inputs ─── */
 .ehr-input {
-  border: 1px solid #7f9db9;
-  padding: 2px 4px;
+  border: 1px solid #dddddd;
+  padding: 10px 16px;
   background: white;
-  font-size: 11px;
+  font-size: 14px;
+  border-radius: 24px;
+  color: #222222;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .ehr-input:focus {
   outline: none;
-  border-color: #4a90d9;
-  box-shadow: 0 0 2px rgba(74, 144, 217, 0.5);
+  border-color: #222222;
+  box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.08);
 }
 
+/* ─── Fieldsets ─── */
 .ehr-fieldset {
-  border: 1px solid #999;
-  padding: 8px;
-  margin: 4px 0;
+  border: 1px solid #ebebeb;
+  padding: 20px;
+  margin: 8px 0;
   background: #fafafa;
+  border-radius: 16px;
 }
 
 .ehr-fieldset legend {
   font-weight: 600;
-  padding: 0 4px;
-  color: #333;
+  padding: 0 8px;
+  color: #222222;
 }
 
-.ehr-checkbox {
-  margin-right: 4px;
-}
-
+/* ─── Labels ─── */
 .ehr-label {
-  color: #333;
-  font-size: 11px;
+  color: #717171;
+  font-size: 12px;
+  font-weight: 500;
 }
 
+/* ─── Headers ─── */
 .ehr-header {
-  background: linear-gradient(to bottom, #6699cc 0%, #336699 100%);
-  color: white;
-  padding: 4px 8px;
+  background: #ffffff;
+  color: #222222;
+  padding: 16px 20px;
   font-weight: 600;
-  border-bottom: 1px solid #1a4080;
+  border-bottom: 1px solid #ebebeb;
 }
 
 .ehr-subheader {
-  background: linear-gradient(to bottom, #e8e8e8 0%, #d0d0d0 100%);
-  color: #333;
-  padding: 2px 6px;
-  font-weight: 600;
-  border-bottom: 1px solid #999;
-  font-size: 10px;
+  background: #fafafa;
+  color: #717171;
+  padding: 10px 20px;
+  font-weight: 500;
+  border-bottom: 1px solid #ebebeb;
+  font-size: 13px;
 }
 
-.ehr-tree-item {
-  padding: 1px 4px;
-  cursor: pointer;
-}
-
-.ehr-tree-item:hover {
-  background: #e0e8f0;
-}
-
-.ehr-tree-item.selected {
-  background: #316ac5;
-  color: white;
-}
-
-.ehr-status-bar {
-  background: #ece9d8;
-  border-top: 1px solid #fff;
-  padding: 2px 8px;
-  font-size: 10px;
-  color: #333;
-}
-
+/* ─── Tabs (Pill style) ─── */
 .ehr-tab {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
-  border: 1px solid #888;
-  border-bottom: none;
-  padding: 3px 12px;
-  margin-right: 2px;
+  background: transparent;
+  border: 1px solid #dddddd;
+  border-radius: 24px;
+  padding: 6px 16px;
+  margin-right: 6px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #717171;
+  transition: all 0.15s ease;
+}
+
+.ehr-tab:hover {
+  background: #f7f7f7;
+  color: #222222;
+  border-color: #222222;
 }
 
 .ehr-tab.active {
-  background: #fff;
-  border-bottom: 1px solid #fff;
-  margin-bottom: -1px;
+  background: #222222;
+  color: #ffffff;
+  border-color: #222222;
+  margin-bottom: 0;
   position: relative;
   z-index: 1;
 }
 
 .ehr-tab-content {
-  border: 1px solid #888;
+  border: 1px solid #ebebeb;
   background: #fff;
-  padding: 8px;
+  padding: 20px;
+  border-radius: 16px;
 }
 
+/* ─── Grid Rows ─── */
 .ehr-grid-row:nth-child(even) {
-  background: #f0f4f8;
+  background: #fafafa;
 }
 
 .ehr-grid-row:hover {
-  background: #d0e0f0;
+  background: #f7f7f7;
 }
 
 .ehr-grid-row.selected {
-  background: #316ac5;
-  color: white;
+  background: #fff1f2;
+  color: #222222;
 }
 
+/* ─── Alerts ─── */
 .ehr-alert-critical {
-  background: #ffcccc;
-  border: 1px solid #cc0000;
-  color: #990000;
+  background: #fff1f2;
+  border: none;
+  border-left: 3px solid #FF385C;
+  color: #be123c;
 }
 
 .ehr-alert-warning {
-  background: #fff3cd;
-  border: 1px solid #cc9900;
-  color: #664d00;
+  background: #fffbeb;
+  border: none;
+  border-left: 3px solid #f59e0b;
+  color: #92400e;
 }
 
 .ehr-alert-info {
-  background: #cce5ff;
-  border: 1px solid #0066cc;
-  color: #004085;
+  background: #eff6ff;
+  border: none;
+  border-left: 3px solid #3b82f6;
+  color: #1e40af;
 }
 
+/* ─── Toolbar ─── */
 .ehr-toolbar {
-  background: linear-gradient(to bottom, #f5f5f5 0%, #e5e5e5 100%);
-  border-bottom: 1px solid #999;
-  padding: 2px 4px;
+  background: #ffffff;
+  border-bottom: 1px solid #ebebeb;
+  padding: 8px 24px;
 }
 
 .ehr-toolbar-button {
   background: transparent;
   border: 1px solid transparent;
-  padding: 2px 6px;
+  padding: 8px 12px;
   cursor: pointer;
+  border-radius: 24px;
+  color: #717171;
+  font-weight: 500;
+  transition: all 0.15s ease;
 }
 
 .ehr-toolbar-button:hover {
-  background: #e0e8f0;
-  border: 1px solid #999;
+  background: #f7f7f7;
+  color: #222222;
+  border-color: transparent;
 }
 
 .ehr-toolbar-button-active {
-  background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
-  border: 1px solid #888;
-  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15);
+  background: #f7f7f7;
+  color: #222222;
+  border: 1px solid transparent;
+  font-weight: 600;
+  box-shadow: none;
 }
 
+/* ─── Status Bar ─── */
+.ehr-status-bar {
+  background: #fafafa;
+  border-top: 1px solid #ebebeb;
+  padding: 8px 24px;
+  font-size: 12px;
+  color: #717171;
+}
+
+/* ─── Tree Items ─── */
+.ehr-tree-item {
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.ehr-tree-item:hover {
+  background: #f7f7f7;
+}
+
+.ehr-tree-item.selected {
+  background: #fff1f2;
+  color: #FF385C;
+}
+
+/* ─── Splitter ─── */
 .ehr-splitter {
-  background: #d4d0c8;
+  background: #ebebeb;
   cursor: col-resize;
-  width: 4px;
+  width: 1px;
 }
 
 .ehr-splitter:hover {
+  background: #dddddd;
+}
+
+/* ─── Checkbox ─── */
+.ehr-checkbox {
+  margin-right: 8px;
+  accent-color: #FF385C;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dddddd;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
   background: #b0b0b0;
+}
+
+/* ─── Animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.4; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
 }

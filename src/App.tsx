@@ -230,8 +230,8 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
             </div>
 
             {/* User menu */}
-            <div className="flex items-center space-x-2 border border-[#dddddd] rounded-full px-3 py-1.5 hover:shadow-md transition-shadow cursor-pointer">
-              <Menu className="w-4 h-4 text-[#717171]" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
+            <div className="flex items-center space-x-2 border border-[#dddddd] rounded-full px-3 py-1.5 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <Menu className="w-4 h-4 text-[#717171]" />
               <div className="w-7 h-7 bg-[#222222] rounded-full flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
               </div>

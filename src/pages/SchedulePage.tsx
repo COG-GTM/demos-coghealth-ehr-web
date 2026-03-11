@@ -452,7 +452,7 @@ export default function SchedulePage() {
                 <span>{selectedAppointment.patientName}</span>
                 <button 
                   onClick={() => navigate(`/patients/${selectedAppointment.patientId}`)}
-                  className="text-white/80 hover:text-white flex items-center text-[10px]"
+                  className="text-[#717171] hover:text-[#222222] flex items-center text-[10px]"
                 >
                   <ExternalLink className="w-3 h-3 mr-0.5" /> Chart
                 </button>
@@ -536,7 +536,7 @@ export default function SchedulePage() {
                       onClick={(e) => { e.stopPropagation(); togglePanel('vitals'); }}
                     >
                       <div className="flex items-center">
-                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-white/50 text-[9px] font-bold">
+                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-[#dddddd] text-[9px] font-bold">
                           {expandedPanels.vitals ? '-' : '+'}
                         </span>
                         Vitals
@@ -581,7 +581,7 @@ export default function SchedulePage() {
                       onClick={(e) => { e.stopPropagation(); togglePanel('prep'); }}
                     >
                       <div className="flex items-center">
-                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-white/50 text-[9px] font-bold">
+                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-[#dddddd] text-[9px] font-bold">
                           {expandedPanels.prep ? '-' : '+'}
                         </span>
                         Prep Notes
@@ -608,7 +608,7 @@ export default function SchedulePage() {
                       onClick={(e) => { e.stopPropagation(); togglePanel('labs'); }}
                     >
                       <div className="flex items-center">
-                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-white/50 text-[9px] font-bold">
+                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-[#dddddd] text-[9px] font-bold">
                           {expandedPanels.labs ? '-' : '+'}
                         </span>
                         Recent Labs
@@ -638,7 +638,7 @@ export default function SchedulePage() {
                       onClick={(e) => { e.stopPropagation(); togglePanel('meds'); }}
                     >
                       <div className="flex items-center">
-                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-white/50 text-[9px] font-bold">
+                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-[#dddddd] text-[9px] font-bold">
                           {expandedPanels.meds ? '-' : '+'}
                         </span>
                         Medications

@@ -147,7 +147,7 @@ function filterWorklist(
     else if (worklistSort === 'location') cmp = (a.room || a.appointmentTime || '').localeCompare(b.room || b.appointmentTime || '');
     else if (worklistSort === 'status') {
       const order: Record<string, number> = { critical: 0, 'in-progress': 1, roomed: 2, waiting: 3, 'ready-discharge': 4 };
-      cmp = (order[a.status] || 5) - (order[b.status] || 5);
+      cmp = (order[a.status] ?? 5) - (order[b.status] ?? 5);
     }
     return worklistSortAsc ? cmp : -cmp;
   });
@@ -474,7 +474,7 @@ describe('Worklist Filtering and Sorting', () => {
       const result = filterWorklist(worklistPatients, 'all', 'status', true);
       const statusOrder: Record<string, number> = { critical: 0, 'in-progress': 1, roomed: 2, waiting: 3, 'ready-discharge': 4 };
       for (let i = 1; i < result.length; i++) {
-        expect((statusOrder[result[i - 1].status] || 5)).toBeLessThanOrEqual(statusOrder[result[i].status] || 5);
+        expect((statusOrder[result[i - 1].status] ?? 5)).toBeLessThanOrEqual(statusOrder[result[i].status] ?? 5);
       }
     });
 
@@ -482,7 +482,7 @@ describe('Worklist Filtering and Sorting', () => {
       const result = filterWorklist(worklistPatients, 'all', 'status', false);
       const statusOrder: Record<string, number> = { critical: 0, 'in-progress': 1, roomed: 2, waiting: 3, 'ready-discharge': 4 };
       for (let i = 1; i < result.length; i++) {
-        expect((statusOrder[result[i - 1].status] || 5)).toBeGreaterThanOrEqual(statusOrder[result[i].status] || 5);
+        expect((statusOrder[result[i - 1].status] ?? 5)).toBeGreaterThanOrEqual(statusOrder[result[i].status] ?? 5);
       }
     });
 

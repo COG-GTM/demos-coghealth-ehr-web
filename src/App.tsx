@@ -213,18 +213,19 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
             </div>
 
             {/* User Menu - Airbnb hamburger style */}
-            <div className="flex items-center border border-[#dddddd] rounded-full px-3 py-1.5 hover:shadow-md transition-shadow cursor-pointer space-x-2"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <Menu className="w-4 h-4 text-[#717171]" />
-              <div className="w-7 h-7 bg-[#717171] rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-white" />
+            <div className="relative">
+              <div className="flex items-center border border-[#dddddd] rounded-full px-3 py-1.5 hover:shadow-md transition-shadow cursor-pointer space-x-2"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                <Menu className="w-4 h-4 text-[#717171]" />
+                <div className="w-7 h-7 bg-[#717171] rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4 text-white" />
+                </div>
               </div>
-            </div>
 
-            {/* User dropdown */}
-            {mobileMenuOpen && (
-              <div className="absolute right-6 top-16 w-64 bg-white border border-[#ebebeb] rounded-xl shadow-lg z-50 overflow-hidden">
+              {/* User dropdown */}
+              {mobileMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-[#ebebeb] rounded-xl shadow-lg z-50 overflow-hidden">
                 <div className="px-4 py-3 border-b border-[#ebebeb]">
                   <div className="font-semibold text-sm text-[#222222]">Dr. Sarah Anderson</div>
                   <div className="text-xs text-[#717171]">Internal Medicine</div>
@@ -255,6 +256,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
                 </button>
               </div>
             )}
+            </div>
           </div>
         </div>
       </header>

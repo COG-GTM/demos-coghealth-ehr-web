@@ -201,9 +201,9 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
             </div>
 
             {/* Session & User Info */}
-            <div className="hidden lg:flex items-center space-x-3 text-xs text-[#717171]">
-              <span className="text-[#717171]">Springfield Medical Center</span>
-              <div className="w-px h-4 bg-[#ebebeb]" />
+            <div className="flex items-center space-x-3 text-xs text-[#717171]">
+              <span className="hidden lg:inline text-[#717171]">Springfield Medical Center</span>
+              <div className="hidden lg:block w-px h-4 bg-[#ebebeb]" />
               <div className="flex items-center space-x-1">
                 <Lock className="w-3.5 h-3.5" />
                 <span className={sessionTime < SESSION_WARNING_MS ? 'text-amber-500 font-semibold' : ''}>

@@ -478,7 +478,7 @@ export default function DashboardPage() {
                           </td>
                           <td className="px-3 py-3 text-center">
                             <div className="flex items-center justify-center space-x-1">
-                              <button className="p-1.5 hover:bg-[#F7F7F7] rounded-full transition-colors" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View">
+                              <button className="p-1.5 hover:bg-[#F7F7F7] rounded-full transition-colors" onClick={() => { markAsRead(item.id); navigate(`/patients/${item.id}`); }} title="View">
                                 <Eye className="w-4 h-4 text-[#717171]" />
                               </button>
                               <button className="p-1.5 hover:bg-[#F7F7F7] rounded-full transition-colors" onClick={() => markAsRead(item.id)} title="Mark Read">

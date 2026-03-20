@@ -136,7 +136,7 @@ export function filterWorklistPatients(
     else if (worklistSort === 'location') cmp = (a.room || a.appointmentTime || '').localeCompare(b.room || b.appointmentTime || '');
     else if (worklistSort === 'status') {
       const order = { critical: 0, 'in-progress': 1, roomed: 2, waiting: 3, 'ready-discharge': 4 };
-      cmp = (order[a.status] || 5) - (order[b.status] || 5);
+      cmp = (order[a.status] ?? 5) - (order[b.status] ?? 5);
     }
     return worklistSortAsc ? cmp : -cmp;
   });

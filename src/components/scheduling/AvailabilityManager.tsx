@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,6 +13,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import type { AvailabilityBlock, BlockType } from '../../types/availability';
+import { apiToBlock, blockToApi } from '../../types/availability';
+import { providerAvailabilityService } from '../../services/providerAvailabilityService';
 import { Modal } from '../ui/Modal';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -105,8 +107,11 @@ const defaultBlocks: AvailabilityBlock[] = [
   { id: 'default-18', blockType: 'AVAILABLE', dayOfWeek: 5, startHour: 14, startMinute: 0, endHour: 17, endMinute: 0, slotDuration: 30, visitTypesAllowed: [], recurring: true, recurrencePattern: 'WEEKDAYS' },
 ];
 
-export default function AvailabilityManager({ providerName }: AvailabilityManagerProps) {
+export default function AvailabilityManager({ providerId, providerName }: AvailabilityManagerProps) {
   const [blocks, setBlocks] = useState<AvailabilityBlock[]>(defaultBlocks);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<AvailabilityBlock | null>(null);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showOverrideDialog, setShowOverrideDialog] = useState(false);
@@ -125,6 +130,27 @@ export default function AvailabilityManager({ providerName }: AvailabilityManage
   } | null>(null);
 
   const calendarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    loadAvailability();
+  }, [providerId]);
+
+  const loadAvailability = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await providerAvailabilityService.getAll(providerId);
+      if (data.length > 0) {
+        setBlocks(data.map(apiToBlock));
+        setHasUnsavedChanges(false);
+      }
+    } catch {
+      // API not available — use default template blocks
+      console.warn('Could not load availability from API, using defaults');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getWeekDates = useCallback(() => {
     const today = new Date();
@@ -327,9 +353,40 @@ export default function AvailabilityManager({ providerName }: AvailabilityManage
     setShowSaveConfirm(true);
   };
 
-  const confirmSave = () => {
-    setHasUnsavedChanges(false);
-    setShowSaveConfirm(false);
+  const confirmSave = async () => {
+    setIsSaving(true);
+    setError(null);
+    try {
+      // Delete removed server-side blocks
+      const currentServerIds = new Set(blocks.filter(b => b.serverId).map(b => b.serverId!));
+      const serverBlocks = await providerAvailabilityService.getAll(providerId).catch(() => []);
+      for (const sb of serverBlocks) {
+        if (sb.id && !currentServerIds.has(sb.id)) {
+          await providerAvailabilityService.delete(providerId, sb.id);
+        }
+      }
+
+      // Create or update blocks
+      const updatedBlocks: AvailabilityBlock[] = [];
+      for (const block of blocks) {
+        const payload = blockToApi(block, providerId);
+        if (block.serverId) {
+          const updated = await providerAvailabilityService.update(providerId, block.serverId, payload);
+          updatedBlocks.push(apiToBlock(updated));
+        } else {
+          const created = await providerAvailabilityService.create(providerId, payload);
+          updatedBlocks.push(apiToBlock(created));
+        }
+      }
+      setBlocks(updatedBlocks);
+      setHasUnsavedChanges(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save availability');
+      console.error('Save failed:', err);
+    } finally {
+      setIsSaving(false);
+      setShowSaveConfirm(false);
+    }
   };
 
   const resetToDefault = () => {
@@ -481,12 +538,28 @@ export default function AvailabilityManager({ providerName }: AvailabilityManage
           <span className="text-gray-400">|</span>
           <button
             onClick={handleSave}
+            disabled={isSaving}
             className="ehr-button ehr-button-primary flex items-center text-[10px] px-2"
           >
-            <Save className="w-3 h-3 mr-0.5" /> Save Template
+            <Save className="w-3 h-3 mr-0.5" /> {isSaving ? 'Saving...' : 'Save Template'}
           </button>
         </div>
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="px-2 py-1 bg-red-100 border-b border-red-300 text-[10px] text-red-700 flex items-center justify-between">
+          <span><AlertTriangle className="w-3 h-3 inline mr-1" />{error}</span>
+          <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700 text-[10px]">&times;</button>
+        </div>
+      )}
+
+      {/* Loading overlay */}
+      {isLoading && (
+        <div className="px-2 py-1 bg-blue-50 border-b border-blue-200 text-[10px] text-blue-700">
+          Loading availability...
+        </div>
+      )}
 
       {/* Block type legend / palette */}
       <div className="flex items-center px-2 py-1 border-b border-gray-300 bg-[#f0ede1] text-[10px]">

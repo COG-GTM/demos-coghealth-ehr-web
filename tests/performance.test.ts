@@ -61,12 +61,17 @@ describe('CogHealth EHR Performance Tests', () => {
       await page.goto(BASE_URL, { waitUntil: 'networkidle0' });
       await page.waitForSelector('table tbody tr', { timeout: 15000 });
 
+      const rowCountBefore = await page.$$eval('table tbody tr', rows => rows.length);
       const start = performance.now();
       await page.click('::-p-xpath(//button[contains(., "Results")])');
-      // Wait for re-render after filter
+      // Wait for table content to change after filter
       await page.waitForFunction(
-        () => document.querySelector('table tbody') !== null,
-        { timeout: 5000 }
+        (prev) => {
+          const current = document.querySelectorAll('table tbody tr').length;
+          return current !== prev;
+        },
+        { timeout: 5000 },
+        rowCountBefore
       );
       const end = performance.now();
       recordTiming('Dashboard', 'Inbox tab filter (Results)', end - start);
@@ -77,11 +82,17 @@ describe('CogHealth EHR Performance Tests', () => {
       await page.goto(BASE_URL, { waitUntil: 'networkidle0' });
       await page.waitForSelector('table tbody tr', { timeout: 15000 });
 
+      const rowCountBefore = await page.$$eval('table tbody tr', rows => rows.length);
       const start = performance.now();
       await page.click('::-p-xpath(//button[contains(., "Inpatient")])');
+      // Wait for table content to change after filter
       await page.waitForFunction(
-        () => document.querySelector('table') !== null,
-        { timeout: 5000 }
+        (prev) => {
+          const current = document.querySelectorAll('table tbody tr').length;
+          return current !== prev;
+        },
+        { timeout: 5000 },
+        rowCountBefore
       );
       const end = performance.now();
       recordTiming('Dashboard', 'Worklist filter (Inpatient)', end - start);
@@ -205,8 +216,10 @@ describe('CogHealth EHR Performance Tests', () => {
 
       const start = performance.now();
       await page.click('::-p-xpath(//button[contains(., "Encounters")])');
+      // Encounters tab shows "Coming soon" placeholder, not a table
       await page.waitForFunction(
-        () => document.querySelector('table') !== null,
+        () => document.querySelector('.bg-white.border')?.textContent?.includes('Coming soon') ||
+              document.querySelector('table') !== null,
         { timeout: 5000 }
       );
       const end = performance.now();
@@ -250,11 +263,17 @@ describe('CogHealth EHR Performance Tests', () => {
       await page.goto(`${BASE_URL}/schedule`, { waitUntil: 'networkidle0' });
       await page.waitForSelector('.ehr-status-bar', { timeout: 15000 });
 
+      const contentBefore = await page.$eval('.ehr-status-bar', el => el.textContent || '');
       const start = performance.now();
       await page.click('::-p-xpath(//button[contains(., "Waiting")])');
+      // Wait for status bar content to change after filter
       await page.waitForFunction(
-        () => document.querySelector('.ehr-status-bar') !== null,
-        { timeout: 5000 }
+        (prev) => {
+          const current = document.querySelector('.ehr-status-bar')?.textContent || '';
+          return current !== prev;
+        },
+        { timeout: 5000 },
+        contentBefore
       );
       const end = performance.now();
       recordTiming('Provider Schedule', 'Filter by status (Waiting)', end - start);

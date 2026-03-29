@@ -136,11 +136,18 @@ describe('CogHealth EHR Performance Tests', () => {
         await searchInput.type('Smith');
       }
 
+      const rowCountBefore = await page.$$eval('table tbody tr', rows => rows.length);
       const start = performance.now();
       await page.click('::-p-xpath(//button[contains(., "Find")])');
+      // Wait for row count to change and spinner to disappear
       await page.waitForFunction(
-        () => document.querySelector('table tbody') !== null,
-        { timeout: 10000 }
+        (prev: number) => {
+          const rows = document.querySelectorAll('table tbody tr');
+          const noSpinner = !document.querySelector('.animate-spin');
+          return noSpinner && rows.length !== prev;
+        },
+        { timeout: 10000 },
+        rowCountBefore
       );
       const end = performance.now();
       recordTiming('Patient List', 'Search patients (Smith)', end - start);
@@ -218,8 +225,7 @@ describe('CogHealth EHR Performance Tests', () => {
       await page.click('::-p-xpath(//button[contains(., "Encounters")])');
       // Encounters tab shows "Coming soon" placeholder, not a table
       await page.waitForFunction(
-        () => document.querySelector('.bg-white.border')?.textContent?.includes('Coming soon') ||
-              document.querySelector('table') !== null,
+        () => document.querySelector('.bg-white.border')?.textContent?.includes('Coming soon'),
         { timeout: 5000 }
       );
       const end = performance.now();

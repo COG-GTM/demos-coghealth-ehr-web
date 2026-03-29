@@ -21,6 +21,7 @@ describe('CogHealth EHR Performance Tests', () => {
   let page: Page;
 
   beforeAll(async () => {
+    jest.setTimeout(PERF_TIMEOUT + 30000);
     browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
     page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 800 });

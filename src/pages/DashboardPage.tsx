@@ -246,119 +246,136 @@ export default function DashboardPage() {
 
   const getInboxIcon = (type: string) => {
     switch (type) {
-      case 'lab': return <FlaskConical className="w-3 h-3" />;
-      case 'imaging': return <Radio className="w-3 h-3" />;
-      case 'message': return <MessageSquare className="w-3 h-3" />;
-      case 'refill': return <Pill className="w-3 h-3" />;
-      case 'order': return <ClipboardList className="w-3 h-3" />;
-      case 'cosign': return <Edit3 className="w-3 h-3" />;
-      case 'consult': return <Stethoscope className="w-3 h-3" />;
-      default: return <FileText className="w-3 h-3" />;
+      case 'lab': return <FlaskConical className="w-4 h-4" />;
+      case 'imaging': return <Radio className="w-4 h-4" />;
+      case 'message': return <MessageSquare className="w-4 h-4" />;
+      case 'refill': return <Pill className="w-4 h-4" />;
+      case 'order': return <ClipboardList className="w-4 h-4" />;
+      case 'cosign': return <Edit3 className="w-4 h-4" />;
+      case 'consult': return <Stethoscope className="w-4 h-4" />;
+      default: return <FileText className="w-4 h-4" />;
     }
   };
 
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'critical': return 'bg-gray-300 text-gray-800 font-bold';
-      case 'waiting': return 'bg-gray-200 text-gray-700';
-      case 'roomed': return 'bg-gray-200 text-gray-700';
-      case 'in-progress': return 'bg-gray-300 text-gray-800';
-      case 'ready-discharge': return 'bg-gray-100 text-gray-600';
+      case 'critical': return 'bg-red-50 text-red-700';
+      case 'waiting': return 'bg-amber-50 text-amber-700';
+      case 'roomed': return 'bg-blue-50 text-blue-700';
+      case 'in-progress': return 'bg-indigo-50 text-indigo-700';
+      case 'ready-discharge': return 'bg-emerald-50 text-emerald-700';
       default: return 'bg-gray-100 text-gray-600';
     }
   };
 
   const getFlagStyle = (flag: string) => {
     switch (flag) {
-      case 'fall-risk': return { label: 'FALL', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'isolation': return { label: 'ISO', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'npo': return { label: 'NPO', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'allergy': return { label: 'ALLERGY', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'code-status': return { label: 'DNR', bg: 'bg-gray-300', color: 'text-gray-800' };
-      case 'vip': return { label: 'VIP', bg: 'bg-gray-100', color: 'text-gray-700' };
-      default: return { label: flag, bg: 'bg-gray-100', color: 'text-gray-700' };
+      case 'fall-risk': return { label: 'FALL', bg: 'bg-amber-50', color: 'text-amber-700' };
+      case 'isolation': return { label: 'ISO', bg: 'bg-purple-50', color: 'text-purple-700' };
+      case 'npo': return { label: 'NPO', bg: 'bg-orange-50', color: 'text-orange-700' };
+      case 'allergy': return { label: 'ALLERGY', bg: 'bg-red-50', color: 'text-red-700' };
+      case 'code-status': return { label: 'DNR', bg: 'bg-gray-100', color: 'text-gray-700' };
+      case 'vip': return { label: 'VIP', bg: 'bg-indigo-50', color: 'text-indigo-700' };
+      default: return { label: flag, bg: 'bg-gray-100', color: 'text-gray-600' };
     }
   };
 
   return (
-    <div className="h-full flex flex-col relative" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col relative bg-gray-50">
       <LoadingOverlay isLoading={loading} text="Loading dashboard..." />
-      {/* Toolbar */}
-      <div className="ehr-toolbar flex items-center justify-between">
-        <div className="flex items-center space-x-1">
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'Refreshed', message: 'Dashboard data has been refreshed.', type: 'info' })}>
-            <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
-          </button>
-          <span className="text-gray-400">|</span>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowRxDialog(true)}>
-            <Pill className="w-3.5 h-3.5 mr-1" /> e-Prescribe
-          </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowLabDialog(true)}>
-            <FlaskConical className="w-3.5 h-3.5 mr-1" /> Order Labs
-          </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowImagingDialog(true)}>
-            <Radio className="w-3.5 h-3.5 mr-1" /> Order Imaging
-          </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'New Note', message: 'Select a patient first to create a clinical note.', type: 'info' })}>
-            <FileText className="w-3.5 h-3.5 mr-1" /> New Note
-          </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'Referral', message: 'Select a patient first to create a referral.', type: 'info' })}>
-            <Send className="w-3.5 h-3.5 mr-1" /> Referral
-          </button>
-          <span className="text-gray-400">|</span>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPrintDialog(true)}>
-            <Printer className="w-3.5 h-3.5 mr-1" /> Print
-          </button>
+
+      {/* Page header */}
+      <div className="px-6 pt-6 pb-4">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Welcome back, Dr. Anderson</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              onClick={() => setShowAlert({ title: 'Refreshed', message: 'Dashboard data has been refreshed.', type: 'info' })}
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            </button>
+            <button 
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              onClick={() => setShowPrintDialog(true)}
+            >
+              <Printer className="w-3.5 h-3.5" /> Print
+            </button>
+            <button className="relative p-2 text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <Bell className="w-4 h-4" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-medium flex items-center justify-center rounded-full">3</span>
+            </button>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <button className="ehr-toolbar-button relative">
-            <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-gray-600 text-white text-[9px] flex items-center justify-center border border-gray-700">3</span>
+
+        {/* Quick actions */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 transition-colors" onClick={() => setShowRxDialog(true)}>
+            <Pill className="w-3.5 h-3.5" /> e-Prescribe
+          </button>
+          <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" onClick={() => setShowLabDialog(true)}>
+            <FlaskConical className="w-3.5 h-3.5" /> Order Labs
+          </button>
+          <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" onClick={() => setShowImagingDialog(true)}>
+            <Radio className="w-3.5 h-3.5" /> Order Imaging
+          </button>
+          <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" onClick={() => setShowAlert({ title: 'New Note', message: 'Select a patient first to create a clinical note.', type: 'info' })}>
+            <FileText className="w-3.5 h-3.5" /> New Note
+          </button>
+          <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" onClick={() => setShowAlert({ title: 'Referral', message: 'Select a patient first to create a referral.', type: 'info' })}>
+            <Send className="w-3.5 h-3.5" /> Referral
           </button>
         </div>
       </div>
 
       {/* Critical Alerts Banner */}
       {criticalAlerts.length > 0 && (
-        <div className="ehr-alert-critical px-3 py-2">
+        <div className="mx-6 mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <ShieldAlert className="w-4 h-4 mr-2" />
-              <span className="font-semibold text-[11px]">CRITICAL ALERTS ({criticalAlerts.length})</span>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+                <ShieldAlert className="w-4 h-4 text-red-600" />
+              </div>
+              <div>
+                <span className="font-semibold text-sm text-red-800">Critical Alerts ({criticalAlerts.length})</span>
+                <div className="flex items-center gap-4 mt-0.5">
+                  {criticalAlerts.slice(0, 2).map((alert) => (
+                    <span key={alert.id} className="text-xs text-red-700">
+                      <strong>{alert.patient}:</strong> {alert.alert}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="flex items-center space-x-4">
-              {criticalAlerts.slice(0, 2).map((alert) => (
-                <span key={alert.id} className="text-[11px]">
-                  <strong>{alert.patient}:</strong> {alert.alert} - {alert.action}
-                </span>
-              ))}
-              <button className="ehr-button text-[10px] px-2 py-0.5">Review All</button>
-            </div>
+            <button className="px-3 py-1.5 text-xs font-medium text-red-700 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors">Review All</button>
           </div>
         </div>
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden p-1 space-x-1">
+      <div className="flex-1 flex overflow-hidden px-6 pb-6 gap-5">
         {/* Left Column - Inbox & Worklist */}
-        <div className="flex-1 flex flex-col space-y-1 overflow-hidden">
+        <div className="flex-1 flex flex-col gap-5 overflow-hidden min-w-0">
           {/* Inbox Panel */}
-          <div className={`ehr-panel flex flex-col overflow-hidden ${expandedPanels.inbox ? 'flex-1' : ''}`}>
+          <div className={`bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden ${expandedPanels.inbox ? 'flex-1' : ''}`}>
             <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
+              className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={(e) => { e.stopPropagation(); togglePanel('inbox'); }}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.inbox ? '-' : '+'}
-                </span>
-                <span>Inbox</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{inboxCounts.all} unread</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-900">Inbox</span>
+                {inboxCounts.all > 0 && (
+                  <span className="px-2 py-0.5 text-xs font-medium bg-indigo-50 text-indigo-600 rounded-full">{inboxCounts.all} unread</span>
+                )}
               </div>
+              <svg className={`w-4 h-4 text-gray-400 transition-transform ${expandedPanels.inbox ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </div>
             {expandedPanels.inbox && (
               <>
-                <div className="ehr-subheader flex items-center space-x-1">
+                <div className="flex items-center gap-1 px-4 pb-2 border-b border-gray-100 flex-wrap">
                   {[
                     { key: 'all', label: 'All', count: inboxCounts.all },
                     { key: 'results', label: 'Results', count: inboxCounts.results },
@@ -370,16 +387,16 @@ export default function DashboardPage() {
                     <button
                       key={tab.key}
                       onClick={() => setInboxTab(tab.key as InboxTab)}
-                      className={`ehr-tab ${inboxTab === tab.key ? 'active' : ''}`}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${inboxTab === tab.key ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
                     >
-                      {tab.label} {tab.count > 0 && <span className="ml-1 text-[9px]">({tab.count})</span>}
+                      {tab.label}{tab.count > 0 ? ` (${tab.count})` : ''}
                     </button>
                   ))}
-                  <span className="text-gray-400 mx-1">|</span>
+                  <div className="flex-1" />
                   <select 
                     value={inboxPriority} 
                     onChange={(e) => setInboxPriority(e.target.value as InboxPriority)}
-                    className="ehr-input text-[10px] py-0"
+                    className="text-xs border border-gray-200 rounded-md px-2 py-1 text-gray-600 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
                     <option value="all">All Priority</option>
                     <option value="critical">Critical</option>
@@ -389,52 +406,54 @@ export default function DashboardPage() {
                   <select 
                     value={inboxReadFilter} 
                     onChange={(e) => setInboxReadFilter(e.target.value as InboxReadFilter)}
-                    className="ehr-input text-[10px] py-0"
+                    className="text-xs border border-gray-200 rounded-md px-2 py-1 text-gray-600 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
                     <option value="all">All</option>
                     <option value="unread">Unread</option>
                     <option value="read">Read</option>
                   </select>
-                  <div className="flex-1" />
-                  <button className="ehr-toolbar-button p-0.5 text-[10px]" onClick={markAllAsRead}>Mark All Read</button>
-                  <button className="ehr-toolbar-button p-0.5"><RefreshCw className="w-3 h-3" /></button>
+                  <button className="text-xs text-indigo-600 hover:text-indigo-700 font-medium px-2 py-1" onClick={markAllAsRead}>Mark All Read</button>
                 </div>
-                <div className="flex-1 overflow-auto bg-white">
-                  <table className="w-full text-[11px]">
-                    <thead className="sticky top-0">
+                <div className="flex-1 overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-gray-50">
                       <tr>
-                        <th className="px-1 py-1 text-left w-6"></th>
-                        <th className="px-1 py-1 text-left w-6">Type</th>
-                        <th className="px-1 py-1 text-left">Patient</th>
-                        <th className="px-1 py-1 text-left">Subject</th>
-                        <th className="px-1 py-1 text-left w-20">Time</th>
-                        <th className="px-1 py-1 text-center w-16">Actions</th>
+                        <th className="px-4 py-2 text-left w-8"></th>
+                        <th className="px-2 py-2 text-left w-8">Type</th>
+                        <th className="px-2 py-2 text-left">Patient</th>
+                        <th className="px-2 py-2 text-left">Subject</th>
+                        <th className="px-2 py-2 text-left w-20">Time</th>
+                        <th className="px-2 py-2 text-center w-24">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredInbox.map((item, idx) => (
+                      {filteredInbox.map((item) => (
                         <tr 
                           key={item.id} 
-                          className={`cursor-pointer ${item.priority === 'critical' ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''} ${!item.read ? 'font-semibold' : ''}`}
+                          className={`cursor-pointer transition-colors hover:bg-gray-50 ${item.priority === 'critical' ? 'bg-red-50/50' : ''} ${!item.read ? 'font-medium' : 'text-gray-500'}`}
                         >
-                          <td className="px-1 py-0.5">
-                            {!item.read && <span className="w-2 h-2 bg-gray-600 inline-block border border-gray-700" />}
-                            {item.flagged && <Flag className="w-3 h-3 text-red-600 inline" />}
+                          <td className="px-4 py-2.5">
+                            <div className="flex items-center gap-1">
+                              {!item.read && <span className="w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0" />}
+                              {item.flagged && <Flag className="w-3.5 h-3.5 text-amber-500" />}
+                            </div>
                           </td>
-                          <td className="px-1 py-0.5">{getInboxIcon(item.type)}</td>
-                          <td className="px-1 py-0.5">
-                            <span>{item.patientName}</span>
-                            <span className="text-gray-500 ml-1 text-[10px]">{item.patientMrn}</span>
+                          <td className="px-2 py-2.5 text-gray-400">{getInboxIcon(item.type)}</td>
+                          <td className="px-2 py-2.5">
+                            <span className="text-gray-900">{item.patientName}</span>
+                            <span className="text-gray-400 ml-1.5 text-xs">{item.patientMrn}</span>
                           </td>
-                          <td className="px-1 py-0.5">
-                            <div className={item.priority === 'critical' ? 'text-red-800' : ''}>{item.title}</div>
-                            <div className="text-gray-500 text-[10px] truncate max-w-[300px]">{item.detail}</div>
+                          <td className="px-2 py-2.5">
+                            <div className={`text-sm ${item.priority === 'critical' ? 'text-red-700 font-medium' : 'text-gray-900'}`}>{item.title}</div>
+                            <div className="text-xs text-gray-400 truncate max-w-[300px]">{item.detail}</div>
                           </td>
-                          <td className="px-1 py-0.5 text-gray-500">{item.timestamp}</td>
-                          <td className="px-1 py-0.5 text-center">
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View"><Eye className="w-3 h-3" /></button>
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => markAsRead(item.id)} title="Mark Read"><CheckCircle2 className="w-3 h-3" /></button>
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => toggleFlag(item.id)} title="Flag"><Flag className={`w-3 h-3 ${item.flagged ? 'text-red-600' : ''}`} /></button>
+                          <td className="px-2 py-2.5 text-xs text-gray-400">{item.timestamp}</td>
+                          <td className="px-2 py-2.5">
+                            <div className="flex items-center justify-center gap-0.5">
+                              <button className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View"><Eye className="w-3.5 h-3.5" /></button>
+                              <button className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" onClick={() => markAsRead(item.id)} title="Mark Read"><CheckCircle2 className="w-3.5 h-3.5" /></button>
+                              <button className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" onClick={() => toggleFlag(item.id)} title="Flag"><Flag className={`w-3.5 h-3.5 ${item.flagged ? 'text-amber-500' : ''}`} /></button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -446,22 +465,20 @@ export default function DashboardPage() {
           </div>
 
           {/* Worklist Panel */}
-          <div className={`ehr-panel flex flex-col overflow-hidden ${expandedPanels.worklist ? 'flex-1' : ''}`}>
+          <div className={`bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden ${expandedPanels.worklist ? 'flex-1' : ''}`}>
             <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
+              className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={(e) => { e.stopPropagation(); togglePanel('worklist'); }}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.worklist ? '-' : '+'}
-                </span>
-                <span>Patient Worklist</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{worklistPatients.length} patients</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-900">Patient Worklist</span>
+                <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">{worklistPatients.length} patients</span>
               </div>
+              <svg className={`w-4 h-4 text-gray-400 transition-transform ${expandedPanels.worklist ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </div>
             {expandedPanels.worklist && (
               <>
-                <div className="ehr-subheader flex items-center space-x-1">
+                <div className="flex items-center gap-1 px-4 pb-2 border-b border-gray-100 flex-wrap">
                   {[
                     { key: 'all', label: 'All' },
                     { key: 'inpatient', label: 'Inpatient' },
@@ -471,110 +488,110 @@ export default function DashboardPage() {
                     <button
                       key={filter.key}
                       onClick={() => setWorklistFilter(filter.key as WorklistFilter)}
-                      className={`ehr-tab ${worklistFilter === filter.key ? 'active' : ''}`}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${worklistFilter === filter.key ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
                     >
                       {filter.label}
                     </button>
                   ))}
-                  <span className="text-gray-400 mx-1">|</span>
-                  <span className="text-[10px] text-gray-600">Sort:</span>
+                  <div className="flex-1" />
+                  <span className="text-xs text-gray-400">Sort:</span>
                   <select 
                     value={worklistSort} 
                     onChange={(e) => setWorklistSort(e.target.value as WorklistSort)}
-                    className="ehr-input text-[10px] py-0"
+                    className="text-xs border border-gray-200 rounded-md px-2 py-1 text-gray-600 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
                     <option value="status">Status</option>
                     <option value="name">Name</option>
                     <option value="location">Location</option>
                   </select>
                   <button 
-                    className="ehr-toolbar-button p-0.5 text-[10px]" 
+                    className="p-1 rounded-md hover:bg-gray-100 text-gray-400 transition-colors" 
                     onClick={() => setWorklistSortAsc(!worklistSortAsc)}
                   >
                     {worklistSortAsc ? '↑' : '↓'}
                   </button>
-                  <div className="flex-1" />
-                  <button className="ehr-button text-[10px] px-2 py-0.5 flex items-center" onClick={() => setShowPrintDialog(true)}>
-                    <Printer className="w-3 h-3 mr-1" /> Print List
-                  </button>
                 </div>
-                <div className="flex-1 overflow-auto bg-white">
-                  <table className="w-full text-[11px]">
-                    <thead className="sticky top-0">
+                <div className="flex-1 overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-gray-50">
                       <tr>
-                        <th className="px-1 py-1 text-left">Patient</th>
-                        <th className="px-1 py-1 text-left">Location</th>
-                        <th className="px-1 py-1 text-left">Chief Complaint</th>
-                        <th className="px-1 py-1 text-left">Vitals</th>
-                        <th className="px-1 py-1 text-left">Alerts</th>
-                        <th className="px-1 py-1 text-left">Status</th>
-                        <th className="px-1 py-1 text-center w-16">Actions</th>
+                        <th className="px-4 py-2 text-left">Patient</th>
+                        <th className="px-2 py-2 text-left">Location</th>
+                        <th className="px-2 py-2 text-left">Chief Complaint</th>
+                        <th className="px-2 py-2 text-left">Vitals</th>
+                        <th className="px-2 py-2 text-left">Alerts</th>
+                        <th className="px-2 py-2 text-left">Status</th>
+                        <th className="px-2 py-2 text-center w-20">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredWorklist.map((patient, idx) => (
+                      {filteredWorklist.map((patient) => (
                         <tr 
                           key={patient.id} 
-                          className={`cursor-pointer hover:bg-blue-50 ${patient.status === 'critical' ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''}`}
+                          className={`cursor-pointer transition-colors hover:bg-gray-50 ${patient.status === 'critical' ? 'bg-red-50/50' : ''}`}
                           onClick={() => navigate(`/patients/${patient.id}`)}
                         >
-                          <td className="px-1 py-0.5">
-                            <div className="font-semibold">{patient.name}</div>
-                            <div className="text-gray-500 text-[10px]">{patient.mrn} • {patient.age}{patient.gender}</div>
-                            <div className="flex space-x-0.5 mt-0.5">
-                              {patient.flags.map((flag) => {
-                                const style = getFlagStyle(flag);
-                                return (
-                                  <span key={flag} className={`px-1 py-0 text-[9px] ${style.bg} ${style.color}`}>
-                                    {style.label}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </td>
-                          <td className="px-1 py-0.5">
-                            <div>{patient.room || patient.appointmentTime}</div>
-                            <div className="text-gray-500 text-[10px]">{patient.location}</div>
-                          </td>
-                          <td className="px-1 py-0.5">
-                            <div>{patient.chiefComplaint}</div>
-                            {patient.admitDate && <div className="text-gray-500 text-[10px]">Admit: {patient.admitDate}</div>}
-                          </td>
-                          <td className="px-1 py-0.5 text-[10px]">
-                            {patient.lastVitals ? (
-                              <>
-                                <div>BP: <span className={parseInt(patient.lastVitals.bp) > 140 ? 'text-red-600 font-semibold' : ''}>{patient.lastVitals.bp}</span></div>
-                                <div>HR: {patient.lastVitals.hr} SpO2: {patient.lastVitals.spo2}%</div>
-                              </>
-                            ) : (
-                              <span className="text-gray-400">-</span>
+                          <td className="px-4 py-2.5">
+                            <div className="font-medium text-gray-900">{patient.name}</div>
+                            <div className="text-xs text-gray-400">{patient.mrn} &middot; {patient.age}{patient.gender}</div>
+                            {patient.flags.length > 0 && (
+                              <div className="flex gap-1 mt-1">
+                                {patient.flags.map((flag) => {
+                                  const style = getFlagStyle(flag);
+                                  return (
+                                    <span key={flag} className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${style.bg} ${style.color}`}>
+                                      {style.label}
+                                    </span>
+                                  );
+                                })}
+                              </div>
                             )}
                           </td>
-                          <td className="px-1 py-0.5">
+                          <td className="px-2 py-2.5">
+                            <div className="text-gray-900">{patient.room || patient.appointmentTime}</div>
+                            <div className="text-xs text-gray-400">{patient.location}</div>
+                          </td>
+                          <td className="px-2 py-2.5">
+                            <div className="text-gray-700">{patient.chiefComplaint}</div>
+                            {patient.admitDate && <div className="text-xs text-gray-400">Admit: {patient.admitDate}</div>}
+                          </td>
+                          <td className="px-2 py-2.5 text-xs">
+                            {patient.lastVitals ? (
+                              <>
+                                <div>BP: <span className={parseInt(patient.lastVitals.bp) > 140 ? 'text-red-600 font-medium' : 'text-gray-700'}>{patient.lastVitals.bp}</span></div>
+                                <div className="text-gray-500">HR: {patient.lastVitals.hr} SpO2: {patient.lastVitals.spo2}%</div>
+                              </>
+                            ) : (
+                              <span className="text-gray-300">&mdash;</span>
+                            )}
+                          </td>
+                          <td className="px-2 py-2.5">
                             {patient.alerts.length > 0 ? (
                               <div className="space-y-0.5">
                                 {patient.alerts.slice(0, 2).map((alert, i) => (
-                                  <div key={i} className={`text-[10px] ${alert.includes('CRITICAL') || alert.includes('Troponin') ? 'text-red-700 font-semibold' : 'text-amber-700'}`}>
-                                    • {alert}
+                                  <div key={i} className={`text-xs ${alert.includes('CRITICAL') || alert.includes('Troponin') ? 'text-red-600 font-medium' : 'text-amber-600'}`}>
+                                    {alert}
                                   </div>
                                 ))}
                               </div>
                             ) : (
-                              <span className="text-gray-400 text-[10px]">None</span>
+                              <span className="text-xs text-gray-300">&mdash;</span>
                             )}
                           </td>
-                          <td className="px-1 py-0.5">
-                            <span className={`px-1.5 py-0.5 text-[10px] ${getStatusStyle(patient.status)}`}>
+                          <td className="px-2 py-2.5">
+                            <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getStatusStyle(patient.status)}`}>
                               {patient.status.replace('-', ' ')}
                             </span>
                           </td>
-                          <td className="px-1 py-0.5 text-center">
-                            <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Open Chart">
-                              <ExternalLink className="w-3 h-3" />
-                            </button>
-                            <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Write Note">
-                              <Edit3 className="w-3 h-3" />
-                            </button>
+                          <td className="px-2 py-2.5 text-center">
+                            <div className="flex items-center justify-center gap-0.5">
+                              <button onClick={(e) => { e.stopPropagation(); }} className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" title="Open Chart">
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); }} className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" title="Write Note">
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -587,72 +604,70 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Column - Sidebar Panels */}
-        <div className="w-64 flex flex-col space-y-1 overflow-auto">
+        <div className="w-72 flex flex-col gap-4 overflow-auto flex-shrink-0">
           {/* Unsigned Notes */}
-          <div className="ehr-panel">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
             <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
+              className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={(e) => { e.stopPropagation(); togglePanel('unsigned'); }}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.unsigned ? '-' : '+'}
-                </span>
-                <span>Unsigned Notes ({unsignedNotes.length})</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-900">Unsigned Notes</span>
+                <span className="px-2 py-0.5 text-xs font-medium bg-amber-50 text-amber-600 rounded-full">{unsignedNotes.length}</span>
               </div>
+              <svg className={`w-4 h-4 text-gray-400 transition-transform ${expandedPanels.unsigned ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </div>
             {expandedPanels.unsigned && (
-              <div className="bg-white">
-                {unsignedNotes.map((note, idx) => (
-                  <div key={note.id} className={`px-2 py-1.5 border-b border-gray-200 flex items-center justify-between ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+              <div>
+                {unsignedNotes.map((note) => (
+                  <div key={note.id} className="px-4 py-2.5 border-t border-gray-100 flex items-center justify-between hover:bg-gray-50 transition-colors">
                     <div>
-                      <div className="font-semibold text-[11px]">{note.patientName}</div>
-                      <div className="text-[10px] text-gray-500">{note.type} • {note.date}</div>
+                      <div className="text-sm font-medium text-gray-900">{note.patientName}</div>
+                      <div className="text-xs text-gray-400">{note.type} &middot; {note.date}</div>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      {note.daysOld >= 2 && <span className="text-[9px] text-red-600 font-semibold">{note.daysOld}d</span>}
-                      <button className="ehr-button ehr-button-primary text-[10px] px-2 py-0.5">Sign</button>
+                    <div className="flex items-center gap-2">
+                      {note.daysOld >= 2 && <span className="text-xs text-red-500 font-medium">{note.daysOld}d</span>}
+                      <button className="px-2.5 py-1 text-xs font-medium bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors">Sign</button>
                     </div>
                   </div>
                 ))}
-                <div className="p-1 bg-gray-100 border-t">
-                  <button className="ehr-button w-full text-[10px]">Sign All Notes</button>
+                <div className="p-3 border-t border-gray-100">
+                  <button className="w-full px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">Sign All Notes</button>
                 </div>
               </div>
             )}
           </div>
 
           {/* Pending Orders */}
-          <div className="ehr-panel">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
             <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
+              className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={(e) => { e.stopPropagation(); togglePanel('orders'); }}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.orders ? '-' : '+'}
-                </span>
-                <span>Pending Orders ({pendingOrders.length})</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-900">Pending Orders</span>
+                <span className="px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-600 rounded-full">{pendingOrders.length}</span>
               </div>
+              <svg className={`w-4 h-4 text-gray-400 transition-transform ${expandedPanels.orders ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </div>
             {expandedPanels.orders && (
-              <div className="bg-white">
-                {pendingOrders.map((order, idx) => (
-                  <div key={order.id} className={`px-2 py-1.5 border-b border-gray-200 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+              <div>
+                {pendingOrders.map((order) => (
+                  <div key={order.id} className="px-4 py-2.5 border-t border-gray-100 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-semibold text-[11px]">{order.patientName}</div>
-                        <div className="text-[10px] text-gray-700">{order.order}</div>
-                        <div className="flex space-x-1 mt-0.5">
-                          <span className="text-[9px] px-1 py-0 bg-gray-200 text-gray-700 border border-gray-400">{order.type}</span>
-                          <span className={`text-[9px] px-1 py-0 border border-gray-400 ${
-                            order.status === 'draft' ? 'bg-gray-100 text-gray-600' :
-                            order.status === 'pending-approval' ? 'bg-gray-200 text-gray-700' :
-                            'bg-gray-100 text-gray-600'
+                        <div className="text-sm font-medium text-gray-900">{order.patientName}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{order.order}</div>
+                        <div className="flex gap-1.5 mt-1">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">{order.type}</span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                            order.status === 'draft' ? 'bg-gray-100 text-gray-500' :
+                            order.status === 'pending-approval' ? 'bg-amber-50 text-amber-600' :
+                            'bg-blue-50 text-blue-600'
                           }`}>{order.status}</span>
                         </div>
                       </div>
-                      <button className="ehr-button text-[10px] px-2 py-0.5">Review</button>
+                      <button className="px-2.5 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors">Review</button>
                     </div>
                   </div>
                 ))}
@@ -661,23 +676,21 @@ export default function DashboardPage() {
           </div>
 
           {/* Today's Schedule */}
-          <div className="ehr-panel">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
             <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
+              className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={(e) => { e.stopPropagation(); togglePanel('schedule'); }}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.schedule ? '-' : '+'}
-                </span>
-                <span>Today's Schedule</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-900">Today's Schedule</span>
               </div>
+              <svg className={`w-4 h-4 text-gray-400 transition-transform ${expandedPanels.schedule ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </div>
             {expandedPanels.schedule && (
-              <div className="bg-white p-2">
-                <div className="flex items-center justify-between mb-2 text-[11px]">
-                  <span className="text-gray-500">January 18, 2024</span>
-                  <span className="font-semibold">8 appointments</span>
+              <div className="px-4 pb-3">
+                <div className="flex items-center justify-between mb-3 text-xs">
+                  <span className="text-gray-400">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                  <span className="font-medium text-gray-600">8 appointments</span>
                 </div>
                 <div className="space-y-1">
                   {[
@@ -687,75 +700,63 @@ export default function DashboardPage() {
                     { time: '11:30 AM', patient: 'Brown, Emily', status: 'upcoming' },
                     { time: '2:00 PM', patient: 'Wilson, Patricia', status: 'upcoming' },
                   ].map((slot, i) => (
-                    <div key={i} className={`flex items-center justify-between py-1 px-2 text-[11px] ${
-                      slot.status === 'current' ? 'bg-gray-200 border border-gray-400' :
-                      slot.status === 'next' ? 'bg-gray-100' :
-                      slot.status === 'done' ? 'bg-gray-50 text-gray-400' : ''
+                    <div key={i} className={`flex items-center justify-between py-2 px-3 rounded-lg text-sm ${
+                      slot.status === 'current' ? 'bg-indigo-50 text-indigo-700' :
+                      slot.status === 'next' ? 'bg-gray-50 text-gray-700' :
+                      slot.status === 'done' ? 'text-gray-300' : 'text-gray-600'
                     }`}>
-                      <span>{slot.time}</span>
-                      <span className={slot.status === 'current' ? 'font-semibold' : ''}>{slot.patient}</span>
+                      <span className="text-xs font-mono">{slot.time}</span>
+                      <span className={slot.status === 'current' ? 'font-medium' : ''}>{slot.patient}</span>
                     </div>
                   ))}
                 </div>
-                <button className="ehr-button w-full mt-2 text-[10px]">View Full Schedule</button>
+                <button className="w-full mt-3 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">View Full Schedule</button>
               </div>
             )}
           </div>
 
-          {/* System Messages */}
-          <div className="ehr-panel">
-            <div className="ehr-header flex items-center">
-              <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">!</span>
-              <span>System Messages</span>
+          {/* System Status */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+            <div className="px-4 py-3">
+              <span className="text-sm font-semibold text-gray-900">System Status</span>
             </div>
-            <div className="bg-white text-[10px]">
-              <div className="px-2 py-1 border-b border-gray-200">
-                <span className="text-gray-500">01/18 08:00</span> - System maintenance scheduled for 01/20 2:00 AM
-              </div>
-              <div className="px-2 py-1 border-b border-gray-200">
-                <span className="text-gray-500">01/17 14:30</span> - New formulary updates available
-              </div>
-              <div className="px-2 py-1">
-                <span className="text-gray-500">01/16 09:15</span> - Lab interface upgraded to v3.2
-              </div>
+            <div className="px-4 pb-3 space-y-2">
+              {[
+                { label: 'Database', status: 'Connected', ok: true },
+                { label: 'HL7 Interface', status: 'Active', ok: true },
+                { label: 'Pharmacy Link', status: 'Online', ok: true },
+                { label: 'Last Sync', status: '2 min ago', ok: true },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">{item.label}</span>
+                  <div className="flex items-center gap-1.5">
+                    {item.ok && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+                    <span className={item.ok ? 'text-emerald-600 font-medium' : 'text-gray-600'}>{item.status}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* System Status */}
-          <div className="ehr-panel">
-            <div className="ehr-header flex items-center">
-              <span>System Status</span>
+          {/* System Messages */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+            <div className="px-4 py-3">
+              <span className="text-sm font-semibold text-gray-900">System Messages</span>
             </div>
-            <div className="bg-white p-2 text-[10px]">
-              <table className="w-full">
-                <tbody>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5">Database</td>
-                    <td className="border border-gray-300 px-1 py-0.5 text-green-700">Connected</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">HL7 Interface</td>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50 text-green-700">Active</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5">Pharmacy Link</td>
-                    <td className="border border-gray-300 px-1 py-0.5 text-green-700">Online</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">Last Sync</td>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">2 min ago</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="pb-1">
+              {[
+                { date: '01/18 08:00', text: 'System maintenance scheduled for 01/20 2:00 AM' },
+                { date: '01/17 14:30', text: 'New formulary updates available' },
+                { date: '01/16 09:15', text: 'Lab interface upgraded to v3.2' },
+              ].map((msg, i) => (
+                <div key={i} className="px-4 py-2 border-t border-gray-50 text-xs">
+                  <span className="text-gray-400">{msg.date}</span>
+                  <span className="text-gray-600 ml-2">{msg.text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Status Bar */}
-      <div className="ehr-status-bar flex items-center justify-between">
-        <span>Dr. Sarah Anderson, MD | Internal Medicine | Logged in 2h 34m</span>
-        <span>Last refreshed: {new Date().toLocaleTimeString()}</span>
       </div>
 
       {/* Dialogs */}

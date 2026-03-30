@@ -223,9 +223,9 @@ describe('CogHealth EHR Performance Tests', () => {
 
       const start = performance.now();
       await page.click('::-p-xpath(//button[contains(., "Encounters")])');
-      // Encounters tab shows "Coming soon" placeholder, not a table
+      // Encounters tab shows "Coming soon" placeholder
       await page.waitForFunction(
-        () => document.querySelector('.bg-white.border')?.textContent?.includes('Coming soon'),
+        () => document.body.textContent?.includes('Encounters view - Coming soon'),
         { timeout: 5000 }
       );
       const end = performance.now();

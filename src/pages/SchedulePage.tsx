@@ -20,13 +20,15 @@ import {
   RefreshCw,
   Stethoscope,
   MessageSquare,
-  ExternalLink
+  ExternalLink,
+  Settings2
 } from 'lucide-react';
 import type { EncounterStatus } from '../types';
 import { Modal, AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
+import AvailabilityManager from '../components/scheduling/AvailabilityManager';
 
 interface ScheduleAppointment {
   id: number;
@@ -191,11 +193,13 @@ const flagConfig: Record<string, { label: string; color: string; bg: string }> =
 };
 
 type StatusFilter = 'all' | 'waiting' | 'in-progress' | 'completed';
+type ScheduleView = 'appointments' | 'availability';
 
 export default function SchedulePage() {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date('2024-01-18'));
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [scheduleView, setScheduleView] = useState<ScheduleView>('appointments');
   const [selectedAppointment, setSelectedAppointment] = useState<ScheduleAppointment | null>(defaultAppointments[5]);
   const [expandedPanels, setExpandedPanels] = useState<Record<string, boolean>>({
     vitals: true,
@@ -273,6 +277,32 @@ export default function SchedulePage() {
     upcoming: appointments.filter(a => a.status === 'PLANNED').length,
   };
 
+  if (scheduleView === 'availability') {
+    return (
+      <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+        {/* View toggle toolbar */}
+        <div className="ehr-toolbar flex items-center justify-between">
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => setScheduleView('appointments')}
+              className="ehr-toolbar-button flex items-center"
+            >
+              <Calendar className="w-3.5 h-3.5 mr-1" /> Appointments
+            </button>
+            <button
+              className="ehr-toolbar-button ehr-toolbar-button-active flex items-center"
+            >
+              <Settings2 className="w-3.5 h-3.5 mr-1" /> Availability
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <AvailabilityManager providerId={1} providerName="Dr. Sarah Anderson" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
       {/* Toolbar */}
@@ -301,6 +331,13 @@ export default function SchedulePage() {
           </button>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowNewApptDialog(true)}>
             <Plus className="w-3.5 h-3.5 mr-1" /> New Appt
+          </button>
+          <span className="text-gray-400">|</span>
+          <button
+            onClick={() => setScheduleView('availability')}
+            className="ehr-toolbar-button flex items-center"
+          >
+            <Settings2 className="w-3.5 h-3.5 mr-1" /> Manage Availability
           </button>
         </div>
       </div>

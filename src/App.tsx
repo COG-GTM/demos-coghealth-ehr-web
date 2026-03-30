@@ -14,7 +14,9 @@ import {
   Lock,
   Shield,
   FlaskConical,
-  Activity
+  Activity,
+  ChevronDown,
+  Bell
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
@@ -47,14 +49,15 @@ interface NavigationProps {
   onLogout: () => void;
 }
 
-function Navigation({ onSessionWarning, onSessionExpired, onLogout }: NavigationProps) {
+function Sidebar({ onSessionWarning, onSessionExpired, onLogout }: NavigationProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
   const [searchResults, setSearchResults] = useState<typeof defaultPatientSearch>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [sessionTime, setSessionTime] = useState(SESSION_TIMEOUT_MS);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -126,133 +129,159 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   ];
 
   return (
-    <>
-      {/* Application Header */}
-      <div className="ehr-header flex items-center justify-between px-3">
-        <div className="flex items-center space-x-3">
-          <div className="w-5 h-5 bg-white flex items-center justify-center border border-blue-300">
-            <span className="text-blue-800 font-bold text-[11px]">C</span>
-          </div>
-          <span className="font-semibold">CogHealth EHR</span>
-          <span className="text-blue-200 text-[10px]">v4.2.1</span>
-          <span className="text-blue-300">|</span>
-          {/* Global Patient Search */}
-          <div className="relative">
-            <div className="flex items-center">
-              <Search className="w-3 h-3 text-blue-200 mr-1" />
-              <input
-                type="text"
-                placeholder="Patient search..."
-                value={globalSearch}
-                onChange={(e) => handleSearch(e.target.value)}
-                onFocus={() => globalSearch.length >= 2 && setShowSearchDropdown(true)}
-                onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
-                className="bg-blue-900/50 border border-blue-400 text-white placeholder-blue-300 text-[10px] px-2 py-0.5 w-40 focus:outline-none focus:border-white"
-              />
-            </div>
-            {showSearchDropdown && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50">
-                {searchResults.map((patient) => (
-                  <div
-                    key={patient.id}
-                    onClick={() => selectPatient(patient.id)}
-                    className="px-2 py-1.5 hover:bg-blue-100 cursor-pointer text-[11px] text-gray-800 border-b border-gray-200"
-                  >
-                    <div className="font-semibold">{patient.name}</div>
-                    <div className="text-gray-500 text-[10px]">{patient.mrn} • DOB: {patient.dob}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {showSearchDropdown && searchResults.length === 0 && globalSearch.length >= 2 && (
-              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50 p-2 text-[11px] text-gray-500">
-                No patients found
-              </div>
-            )}
-          </div>
+    <aside className={`h-full bg-[#1a1a2e] text-white flex flex-col transition-all duration-200 ${collapsed ? 'w-16' : 'w-60'}`}>
+      {/* Logo area */}
+      <div className="flex items-center px-4 h-14 border-b border-white/10">
+        <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center flex-shrink-0">
+          <span className="text-white font-bold text-sm">C</span>
         </div>
-        <div className="flex items-center space-x-3 text-[10px]">
-          <span className="text-blue-100">Springfield Medical Center</span>
-          <span className="text-blue-300">|</span>
-          <div className="flex items-center space-x-1">
-            <Lock className="w-3 h-3" />
-            <span className={sessionTime < SESSION_WARNING_MS ? 'text-yellow-300' : 'text-blue-200'}>
-              Session: {formatSessionTime()}
-            </span>
+        {!collapsed && (
+          <div className="ml-3 animate-fade-in">
+            <div className="font-semibold text-sm tracking-tight">CogHealth EHR</div>
+            <div className="text-[11px] text-gray-400">v4.2.1</div>
           </div>
-          <span className="text-blue-300">|</span>
-          <div className="flex items-center space-x-1">
-            <User className="w-3 h-3" />
-            <span>Dr. Sarah Anderson</span>
-          </div>
-          <button onClick={onLogout} className="flex items-center space-x-1 hover:text-white text-blue-200">
-            <LogOut className="w-3 h-3" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Navigation Toolbar */}
-      <div className="ehr-toolbar flex items-center justify-between">
-        <div className="flex items-center space-x-0.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path || 
-              (item.path === '/patients' && location.pathname.startsWith('/patients/'));
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`ehr-toolbar-button flex items-center ${isActive ? 'ehr-toolbar-button-active' : ''}`}
-              >
-                <Icon className="w-3.5 h-3.5 mr-1" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-
-        <div className="flex items-center space-x-2 text-[10px] text-gray-600">
-          <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-          <span className="text-gray-400">|</span>
-          <span>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
-        </div>
-
-        {/* Mobile menu button */}
+        )}
         <button
-          className="md:hidden p-1 hover:bg-gray-200"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          onClick={() => setCollapsed(!collapsed)}
+          className="ml-auto p-1 rounded-md hover:bg-white/10 transition-colors"
         >
-          {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          {collapsed ? <Menu className="w-4 h-4 text-gray-400" /> : <X className="w-4 h-4 text-gray-400" />}
         </button>
       </div>
 
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-300 bg-white">
-          <div className="px-2 py-1 space-y-0.5">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center px-2 py-1.5 text-[11px] ${
-                    isActive
-                      ? 'bg-blue-100 border border-blue-300'
-                      : 'hover:bg-gray-100'
-                  }`}
+      {/* Search */}
+      {!collapsed && (
+        <div className="px-3 py-3 relative">
+          <div className="relative">
+            <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search patients..."
+              value={globalSearch}
+              onChange={(e) => handleSearch(e.target.value)}
+              onFocus={() => globalSearch.length >= 2 && setShowSearchDropdown(true)}
+              onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
+              className="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 text-[13px] pl-9 pr-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500 focus:bg-white/10 transition-all"
+            />
+          </div>
+          {showSearchDropdown && searchResults.length > 0 && (
+            <div className="absolute left-3 right-3 top-full mt-1 bg-[#24243e] border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden">
+              {searchResults.map((patient) => (
+                <div
+                  key={patient.id}
+                  onClick={() => selectPatient(patient.id)}
+                  className="px-3 py-2.5 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/5 last:border-0"
                 >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {item.label}
-                </Link>
-              );
-            })}
+                  <div className="font-medium text-[13px] text-white">{patient.name}</div>
+                  <div className="text-gray-400 text-[12px]">{patient.mrn} &middot; DOB: {patient.dob}</div>
+                </div>
+              ))}
+            </div>
+          )}
+          {showSearchDropdown && searchResults.length === 0 && globalSearch.length >= 2 && (
+            <div className="absolute left-3 right-3 top-full mt-1 bg-[#24243e] border border-white/10 rounded-lg shadow-xl z-50 p-3 text-[13px] text-gray-400">
+              No patients found
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path || 
+            (item.path === '/patients' && location.pathname.startsWith('/patients/'));
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              title={collapsed ? item.label : undefined}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
+                isActive
+                  ? 'bg-indigo-500/15 text-indigo-400'
+                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+              {!collapsed && <span className="animate-fade-in">{item.label}</span>}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Session info */}
+      {!collapsed && (
+        <div className="px-4 py-2 border-t border-white/10">
+          <div className="flex items-center gap-2 text-[12px] text-gray-500">
+            <Lock className="w-3.5 h-3.5" />
+            <span className={sessionTime < SESSION_WARNING_MS ? 'text-amber-400' : ''}>
+              Session: {formatSessionTime()}
+            </span>
           </div>
         </div>
       )}
-    </>
+
+      {/* User menu */}
+      <div className="px-3 py-3 border-t border-white/10 relative">
+        <button
+          onClick={() => setShowUserMenu(!showUserMenu)}
+          className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-white/5 transition-colors"
+        >
+          <div className="w-8 h-8 rounded-full bg-indigo-600/30 flex items-center justify-center flex-shrink-0">
+            <User className="w-4 h-4 text-indigo-400" />
+          </div>
+          {!collapsed && (
+            <div className="flex-1 text-left animate-fade-in">
+              <div className="text-[13px] font-medium text-white">Dr. Sarah Anderson</div>
+              <div className="text-[11px] text-gray-500">Internal Medicine</div>
+            </div>
+          )}
+          {!collapsed && <ChevronDown className="w-4 h-4 text-gray-500" />}
+        </button>
+        {showUserMenu && (
+          <div className="absolute bottom-full left-3 right-3 mb-1 bg-[#24243e] border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden animate-fade-in">
+            <div className="px-3 py-2 border-b border-white/5 text-[12px] text-gray-400">
+              Springfield Medical Center
+            </div>
+            <button
+              onClick={() => { setShowUserMenu(false); onLogout(); }}
+              className="flex items-center gap-2 w-full px-3 py-2.5 text-[13px] text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign out
+            </button>
+          </div>
+        )}
+      </div>
+    </aside>
+  );
+}
+
+function TopBar() {
+  return (
+    <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+      <div className="flex items-center gap-3">
+        <h1 className="text-[15px] font-semibold text-gray-900">
+          Springfield Medical Center
+        </h1>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 text-[13px] text-gray-500">
+          <Shield className="w-4 h-4 text-emerald-500" />
+          <span>HIPAA Compliant</span>
+        </div>
+        <div className="h-4 w-px bg-gray-200" />
+        <div className="flex items-center gap-2 text-[13px] text-gray-500">
+          <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+        </div>
+        <div className="h-4 w-px bg-gray-200" />
+        <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+          <Bell className="w-[18px] h-[18px] text-gray-500" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full" />
+        </button>
+      </div>
+    </header>
   );
 }
 
@@ -280,45 +309,27 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="h-screen flex flex-col" style={{ background: '#d4d0c8', fontFamily: 'Tahoma, sans-serif' }}>
-        <Navigation 
+      <div className="h-screen flex bg-[#f8f9fc]" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
+        <Sidebar 
           onSessionWarning={handleSessionWarning}
           onSessionExpired={handleSessionExpired}
           onLogout={handleLogout}
         />
-        <main className="flex-1 overflow-hidden">
-          <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/patients" element={<PatientSearchPage />} />
-            <Route path="/patients/:id" element={<PatientChartPage />} />
-            <Route path="/schedule" element={<SchedulePage />} />
-            <Route path="/labs" element={<LabResultsPage />} />
-            <Route path="/vitals" element={<VitalsPage />} />
-            <Route path="/medications" element={<MedicationsPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
-        </main>
-
-        {/* Status Bar - Windows XP style */}
-        <div className="h-5 bg-gradient-to-b from-[#ece9d8] to-[#d4d0c8] border-t border-gray-400 flex items-center justify-between px-2 text-[10px] text-gray-600">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1">
-              <Shield className="w-3 h-3 text-green-600" />
-              <span>HIPAA Compliant</span>
-            </div>
-            <span className="text-gray-400">|</span>
-            <span>Encrypted Connection (TLS 1.3)</span>
-            <span className="text-gray-400">|</span>
-            <span>Audit Logging: Active</span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span>Database: Connected</span>
-            <span className="text-gray-400">|</span>
-            <span>Last Sync: Just now</span>
-            <span className="text-gray-400">|</span>
-            <span className="text-gray-500">CogHealth EHR v4.2.1 - For Demo Use Only</span>
-          </div>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <TopBar />
+          <main className="flex-1 overflow-hidden">
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/patients" element={<PatientSearchPage />} />
+              <Route path="/patients/:id" element={<PatientChartPage />} />
+              <Route path="/schedule" element={<SchedulePage />} />
+              <Route path="/labs" element={<LabResultsPage />} />
+              <Route path="/vitals" element={<VitalsPage />} />
+              <Route path="/medications" element={<MedicationsPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Routes>
+          </main>
         </div>
 
         {/* Session Warning Dialog */}

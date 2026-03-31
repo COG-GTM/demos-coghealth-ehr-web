@@ -1,30 +1,16 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
-import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { patientService } from '../services/patientService';
 import type { Patient } from '../types';
 import { 
-  FileText,
-  Pill,
-  FlaskConical,
-  MessageSquare,
-  CheckCircle2,
-  Bell,
-  Stethoscope,
-  Send,
-  RefreshCw,
-  Flag,
-  Eye,
-  Edit3,
-  Printer,
-  ExternalLink,
-  ShieldAlert,
-  Radio,
-  ClipboardList
+  FileText, Pill, FlaskConical, MessageSquare, CheckCircle2, Bell,
+  Stethoscope, Send, RefreshCw, Flag, Eye, Edit3, Printer, ShieldAlert,
+  Radio, ClipboardList, ChevronLeft, ChevronRight, Heart, AlertTriangle,
+  Activity, Filter, X, CheckCircle, Circle, Loader2, Inbox, ArrowRight,
 } from 'lucide-react';
 
 type InboxTab = 'all' | 'results' | 'messages' | 'rxRefills' | 'orders' | 'cosign';
@@ -57,13 +43,7 @@ interface WorklistPatient {
   attendingProvider: string;
   status: 'waiting' | 'roomed' | 'in-progress' | 'ready-discharge' | 'critical';
   alerts: string[];
-  lastVitals?: {
-    bp: string;
-    hr: number;
-    temp: number;
-    spo2: number;
-    rr: number;
-  };
+  lastVitals?: { bp: string; hr: number; temp: number; spo2: number; rr: number };
   flags: ('fall-risk' | 'isolation' | 'npo' | 'allergy' | 'code-status' | 'vip')[];
 }
 
@@ -109,6 +89,122 @@ type InboxPriority = 'all' | 'critical' | 'high' | 'normal';
 type InboxReadFilter = 'all' | 'unread' | 'read';
 type WorklistSort = 'name' | 'location' | 'status' | 'time';
 
+const patientAvatarColors = [
+  'from-rose-400 to-pink-500', 'from-violet-400 to-purple-500',
+  'from-blue-400 to-indigo-500', 'from-emerald-400 to-teal-500',
+  'from-amber-400 to-orange-500', 'from-cyan-400 to-sky-500',
+  'from-fuchsia-400 to-pink-500', 'from-lime-400 to-green-500',
+];
+
+function PatientCard({ patient, index, onClick }: { patient: WorklistPatient; index: number; onClick: () => void }) {
+  const initials = patient.name.split(',').map(n => n.trim()[0]).reverse().join('');
+  const colorClass = patientAvatarColors[index % patientAvatarColors.length];
+  return (
+    <div className="airbnb-card group cursor-pointer flex-shrink-0 w-[220px]" onClick={onClick} data-testid={`patient-card-${patient.id}`}>
+      <div className={`relative h-[140px] rounded-t-2xl bg-gradient-to-br ${colorClass} flex items-center justify-center overflow-hidden`}>
+        <span className="text-white text-4xl font-bold opacity-90">{initials}</span>
+        {patient.status === 'critical' && (
+          <div className="absolute top-3 left-3 airbnb-badge-critical"><AlertTriangle className="w-3 h-3 mr-1" />Critical</div>
+        )}
+        {patient.status !== 'critical' && (
+          <div className="absolute top-3 left-3 airbnb-badge">
+            {patient.status === 'in-progress' ? 'In Progress' : patient.status === 'ready-discharge' ? 'Ready' : patient.status.charAt(0).toUpperCase() + patient.status.slice(1)}
+          </div>
+        )}
+        <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/40 transition-colors" onClick={(e) => { e.stopPropagation(); }}>
+          <Heart className="w-4 h-4 text-white" />
+        </button>
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold text-[15px] text-gray-900 truncate mb-1">{patient.name}</h3>
+        <p className="text-sm text-gray-500 mb-1">{patient.mrn} · {patient.age}{patient.gender}</p>
+        <p className="text-sm text-gray-600">{patient.chiefComplaint}</p>
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-sm text-gray-500">{patient.room || patient.appointmentTime}</span>
+          <span className="text-sm text-gray-500">{patient.location}</span>
+        </div>
+        {patient.flags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {patient.flags.map((flag) => (<span key={flag} className="airbnb-flag">{flag.replace('-', ' ')}</span>))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HorizontalScroll({ children, label, count, onViewAll }: { children: React.ReactNode; label: string; count?: number; onViewAll?: () => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 2);
+    }
+  };
+  useEffect(() => {
+    checkScroll();
+    const el = scrollRef.current;
+    if (el) { el.addEventListener('scroll', checkScroll); return () => el.removeEventListener('scroll', checkScroll); }
+  }, [children]);
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) { scrollRef.current.scrollBy({ left: direction === 'left' ? -240 : 240, behavior: 'smooth' }); }
+  };
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-4 px-1">
+        <div className="flex items-center gap-3">
+          <h2 className="text-[22px] font-bold text-gray-900">{label}</h2>
+          {count !== undefined && <span className="text-sm text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full">{count}</span>}
+          {onViewAll && <button onClick={onViewAll} className="flex items-center gap-1 text-sm font-semibold text-gray-900 hover:underline">View all <ArrowRight className="w-4 h-4" /></button>}
+        </div>
+        <div className="flex items-center gap-2">
+          {canScrollLeft && <button onClick={() => scroll('left')} className="airbnb-scroll-btn" aria-label="Scroll left"><ChevronLeft className="w-4 h-4" /></button>}
+          {canScrollRight && <button onClick={() => scroll('right')} className="airbnb-scroll-btn" aria-label="Scroll right"><ChevronRight className="w-4 h-4" /></button>}
+        </div>
+      </div>
+      <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1" style={{ scrollSnapType: 'x mandatory' }}>{children}</div>
+    </div>
+  );
+}
+
+function InboxCard({ item, onMarkRead, onToggleFlag, onView }: { item: InboxItem; onMarkRead: () => void; onToggleFlag: () => void; onView: () => void }) {
+  const typeConfig: Record<string, { icon: typeof FlaskConical; color: string; bg: string }> = {
+    lab: { icon: FlaskConical, color: 'text-violet-600', bg: 'bg-violet-50' },
+    imaging: { icon: Radio, color: 'text-blue-600', bg: 'bg-blue-50' },
+    message: { icon: MessageSquare, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    refill: { icon: Pill, color: 'text-orange-600', bg: 'bg-orange-50' },
+    order: { icon: ClipboardList, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+    cosign: { icon: Edit3, color: 'text-pink-600', bg: 'bg-pink-50' },
+    consult: { icon: Stethoscope, color: 'text-teal-600', bg: 'bg-teal-50' },
+  };
+  const config = typeConfig[item.type] || typeConfig.lab;
+  const Icon = config.icon;
+  return (
+    <div className={`airbnb-inbox-card ${!item.read ? 'ring-1 ring-gray-200 bg-white' : 'bg-gray-50/50'} ${item.priority === 'critical' ? 'ring-2 ring-rose-200 bg-rose-50/30' : ''}`} data-testid={`inbox-item-${item.id}`}>
+      <div className="flex items-start gap-3 p-4">
+        <div className={`w-10 h-10 rounded-xl ${config.bg} flex items-center justify-center flex-shrink-0`}><Icon className={`w-5 h-5 ${config.color}`} /></div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            {!item.read && <span className="w-2 h-2 rounded-full bg-rose-500 flex-shrink-0" />}
+            <span className={`text-sm truncate ${!item.read ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>{item.title}</span>
+            {item.priority === 'critical' && <span className="text-[10px] font-bold text-rose-600 bg-rose-100 px-1.5 py-0.5 rounded-full flex-shrink-0">URGENT</span>}
+          </div>
+          <p className="text-sm text-gray-900 font-medium truncate">{item.patientName}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{item.patientMrn} · {item.timestamp}</p>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button onClick={(e) => { e.stopPropagation(); onView(); }} className="airbnb-icon-btn" title="View"><Eye className="w-4 h-4" /></button>
+          <button onClick={(e) => { e.stopPropagation(); onMarkRead(); }} className="airbnb-icon-btn" title="Mark Read"><CheckCircle2 className="w-4 h-4" /></button>
+          <button onClick={(e) => { e.stopPropagation(); onToggleFlag(); }} className={`airbnb-icon-btn ${item.flagged ? 'text-rose-500' : ''}`} title="Flag"><Flag className={`w-4 h-4 ${item.flagged ? 'fill-rose-500' : ''}`} /></button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [inboxTab, setInboxTab] = useState<InboxTab>('all');
@@ -117,15 +213,8 @@ export default function DashboardPage() {
   const [worklistFilter, setWorklistFilter] = useState<WorklistFilter>('all');
   const [worklistSort, setWorklistSort] = useState<WorklistSort>('status');
   const [worklistSortAsc, setWorklistSortAsc] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const [expandedPanels, setExpandedPanels] = useState<Record<string, boolean>>({
-    inbox: true,
-    worklist: true,
-    unsigned: true,
-    orders: true,
-    schedule: true,
-    quality: false,
-  });
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [showRxDialog, setShowRxDialog] = useState(false);
   const [showLabDialog, setShowLabDialog] = useState(false);
@@ -176,10 +265,6 @@ export default function DashboardPage() {
     };
     fetchData();
   }, []);
-
-  const togglePanel = (panel: string) => {
-    setExpandedPanels(prev => ({ ...prev, [panel]: !prev[panel] }));
-  };
 
   const markAsRead = (itemId: number) => {
     setInboxItems(prev => prev.map(item => item.id === itemId ? { ...item, read: true } : item));
@@ -244,574 +329,294 @@ export default function DashboardPage() {
     return patients;
   }, [worklistPatients, worklistFilter, worklistSort, worklistSortAsc]);
 
-  const getInboxIcon = (type: string) => {
-    switch (type) {
-      case 'lab': return <FlaskConical className="w-3 h-3" />;
-      case 'imaging': return <Radio className="w-3 h-3" />;
-      case 'message': return <MessageSquare className="w-3 h-3" />;
-      case 'refill': return <Pill className="w-3 h-3" />;
-      case 'order': return <ClipboardList className="w-3 h-3" />;
-      case 'cosign': return <Edit3 className="w-3 h-3" />;
-      case 'consult': return <Stethoscope className="w-3 h-3" />;
-      default: return <FileText className="w-3 h-3" />;
-    }
-  };
+  const scheduleSlots = [
+    { time: '9:00 AM', patient: 'Completed (3)', status: 'done' as const },
+    { time: '10:30 AM', patient: 'Johnson, Sarah', status: 'current' as const },
+    { time: '11:00 AM', patient: 'Williams, Michael', status: 'next' as const },
+    { time: '11:30 AM', patient: 'Brown, Emily', status: 'upcoming' as const },
+    { time: '2:00 PM', patient: 'Wilson, Patricia', status: 'upcoming' as const },
+  ];
 
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case 'critical': return 'bg-gray-300 text-gray-800 font-bold';
-      case 'waiting': return 'bg-gray-200 text-gray-700';
-      case 'roomed': return 'bg-gray-200 text-gray-700';
-      case 'in-progress': return 'bg-gray-300 text-gray-800';
-      case 'ready-discharge': return 'bg-gray-100 text-gray-600';
-      default: return 'bg-gray-100 text-gray-600';
-    }
-  };
-
-  const getFlagStyle = (flag: string) => {
-    switch (flag) {
-      case 'fall-risk': return { label: 'FALL', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'isolation': return { label: 'ISO', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'npo': return { label: 'NPO', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'allergy': return { label: 'ALLERGY', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'code-status': return { label: 'DNR', bg: 'bg-gray-300', color: 'text-gray-800' };
-      case 'vip': return { label: 'VIP', bg: 'bg-gray-100', color: 'text-gray-700' };
-      default: return { label: flag, bg: 'bg-gray-100', color: 'text-gray-700' };
-    }
-  };
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-12 h-12 rounded-full border-4 border-gray-200" />
+            <Loader2 className="w-12 h-12 text-rose-500 absolute inset-0 animate-spin" />
+          </div>
+          <p className="text-sm text-gray-500 font-medium">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full flex flex-col relative" style={{ background: '#d4d0c8' }}>
-      <LoadingOverlay isLoading={loading} text="Loading dashboard..." />
-      {/* Toolbar */}
-      <div className="ehr-toolbar flex items-center justify-between">
-        <div className="flex items-center space-x-1">
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'Refreshed', message: 'Dashboard data has been refreshed.', type: 'info' })}>
-            <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
-          </button>
-          <span className="text-gray-400">|</span>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowRxDialog(true)}>
-            <Pill className="w-3.5 h-3.5 mr-1" /> e-Prescribe
-          </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowLabDialog(true)}>
-            <FlaskConical className="w-3.5 h-3.5 mr-1" /> Order Labs
-          </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowImagingDialog(true)}>
-            <Radio className="w-3.5 h-3.5 mr-1" /> Order Imaging
-          </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'New Note', message: 'Select a patient first to create a clinical note.', type: 'info' })}>
-            <FileText className="w-3.5 h-3.5 mr-1" /> New Note
-          </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'Referral', message: 'Select a patient first to create a referral.', type: 'info' })}>
-            <Send className="w-3.5 h-3.5 mr-1" /> Referral
-          </button>
-          <span className="text-gray-400">|</span>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPrintDialog(true)}>
-            <Printer className="w-3.5 h-3.5 mr-1" /> Print
-          </button>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button className="ehr-toolbar-button relative">
-            <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-gray-600 text-white text-[9px] flex items-center justify-center border border-gray-700">3</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Critical Alerts Banner */}
-      {criticalAlerts.length > 0 && (
-        <div className="ehr-alert-critical px-3 py-2">
+    <div className="h-full flex flex-col bg-white overflow-y-auto" data-testid="dashboard-page">
+      {/* Quick Actions Bar */}
+      <div className="sticky top-0 z-30 bg-white border-b border-gray-100">
+        <div className="max-w-[1400px] mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <ShieldAlert className="w-4 h-4 mr-2" />
-              <span className="font-semibold text-[11px]">CRITICAL ALERTS ({criticalAlerts.length})</span>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowRxDialog(true)} className="airbnb-action-pill">
+                <Pill className="w-4 h-4" /><span>e-Prescribe</span>
+              </button>
+              <button onClick={() => setShowLabDialog(true)} className="airbnb-action-pill">
+                <FlaskConical className="w-4 h-4" /><span>Order Labs</span>
+              </button>
+              <button onClick={() => setShowImagingDialog(true)} className="airbnb-action-pill">
+                <Radio className="w-4 h-4" /><span>Order Imaging</span>
+              </button>
+              <button onClick={() => setShowAlert({ title: 'New Note', message: 'Select a patient first to create a clinical note.', type: 'info' })} className="airbnb-action-pill">
+                <FileText className="w-4 h-4" /><span>New Note</span>
+              </button>
+              <button onClick={() => setShowAlert({ title: 'Referral', message: 'Select a patient first to create a referral.', type: 'info' })} className="airbnb-action-pill">
+                <Send className="w-4 h-4" /><span>Referral</span>
+              </button>
             </div>
-            <div className="flex items-center space-x-4">
-              {criticalAlerts.slice(0, 2).map((alert) => (
-                <span key={alert.id} className="text-[11px]">
-                  <strong>{alert.patient}:</strong> {alert.alert} - {alert.action}
-                </span>
-              ))}
-              <button className="ehr-button text-[10px] px-2 py-0.5">Review All</button>
+            <div className="flex items-center gap-3">
+              <button onClick={() => setShowFilters(!showFilters)} className="airbnb-filter-btn">
+                <Filter className="w-4 h-4" />Filters
+              </button>
+              <button onClick={() => setShowPrintDialog(true)} className="airbnb-icon-btn-lg"><Printer className="w-5 h-5" /></button>
+              <button className="airbnb-icon-btn-lg" onClick={() => setShowAlert({ title: 'Refreshed', message: 'Dashboard data has been refreshed.', type: 'info' })}><RefreshCw className="w-5 h-5" /></button>
+              <button className="airbnb-icon-btn-lg relative">
+                <Bell className="w-5 h-5" />
+                {criticalAlerts.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full">{criticalAlerts.length}</span>
+                )}
+              </button>
             </div>
           </div>
         </div>
-      )}
+
+        {showFilters && (
+          <div className="border-t border-gray-100 bg-gray-50/50">
+            <div className="max-w-[1400px] mx-auto px-6 py-3 flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Worklist</span>
+                {(['all', 'inpatient', 'outpatient', 'critical'] as WorklistFilter[]).map((filter) => (
+                  <button key={filter} onClick={() => setWorklistFilter(filter)} className={`airbnb-chip ${worklistFilter === filter ? 'airbnb-chip-active' : ''}`}>
+                    {filter === 'all' ? 'All' : filter === 'outpatient' ? 'Clinic' : filter.charAt(0).toUpperCase() + filter.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <div className="w-px h-6 bg-gray-300" />
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Sort</span>
+                <select value={worklistSort} onChange={(e) => setWorklistSort(e.target.value as WorklistSort)} className="airbnb-select">
+                  <option value="status">Status</option>
+                  <option value="name">Name</option>
+                  <option value="location">Location</option>
+                </select>
+                <button className="airbnb-chip" onClick={() => setWorklistSortAsc(!worklistSortAsc)}>
+                  {worklistSortAsc ? '↑ Asc' : '↓ Desc'}
+                </button>
+              </div>
+              <div className="w-px h-6 bg-gray-300" />
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Priority</span>
+                <select value={inboxPriority} onChange={(e) => setInboxPriority(e.target.value as InboxPriority)} className="airbnb-select">
+                  <option value="all">All Priority</option>
+                  <option value="critical">Critical</option>
+                  <option value="high">High</option>
+                  <option value="normal">Normal</option>
+                </select>
+              </div>
+              <button onClick={() => setShowFilters(false)} className="ml-auto airbnb-icon-btn"><X className="w-4 h-4" /></button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden p-1 space-x-1">
-        {/* Left Column - Inbox & Worklist */}
-        <div className="flex-1 flex flex-col space-y-1 overflow-hidden">
-          {/* Inbox Panel */}
-          <div className={`ehr-panel flex flex-col overflow-hidden ${expandedPanels.inbox ? 'flex-1' : ''}`}>
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('inbox'); }}
-            >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.inbox ? '-' : '+'}
-                </span>
-                <span>Inbox</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{inboxCounts.all} unread</span>
+      <div className="flex-1">
+        <div className="max-w-[1400px] mx-auto px-6 py-6">
+          {/* Critical Alerts Banner */}
+          {criticalAlerts.length > 0 && (
+            <div className="mb-8 airbnb-alert-banner" data-testid="critical-alerts">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center"><ShieldAlert className="w-4 h-4 text-rose-600" /></div>
+                <h3 className="font-bold text-rose-900">Critical Alerts ({criticalAlerts.length})</h3>
               </div>
-            </div>
-            {expandedPanels.inbox && (
-              <>
-                <div className="ehr-subheader flex items-center space-x-1">
-                  {[
-                    { key: 'all', label: 'All', count: inboxCounts.all },
-                    { key: 'results', label: 'Results', count: inboxCounts.results },
-                    { key: 'messages', label: 'Messages', count: inboxCounts.messages },
-                    { key: 'rxRefills', label: 'Rx Refills', count: inboxCounts.rxRefills },
-                    { key: 'orders', label: 'Orders', count: inboxCounts.orders },
-                    { key: 'cosign', label: 'Co-sign', count: inboxCounts.cosign },
-                  ].map((tab) => (
-                    <button
-                      key={tab.key}
-                      onClick={() => setInboxTab(tab.key as InboxTab)}
-                      className={`ehr-tab ${inboxTab === tab.key ? 'active' : ''}`}
-                    >
-                      {tab.label} {tab.count > 0 && <span className="ml-1 text-[9px]">({tab.count})</span>}
-                    </button>
-                  ))}
-                  <span className="text-gray-400 mx-1">|</span>
-                  <select 
-                    value={inboxPriority} 
-                    onChange={(e) => setInboxPriority(e.target.value as InboxPriority)}
-                    className="ehr-input text-[10px] py-0"
-                  >
-                    <option value="all">All Priority</option>
-                    <option value="critical">Critical</option>
-                    <option value="high">High</option>
-                    <option value="normal">Normal</option>
-                  </select>
-                  <select 
-                    value={inboxReadFilter} 
-                    onChange={(e) => setInboxReadFilter(e.target.value as InboxReadFilter)}
-                    className="ehr-input text-[10px] py-0"
-                  >
-                    <option value="all">All</option>
-                    <option value="unread">Unread</option>
-                    <option value="read">Read</option>
-                  </select>
-                  <div className="flex-1" />
-                  <button className="ehr-toolbar-button p-0.5 text-[10px]" onClick={markAllAsRead}>Mark All Read</button>
-                  <button className="ehr-toolbar-button p-0.5"><RefreshCw className="w-3 h-3" /></button>
-                </div>
-                <div className="flex-1 overflow-auto bg-white">
-                  <table className="w-full text-[11px]">
-                    <thead className="sticky top-0">
-                      <tr>
-                        <th className="px-1 py-1 text-left w-6"></th>
-                        <th className="px-1 py-1 text-left w-6">Type</th>
-                        <th className="px-1 py-1 text-left">Patient</th>
-                        <th className="px-1 py-1 text-left">Subject</th>
-                        <th className="px-1 py-1 text-left w-20">Time</th>
-                        <th className="px-1 py-1 text-center w-16">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredInbox.map((item, idx) => (
-                        <tr 
-                          key={item.id} 
-                          className={`cursor-pointer ${item.priority === 'critical' ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''} ${!item.read ? 'font-semibold' : ''}`}
-                        >
-                          <td className="px-1 py-0.5">
-                            {!item.read && <span className="w-2 h-2 bg-gray-600 inline-block border border-gray-700" />}
-                            {item.flagged && <Flag className="w-3 h-3 text-red-600 inline" />}
-                          </td>
-                          <td className="px-1 py-0.5">{getInboxIcon(item.type)}</td>
-                          <td className="px-1 py-0.5">
-                            <span>{item.patientName}</span>
-                            <span className="text-gray-500 ml-1 text-[10px]">{item.patientMrn}</span>
-                          </td>
-                          <td className="px-1 py-0.5">
-                            <div className={item.priority === 'critical' ? 'text-red-800' : ''}>{item.title}</div>
-                            <div className="text-gray-500 text-[10px] truncate max-w-[300px]">{item.detail}</div>
-                          </td>
-                          <td className="px-1 py-0.5 text-gray-500">{item.timestamp}</td>
-                          <td className="px-1 py-0.5 text-center">
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View"><Eye className="w-3 h-3" /></button>
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => markAsRead(item.id)} title="Mark Read"><CheckCircle2 className="w-3 h-3" /></button>
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => toggleFlag(item.id)} title="Flag"><Flag className={`w-3 h-3 ${item.flagged ? 'text-red-600' : ''}`} /></button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Worklist Panel */}
-          <div className={`ehr-panel flex flex-col overflow-hidden ${expandedPanels.worklist ? 'flex-1' : ''}`}>
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('worklist'); }}
-            >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.worklist ? '-' : '+'}
-                </span>
-                <span>Patient Worklist</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{worklistPatients.length} patients</span>
-              </div>
-            </div>
-            {expandedPanels.worklist && (
-              <>
-                <div className="ehr-subheader flex items-center space-x-1">
-                  {[
-                    { key: 'all', label: 'All' },
-                    { key: 'inpatient', label: 'Inpatient' },
-                    { key: 'outpatient', label: 'Clinic' },
-                    { key: 'critical', label: 'Critical' },
-                  ].map((filter) => (
-                    <button
-                      key={filter.key}
-                      onClick={() => setWorklistFilter(filter.key as WorklistFilter)}
-                      className={`ehr-tab ${worklistFilter === filter.key ? 'active' : ''}`}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
-                  <span className="text-gray-400 mx-1">|</span>
-                  <span className="text-[10px] text-gray-600">Sort:</span>
-                  <select 
-                    value={worklistSort} 
-                    onChange={(e) => setWorklistSort(e.target.value as WorklistSort)}
-                    className="ehr-input text-[10px] py-0"
-                  >
-                    <option value="status">Status</option>
-                    <option value="name">Name</option>
-                    <option value="location">Location</option>
-                  </select>
-                  <button 
-                    className="ehr-toolbar-button p-0.5 text-[10px]" 
-                    onClick={() => setWorklistSortAsc(!worklistSortAsc)}
-                  >
-                    {worklistSortAsc ? '↑' : '↓'}
-                  </button>
-                  <div className="flex-1" />
-                  <button className="ehr-button text-[10px] px-2 py-0.5 flex items-center" onClick={() => setShowPrintDialog(true)}>
-                    <Printer className="w-3 h-3 mr-1" /> Print List
-                  </button>
-                </div>
-                <div className="flex-1 overflow-auto bg-white">
-                  <table className="w-full text-[11px]">
-                    <thead className="sticky top-0">
-                      <tr>
-                        <th className="px-1 py-1 text-left">Patient</th>
-                        <th className="px-1 py-1 text-left">Location</th>
-                        <th className="px-1 py-1 text-left">Chief Complaint</th>
-                        <th className="px-1 py-1 text-left">Vitals</th>
-                        <th className="px-1 py-1 text-left">Alerts</th>
-                        <th className="px-1 py-1 text-left">Status</th>
-                        <th className="px-1 py-1 text-center w-16">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredWorklist.map((patient, idx) => (
-                        <tr 
-                          key={patient.id} 
-                          className={`cursor-pointer hover:bg-blue-50 ${patient.status === 'critical' ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''}`}
-                          onClick={() => navigate(`/patients/${patient.id}`)}
-                        >
-                          <td className="px-1 py-0.5">
-                            <div className="font-semibold">{patient.name}</div>
-                            <div className="text-gray-500 text-[10px]">{patient.mrn} • {patient.age}{patient.gender}</div>
-                            <div className="flex space-x-0.5 mt-0.5">
-                              {patient.flags.map((flag) => {
-                                const style = getFlagStyle(flag);
-                                return (
-                                  <span key={flag} className={`px-1 py-0 text-[9px] ${style.bg} ${style.color}`}>
-                                    {style.label}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </td>
-                          <td className="px-1 py-0.5">
-                            <div>{patient.room || patient.appointmentTime}</div>
-                            <div className="text-gray-500 text-[10px]">{patient.location}</div>
-                          </td>
-                          <td className="px-1 py-0.5">
-                            <div>{patient.chiefComplaint}</div>
-                            {patient.admitDate && <div className="text-gray-500 text-[10px]">Admit: {patient.admitDate}</div>}
-                          </td>
-                          <td className="px-1 py-0.5 text-[10px]">
-                            {patient.lastVitals ? (
-                              <>
-                                <div>BP: <span className={parseInt(patient.lastVitals.bp) > 140 ? 'text-red-600 font-semibold' : ''}>{patient.lastVitals.bp}</span></div>
-                                <div>HR: {patient.lastVitals.hr} SpO2: {patient.lastVitals.spo2}%</div>
-                              </>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </td>
-                          <td className="px-1 py-0.5">
-                            {patient.alerts.length > 0 ? (
-                              <div className="space-y-0.5">
-                                {patient.alerts.slice(0, 2).map((alert, i) => (
-                                  <div key={i} className={`text-[10px] ${alert.includes('CRITICAL') || alert.includes('Troponin') ? 'text-red-700 font-semibold' : 'text-amber-700'}`}>
-                                    • {alert}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-gray-400 text-[10px]">None</span>
-                            )}
-                          </td>
-                          <td className="px-1 py-0.5">
-                            <span className={`px-1.5 py-0.5 text-[10px] ${getStatusStyle(patient.status)}`}>
-                              {patient.status.replace('-', ' ')}
-                            </span>
-                          </td>
-                          <td className="px-1 py-0.5 text-center">
-                            <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Open Chart">
-                              <ExternalLink className="w-3 h-3" />
-                            </button>
-                            <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Write Note">
-                              <Edit3 className="w-3 h-3" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Right Column - Sidebar Panels */}
-        <div className="w-64 flex flex-col space-y-1 overflow-auto">
-          {/* Unsigned Notes */}
-          <div className="ehr-panel">
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('unsigned'); }}
-            >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.unsigned ? '-' : '+'}
-                </span>
-                <span>Unsigned Notes ({unsignedNotes.length})</span>
-              </div>
-            </div>
-            {expandedPanels.unsigned && (
-              <div className="bg-white">
-                {unsignedNotes.map((note, idx) => (
-                  <div key={note.id} className={`px-2 py-1.5 border-b border-gray-200 flex items-center justify-between ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                    <div>
-                      <div className="font-semibold text-[11px]">{note.patientName}</div>
-                      <div className="text-[10px] text-gray-500">{note.type} • {note.date}</div>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      {note.daysOld >= 2 && <span className="text-[9px] text-red-600 font-semibold">{note.daysOld}d</span>}
-                      <button className="ehr-button ehr-button-primary text-[10px] px-2 py-0.5">Sign</button>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {criticalAlerts.map((alert) => (
+                  <div key={alert.id} className="bg-white/60 rounded-xl p-3 backdrop-blur-sm">
+                    <p className="font-semibold text-sm text-rose-900">{alert.patient}</p>
+                    <p className="text-sm text-rose-700">{alert.alert}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-rose-500">{alert.time}</span>
+                      <button className="text-xs font-semibold text-rose-700 hover:text-rose-900">Review</button>
                     </div>
                   </div>
                 ))}
-                <div className="p-1 bg-gray-100 border-t">
-                  <button className="ehr-button w-full text-[10px]">Sign All Notes</button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Pending Orders */}
-          <div className="ehr-panel">
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('orders'); }}
-            >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.orders ? '-' : '+'}
-                </span>
-                <span>Pending Orders ({pendingOrders.length})</span>
               </div>
             </div>
-            {expandedPanels.orders && (
-              <div className="bg-white">
-                {pendingOrders.map((order, idx) => (
-                  <div key={order.id} className={`px-2 py-1.5 border-b border-gray-200 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="font-semibold text-[11px]">{order.patientName}</div>
-                        <div className="text-[10px] text-gray-700">{order.order}</div>
-                        <div className="flex space-x-1 mt-0.5">
-                          <span className="text-[9px] px-1 py-0 bg-gray-200 text-gray-700 border border-gray-400">{order.type}</span>
-                          <span className={`text-[9px] px-1 py-0 border border-gray-400 ${
-                            order.status === 'draft' ? 'bg-gray-100 text-gray-600' :
-                            order.status === 'pending-approval' ? 'bg-gray-200 text-gray-700' :
-                            'bg-gray-100 text-gray-600'
-                          }`}>{order.status}</span>
+          )}
+
+          {/* Patient Worklist Carousel */}
+          <HorizontalScroll label="Patient Worklist" count={filteredWorklist.length}>
+            {filteredWorklist.map((patient, idx) => (
+              <PatientCard key={patient.id} patient={patient} index={idx} onClick={() => navigate(`/patients/${patient.id}`)} />
+            ))}
+          </HorizontalScroll>
+
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left - Inbox */}
+            <div className="lg:col-span-2">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-[22px] font-bold text-gray-900">Inbox</h2>
+                  {inboxCounts.all > 0 && <span className="text-sm text-white bg-rose-500 px-2.5 py-0.5 rounded-full font-medium">{inboxCounts.all} unread</span>}
+                </div>
+                <button onClick={markAllAsRead} className="text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors">Mark all read</button>
+              </div>
+
+              <div className="flex items-center gap-1 mb-4 overflow-x-auto scrollbar-hide" data-testid="inbox-tabs">
+                {([
+                  { key: 'all' as InboxTab, label: 'All', count: inboxCounts.all },
+                  { key: 'results' as InboxTab, label: 'Results', count: inboxCounts.results },
+                  { key: 'messages' as InboxTab, label: 'Messages', count: inboxCounts.messages },
+                  { key: 'rxRefills' as InboxTab, label: 'Rx Refills', count: inboxCounts.rxRefills },
+                  { key: 'orders' as InboxTab, label: 'Orders', count: inboxCounts.orders },
+                  { key: 'cosign' as InboxTab, label: 'Co-sign', count: inboxCounts.cosign },
+                ]).map((tab) => (
+                  <button key={tab.key} onClick={() => setInboxTab(tab.key)} className={`airbnb-tab ${inboxTab === tab.key ? 'airbnb-tab-active' : ''}`} data-testid={`inbox-tab-${tab.key}`}>
+                    {tab.label}
+                    {tab.count > 0 && <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${inboxTab === tab.key ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-600'}`}>{tab.count}</span>}
+                  </button>
+                ))}
+                <div className="w-px h-6 bg-gray-200 mx-2" />
+                <select value={inboxReadFilter} onChange={(e) => setInboxReadFilter(e.target.value as InboxReadFilter)} className="airbnb-select text-sm" data-testid="inbox-read-filter">
+                  <option value="all">All</option>
+                  <option value="unread">Unread</option>
+                  <option value="read">Read</option>
+                </select>
+              </div>
+
+              <div className="space-y-2" data-testid="inbox-list">
+                {filteredInbox.map((item) => (
+                  <InboxCard key={item.id} item={item} onMarkRead={() => markAsRead(item.id)} onToggleFlag={() => toggleFlag(item.id)} onView={() => { markAsRead(item.id); navigate('/patients/1'); }} />
+                ))}
+                {filteredInbox.length === 0 && (
+                  <div className="text-center py-12 text-gray-400">
+                    <Inbox className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No items match your filters</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Sidebar */}
+            <div className="space-y-6">
+              {/* Unsigned Notes */}
+              <div className="airbnb-sidebar-card" data-testid="unsigned-notes">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-lg text-gray-900">Unsigned Notes</h3>
+                  <span className="airbnb-count-badge">{unsignedNotes.length}</span>
+                </div>
+                <div className="space-y-3">
+                  {unsignedNotes.map((note) => (
+                    <div key={note.id} className="flex items-center justify-between group">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0"><FileText className="w-4 h-4 text-amber-600" /></div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{note.patientName}</p>
+                          <p className="text-xs text-gray-500">{note.type} &middot; {note.date}</p>
                         </div>
                       </div>
-                      <button className="ehr-button text-[10px] px-2 py-0.5">Review</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Today's Schedule */}
-          <div className="ehr-panel">
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('schedule'); }}
-            >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.schedule ? '-' : '+'}
-                </span>
-                <span>Today's Schedule</span>
-              </div>
-            </div>
-            {expandedPanels.schedule && (
-              <div className="bg-white p-2">
-                <div className="flex items-center justify-between mb-2 text-[11px]">
-                  <span className="text-gray-500">January 18, 2024</span>
-                  <span className="font-semibold">8 appointments</span>
-                </div>
-                <div className="space-y-1">
-                  {[
-                    { time: '9:00 AM', patient: 'Completed (3)', status: 'done' },
-                    { time: '10:30 AM', patient: 'Johnson, Sarah', status: 'current' },
-                    { time: '11:00 AM', patient: 'Williams, Michael', status: 'next' },
-                    { time: '11:30 AM', patient: 'Brown, Emily', status: 'upcoming' },
-                    { time: '2:00 PM', patient: 'Wilson, Patricia', status: 'upcoming' },
-                  ].map((slot, i) => (
-                    <div key={i} className={`flex items-center justify-between py-1 px-2 text-[11px] ${
-                      slot.status === 'current' ? 'bg-gray-200 border border-gray-400' :
-                      slot.status === 'next' ? 'bg-gray-100' :
-                      slot.status === 'done' ? 'bg-gray-50 text-gray-400' : ''
-                    }`}>
-                      <span>{slot.time}</span>
-                      <span className={slot.status === 'current' ? 'font-semibold' : ''}>{slot.patient}</span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {note.daysOld >= 2 && <span className="text-xs font-bold text-rose-500">{note.daysOld}d</span>}
+                        <button className="airbnb-btn-sm">Sign</button>
+                      </div>
                     </div>
                   ))}
                 </div>
-                <button className="ehr-button w-full mt-2 text-[10px]">View Full Schedule</button>
+                <button className="w-full mt-4 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Sign All Notes</button>
               </div>
-            )}
-          </div>
 
-          {/* System Messages */}
-          <div className="ehr-panel">
-            <div className="ehr-header flex items-center">
-              <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">!</span>
-              <span>System Messages</span>
-            </div>
-            <div className="bg-white text-[10px]">
-              <div className="px-2 py-1 border-b border-gray-200">
-                <span className="text-gray-500">01/18 08:00</span> - System maintenance scheduled for 01/20 2:00 AM
+              {/* Pending Orders */}
+              <div className="airbnb-sidebar-card" data-testid="pending-orders">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-lg text-gray-900">Pending Orders</h3>
+                  <span className="airbnb-count-badge">{pendingOrders.length}</span>
+                </div>
+                <div className="space-y-3">
+                  {pendingOrders.map((order) => (
+                    <div key={order.id} className="flex items-center justify-between group">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${order.type === 'Lab' ? 'bg-violet-50' : order.type === 'Imaging' ? 'bg-blue-50' : 'bg-orange-50'}`}>
+                          {order.type === 'Lab' ? <FlaskConical className="w-4 h-4 text-violet-600" /> : order.type === 'Imaging' ? <Radio className="w-4 h-4 text-blue-600" /> : <Pill className="w-4 h-4 text-orange-600" />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{order.patientName}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-gray-500">{order.order}</span>
+                            <span className={`airbnb-status-dot ${order.status === 'draft' ? 'bg-gray-400' : order.status === 'pending-approval' ? 'bg-amber-400' : 'bg-blue-400'}`} />
+                            <span className="text-xs text-gray-400">{order.status.replace('-', ' ')}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button className="airbnb-btn-sm">Review</button>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="px-2 py-1 border-b border-gray-200">
-                <span className="text-gray-500">01/17 14:30</span> - New formulary updates available
-              </div>
-              <div className="px-2 py-1">
-                <span className="text-gray-500">01/16 09:15</span> - Lab interface upgraded to v3.2
-              </div>
-            </div>
-          </div>
 
-          {/* System Status */}
-          <div className="ehr-panel">
-            <div className="ehr-header flex items-center">
-              <span>System Status</span>
-            </div>
-            <div className="bg-white p-2 text-[10px]">
-              <table className="w-full">
-                <tbody>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5">Database</td>
-                    <td className="border border-gray-300 px-1 py-0.5 text-green-700">Connected</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">HL7 Interface</td>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50 text-green-700">Active</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5">Pharmacy Link</td>
-                    <td className="border border-gray-300 px-1 py-0.5 text-green-700">Online</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">Last Sync</td>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">2 min ago</td>
-                  </tr>
-                </tbody>
-              </table>
+              {/* Today's Schedule */}
+              <div className="airbnb-sidebar-card" data-testid="todays-schedule">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-lg text-gray-900">Today&apos;s Schedule</h3>
+                  <span className="text-sm text-gray-500">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                </div>
+                <div className="space-y-2">
+                  {scheduleSlots.map((slot, i) => (
+                    <div key={i} className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${slot.status === 'current' ? 'bg-rose-50 ring-1 ring-rose-200' : slot.status === 'next' ? 'bg-gray-50' : slot.status === 'done' ? 'opacity-50' : ''}`}>
+                      <div className="flex-shrink-0">
+                        {slot.status === 'done' ? <CheckCircle className="w-5 h-5 text-emerald-400" /> : slot.status === 'current' ? (
+                          <div className="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center"><Activity className="w-3 h-3 text-white" /></div>
+                        ) : <Circle className="w-5 h-5 text-gray-300" />}
+                      </div>
+                      <span className="text-sm font-medium text-gray-500 w-16">{slot.time}</span>
+                      <span className={`text-sm flex-1 ${slot.status === 'current' ? 'font-bold text-gray-900' : slot.status === 'done' ? 'text-gray-400' : 'text-gray-700'}`}>{slot.patient}</span>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => navigate('/schedule')} className="w-full mt-4 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">View Full Schedule</button>
+              </div>
+
+              {/* System Status */}
+              <div className="airbnb-sidebar-card" data-testid="system-status">
+                <h3 className="font-bold text-lg text-gray-900 mb-4">System Status</h3>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Database', status: 'Connected', ok: true },
+                    { label: 'HL7 Interface', status: 'Active', ok: true },
+                    { label: 'Pharmacy Link', status: 'Online', ok: true },
+                    { label: 'Last Sync', status: '2 min ago', ok: true },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">{item.label}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${item.ok ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                        <span className={`text-sm font-medium ${item.ok ? 'text-emerald-600' : 'text-rose-600'}`}>{item.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Status Bar */}
-      <div className="ehr-status-bar flex items-center justify-between">
-        <span>Dr. Sarah Anderson, MD | Internal Medicine | Logged in 2h 34m</span>
-        <span>Last refreshed: {new Date().toLocaleTimeString()}</span>
       </div>
 
       {/* Dialogs */}
-      <PrintDialog
-        isOpen={showPrintDialog}
-        onClose={() => setShowPrintDialog(false)}
-        onPrint={(options) => {
-          console.log('Print options:', options);
-          setShowPrintDialog(false);
-          setShowAlert({ title: 'Print Sent', message: `Document sent to printer (${options.action}).`, type: 'success' });
-        }}
-        title="Print Dashboard"
-        documentName="Dashboard Summary"
-      />
-
-      <PrescriptionDialog
-        isOpen={showRxDialog}
-        onClose={() => setShowRxDialog(false)}
-        onSubmit={(rx) => {
-          console.log('New Rx:', rx);
-          setShowRxDialog(false);
-          setShowAlert({ title: 'Prescription Sent', message: `${rx.medication} ${rx.strength} sent to ${rx.pharmacy}.`, type: 'success' });
-        }}
-      />
-
-      <OrderDialog
-        isOpen={showLabDialog}
-        onClose={() => setShowLabDialog(false)}
-        type="lab"
-        onSubmit={(orders) => {
-          console.log('Lab order:', orders);
-          setShowLabDialog(false);
-          setShowAlert({ title: 'Lab Order Placed', message: `${orders.length} test(s) ordered.`, type: 'success' });
-        }}
-      />
-
-      <OrderDialog
-        isOpen={showImagingDialog}
-        onClose={() => setShowImagingDialog(false)}
-        type="imaging"
-        onSubmit={(orders) => {
-          console.log('Imaging order:', orders);
-          setShowImagingDialog(false);
-          setShowAlert({ title: 'Imaging Order Placed', message: `${orders.length} study(ies) ordered.`, type: 'success' });
-        }}
-      />
-
-      {showAlert && (
-        <AlertDialog
-          isOpen={true}
-          onClose={() => setShowAlert(null)}
-          title={showAlert.title}
-          message={showAlert.message}
-          type={showAlert.type}
-        />
-      )}
+      <PrintDialog isOpen={showPrintDialog} onClose={() => setShowPrintDialog(false)} onPrint={(options) => { console.log('Print options:', options); setShowPrintDialog(false); setShowAlert({ title: 'Print Sent', message: `Document sent to printer (${options.action}).`, type: 'success' }); }} title="Print Dashboard" documentName="Dashboard Summary" />
+      <PrescriptionDialog isOpen={showRxDialog} onClose={() => setShowRxDialog(false)} onSubmit={(rx) => { console.log('New Rx:', rx); setShowRxDialog(false); setShowAlert({ title: 'Prescription Sent', message: `${rx.medication} ${rx.strength} sent to ${rx.pharmacy}.`, type: 'success' }); }} />
+      <OrderDialog isOpen={showLabDialog} onClose={() => setShowLabDialog(false)} type="lab" onSubmit={(orders) => { console.log('Lab order:', orders); setShowLabDialog(false); setShowAlert({ title: 'Lab Order Placed', message: `${orders.length} test(s) ordered.`, type: 'success' }); }} />
+      <OrderDialog isOpen={showImagingDialog} onClose={() => setShowImagingDialog(false)} type="imaging" onSubmit={(orders) => { console.log('Imaging order:', orders); setShowImagingDialog(false); setShowAlert({ title: 'Imaging Order Placed', message: `${orders.length} study(ies) ordered.`, type: 'success' }); }} />
+      {showAlert && <AlertDialog isOpen={true} onClose={() => setShowAlert(null)} title={showAlert.title} message={showAlert.message} type={showAlert.type} />}
     </div>
   );
 }

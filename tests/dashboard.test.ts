@@ -120,7 +120,7 @@ function sortWorklist(patients: WorklistPatient[], sort: WorklistSort, asc: bool
     else if (sort === 'location') cmp = a.location.localeCompare(b.location);
     else if (sort === 'status') {
       const order: Record<string, number> = { critical: 0, 'in-progress': 1, roomed: 2, waiting: 3, 'ready-discharge': 4 };
-      cmp = (order[a.status] || 5) - (order[b.status] || 5);
+      cmp = (order[a.status] ?? 5) - (order[b.status] ?? 5);
     }
     return asc ? cmp : -cmp;
   });
@@ -422,13 +422,12 @@ describe('Dashboard Filtering Logic', () => {
 
     test('should sort by status with defined order', () => {
       const sorted = sortWorklist(worklistPatients, 'status', true);
-      // The sort function uses (order[status] || 5) which treats 0 (critical) as falsy
-      // This means critical status gets order=5 (same as unknown), but still produces
-      // a deterministic sort. Verify the sort is stable and consistent.
+      // With ?? fix, critical (order 0) sorts first in ascending
+      expect(sorted[0].status).toBe('critical');
       expect(sorted.length).toBe(worklistPatients.length);
       // Verify ascending reverses with descending
       const sortedDesc = sortWorklist(worklistPatients, 'status', false);
-      expect(sortedDesc[0].status).not.toBe(sorted[0].status);
+      expect(sortedDesc[0].status).toBe('ready-discharge');
     });
 
     test('should not mutate the original array', () => {

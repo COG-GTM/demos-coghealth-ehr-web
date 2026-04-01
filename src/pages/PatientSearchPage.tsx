@@ -308,7 +308,7 @@ export default function PatientSearchPage() {
           <div className="ehr-header text-xs flex items-center justify-between">
             <span>Filter Patients</span>
             {activeFilterCount > 0 && (
-              <button onClick={clearFilters} className="text-white/80 hover:text-white flex items-center text-[10px]">
+              <button onClick={clearFilters} className="text-[#717171] hover:text-[#222222] flex items-center text-[10px]">
                 <X className="w-3 h-3 mr-0.5" /> Clear ({activeFilterCount})
               </button>
             )}
@@ -635,7 +635,7 @@ export default function PatientSearchPage() {
           <div className="w-72 flex flex-col border-l border-gray-500" style={{ background: '#f5f5f5' }}>
             <div className="ehr-header text-xs flex items-center justify-between">
               <span>Patient Details</span>
-              <button onClick={() => setSelectedPatient(null)} className="text-white/80 hover:text-white">
+              <button onClick={() => setSelectedPatient(null)} className="text-[#717171] hover:text-[#222222]">
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>

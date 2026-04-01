@@ -23,8 +23,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           className={`ehr-input w-full ${error ? 'border-red-500' : ''} ${className}`}
           {...props}
         />
-        {error && <p className="mt-1 text-[10px] text-red-600">{error}</p>}
-        {helperText && !error && <p className="mt-1 text-[10px] text-gray-500">{helperText}</p>}
+        {error && <p className="mt-1.5 text-xs text-[#FF385C]">{error}</p>}
+        {helperText && !error && <p className="mt-1.5 text-xs text-[#b0b0b0]">{helperText}</p>}
       </div>
     );
   }

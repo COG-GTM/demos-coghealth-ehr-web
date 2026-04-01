@@ -9,9 +9,9 @@ interface CardProps {
 export default function Card({ children, className = '', padding = 'md' }: CardProps) {
   const paddings = {
     none: '',
-    sm: 'p-2',
-    md: 'p-3',
-    lg: 'p-4',
+    sm: 'p-4',
+    md: 'p-5',
+    lg: 'p-6',
   };
 
   return (
@@ -29,10 +29,10 @@ interface CardHeaderProps {
 
 export function CardHeader({ title, subtitle, action }: CardHeaderProps) {
   return (
-    <div className="ehr-header flex items-center justify-between mb-2">
+    <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#ebebeb]">
       <div>
-        <span className="text-[11px] font-semibold">{title}</span>
-        {subtitle && <span className="text-[10px] ml-2 opacity-80">{subtitle}</span>}
+        <span className="text-sm font-semibold text-[#222222]">{title}</span>
+        {subtitle && <span className="text-xs ml-2 text-[#717171]">{subtitle}</span>}
       </div>
       {action && <div>{action}</div>}
     </div>

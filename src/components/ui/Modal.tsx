@@ -36,32 +36,28 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col`} style={{ fontFamily: 'Tahoma, sans-serif' }}>
-        {/* Window frame */}
-        <div className="bg-white border-2 border-gray-400 shadow-lg flex flex-col" style={{ boxShadow: '2px 2px 8px rgba(0,0,0,0.3)' }}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col`} style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+        <div className="bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden">
           {/* Title bar */}
-          <div 
-            className="flex items-center justify-between px-2 py-1"
-            style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
-          >
-            <span className="text-white font-semibold text-[11px]">{title}</span>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#ebebeb]">
+            <span className="text-[#222222] font-semibold text-base">{title}</span>
             <button 
               onClick={onClose}
-              className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20"
+              className="w-8 h-8 rounded-full hover:bg-[#f7f7f7] flex items-center justify-center transition-colors"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4 text-[#717171]" />
             </button>
           </div>
           
           {/* Content */}
-          <div className="flex-1 overflow-auto p-3 bg-[#ece9d8]">
+          <div className="flex-1 overflow-auto p-6">
             {children}
           </div>
           
           {/* Footer */}
           {footer && (
-            <div className="px-3 py-2 bg-[#ece9d8] border-t border-gray-400 flex justify-end space-x-2">
+            <div className="px-6 py-4 border-t border-[#ebebeb] flex justify-end space-x-3">
               {footer}
             </div>
           )}
@@ -106,14 +102,14 @@ export function ConfirmDialog({
           <button 
             onClick={() => { onConfirm(); onClose(); }} 
             className={`ehr-button px-4 ${type === 'danger' ? '' : 'ehr-button-primary'}`}
-            style={type === 'danger' ? { background: 'linear-gradient(to bottom, #e87458 0%, #c84030 100%)', color: 'white', border: '1px solid #a02010' } : undefined}
+            style={type === 'danger' ? { background: '#FF385C', color: 'white', border: 'none', borderRadius: '24px' } : undefined}
           >
             {confirmText}
           </button>
         </>
       }
     >
-      <p className="text-[11px] text-gray-700">{message}</p>
+      <p className="text-sm text-[#717171] leading-relaxed">{message}</p>
     </Modal>
   );
 }
@@ -128,10 +124,10 @@ interface AlertDialogProps {
 
 export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: AlertDialogProps) {
   const bgColors = {
-    info: '#cce5ff',
-    success: '#d4edda',
-    warning: '#fff3cd',
-    error: '#f8d7da',
+    info: '#eff6ff',
+    success: '#f0fdf4',
+    warning: '#fffbeb',
+    error: '#fff1f2',
   };
   
   return (
@@ -146,8 +142,8 @@ export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: 
         </button>
       }
     >
-      <div className="p-2 border border-gray-400" style={{ background: bgColors[type] }}>
-        <p className="text-[11px]">{message}</p>
+      <div className="p-4 rounded-xl" style={{ background: bgColors[type] }}>
+        <p className="text-sm text-[#222222] leading-relaxed">{message}</p>
       </div>
     </Modal>
   );

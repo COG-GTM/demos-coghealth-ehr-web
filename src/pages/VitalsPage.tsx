@@ -122,7 +122,7 @@ export default function VitalsPage() {
           <div className="flex items-center space-x-2">
             <Activity className="w-4 h-4" />
             <span>Vital Signs Flowsheet</span>
-            <span className="text-blue-200">|</span>
+            <span className="text-[#dddddd]">|</span>
             <span className="text-[10px]">{selectedPatient.name} ({selectedPatient.mrn}) - {selectedPatient.age}yo {selectedPatient.gender} - Room {selectedPatient.room}</span>
           </div>
           <div className="flex items-center space-x-2">

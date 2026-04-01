@@ -12,9 +12,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const baseClass = variant === 'primary' ? 'ehr-button ehr-button-primary' : 'ehr-button';
     
     const dangerStyle = variant === 'danger' ? {
-      background: 'linear-gradient(to bottom, #e87458 0%, #c84030 100%)',
+      background: '#FF385C',
       color: 'white',
-      border: '1px solid #a02010'
+      border: 'none',
+      borderRadius: '24px'
     } : undefined;
 
     const ghostStyle = variant === 'ghost' ? {

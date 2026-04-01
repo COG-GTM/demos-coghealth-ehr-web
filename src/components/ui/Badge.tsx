@@ -13,16 +13,16 @@ export default function Badge({
   className = '' 
 }: BadgeProps) {
   const variants = {
-    default: { background: '#e8e8e8', border: '1px solid #999', color: '#333' },
-    success: { background: '#d4edda', border: '1px solid #28a745', color: '#155724' },
-    warning: { background: '#fff3cd', border: '1px solid #cc9900', color: '#664d00' },
-    danger: { background: '#ffcccc', border: '1px solid #cc0000', color: '#990000' },
-    info: { background: '#cce5ff', border: '1px solid #0066cc', color: '#004085' },
+    default: { background: '#f7f7f7', border: 'none', color: '#717171', borderRadius: '24px' },
+    success: { background: '#f0fdf4', border: 'none', color: '#15803d', borderRadius: '24px' },
+    warning: { background: '#fffbeb', border: 'none', color: '#92400e', borderRadius: '24px' },
+    danger: { background: '#fff1f2', border: 'none', color: '#FF385C', borderRadius: '24px' },
+    info: { background: '#eff6ff', border: 'none', color: '#1e40af', borderRadius: '24px' },
   };
 
   return (
     <span 
-      className={`inline-flex items-center text-[10px] px-1.5 py-0.5 font-medium ${className}`}
+      className={`inline-flex items-center text-xs px-3 py-1 font-medium ${className}`}
       style={variants[variant]}
     >
       {children}

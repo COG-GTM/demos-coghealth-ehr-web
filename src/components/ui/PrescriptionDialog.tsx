@@ -126,12 +126,12 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
       width="lg"
       footer={
         <>
-          <button onClick={onClose} className="ehr-button px-4">
+          <button onClick={onClose} className="px-5 py-2.5 bg-white border border-[#DDDDDD] rounded-full text-sm font-semibold text-[#222222] hover:border-[#222222] transition-all">
             Cancel
           </button>
           <button 
             onClick={handleSubmit} 
-            className="ehr-button ehr-button-primary px-4"
+            className="px-5 py-2.5 bg-[#FF385C] text-white rounded-full text-sm font-semibold hover:bg-[#E31C5F] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!selectedMed || !prescription.strength}
           >
             Sign & Send to Pharmacy

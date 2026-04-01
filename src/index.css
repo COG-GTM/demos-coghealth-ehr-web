@@ -1,238 +1,412 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Tahoma&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap');
 
 @theme {
-  --color-primary-50: #e8f4fc;
-  --color-primary-100: #d1e9f9;
-  --color-primary-200: #a3d3f3;
-  --color-primary-300: #75bded;
-  --color-primary-400: #47a7e7;
-  --color-primary-500: #1a91e1;
-  --color-primary-600: #1574b4;
-  --color-primary-700: #105787;
-  --color-primary-800: #0a3a5a;
-  --color-primary-900: #051d2d;
-  --color-primary-950: #020e16;
-  
-  --font-family-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --color-primary-50: #FFF1F0;
+  --color-primary-100: #FFE4E1;
+  --color-primary-200: #FFCDC7;
+  --color-primary-300: #FFB0A6;
+  --color-primary-400: #FF8C7C;
+  --color-primary-500: #FF385C;
+  --color-primary-600: #E31C5F;
+  --color-primary-700: #C01048;
+  --color-primary-800: #9A0D3B;
+  --color-primary-900: #7A0B31;
+  --color-primary-950: #4A0620;
+
+  --color-secondary-50: #F7F7F7;
+  --color-secondary-100: #EBEBEB;
+  --color-secondary-200: #DDDDDD;
+  --color-secondary-300: #B0B0B0;
+  --color-secondary-400: #717171;
+  --color-secondary-500: #484848;
+  --color-secondary-600: #333333;
+  --color-secondary-700: #222222;
+  --color-secondary-800: #1A1A1A;
+  --color-secondary-900: #111111;
+  --color-secondary-950: #080808;
+
+  --font-family-sans: 'Nunito', system-ui, -apple-system, sans-serif;
 }
 
 body {
-  font-size: 11px;
-  background-color: #d4d0c8;
+  font-size: 14px;
+  background-color: #ffffff;
+  color: #222222;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 input, select, textarea, button {
-  font-size: 11px;
+  font-size: 14px;
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
 }
 
 table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 th {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e8e8e8 100%);
-  border: 1px solid #999;
+  background: #F7F7F7;
+  border-bottom: 1px solid #EBEBEB;
   font-weight: 600;
+  color: #484848;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 td {
-  border: 1px solid #ccc;
+  border-bottom: 1px solid #F7F7F7;
 }
 
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #DDDDDD; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #B0B0B0; }
+
 .ehr-panel {
-  background: #f5f5f5;
-  border: 1px solid #999;
-  box-shadow: inset 1px 1px 0 #fff, 1px 1px 2px rgba(0,0,0,0.1);
+  background: #ffffff;
+  border: 1px solid #EBEBEB;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.ehr-panel:hover {
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
 }
 
 .ehr-button {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
-  border: 1px solid #888;
-  padding: 2px 8px;
-  font-size: 11px;
+  background: #ffffff;
+  border: 1px solid #DDDDDD;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 1px 1px 0 #fff inset, -1px -1px 0 #999 inset;
+  border-radius: 8px;
+  color: #222222;
+  transition: all 0.15s ease;
 }
 
 .ehr-button:hover {
-  background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
+  background: #F7F7F7;
+  border-color: #222222;
 }
 
 .ehr-button:active {
-  background: linear-gradient(to bottom, #d8d8d8 0%, #e8e8e8 100%);
-  box-shadow: -1px -1px 0 #fff inset, 1px 1px 0 #999 inset;
+  transform: scale(0.98);
 }
 
 .ehr-button-primary {
-  background: linear-gradient(to bottom, #4a90d9 0%, #2a5db0 100%);
-  border: 1px solid #1a4080;
+  background: #FF385C;
+  border: none;
   color: white;
+  font-weight: 600;
 }
 
 .ehr-button-primary:hover {
-  background: linear-gradient(to bottom, #5aa0e9 0%, #3a6dc0 100%);
+  background: #E31C5F;
+  border: none;
 }
 
 .ehr-input {
-  border: 1px solid #7f9db9;
-  padding: 2px 4px;
+  border: 1px solid #DDDDDD;
+  padding: 8px 12px;
   background: white;
-  font-size: 11px;
+  font-size: 14px;
+  border-radius: 8px;
+  color: #222222;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .ehr-input:focus {
   outline: none;
-  border-color: #4a90d9;
-  box-shadow: 0 0 2px rgba(74, 144, 217, 0.5);
+  border-color: #222222;
+  box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1);
 }
 
 .ehr-fieldset {
-  border: 1px solid #999;
-  padding: 8px;
-  margin: 4px 0;
-  background: #fafafa;
+  border: 1px solid #EBEBEB;
+  padding: 16px;
+  margin: 8px 0;
+  background: #FAFAFA;
+  border-radius: 12px;
 }
 
 .ehr-fieldset legend {
-  font-weight: 600;
-  padding: 0 4px;
-  color: #333;
+  font-weight: 700;
+  padding: 0 8px;
+  color: #222222;
+  font-size: 14px;
 }
 
 .ehr-checkbox {
-  margin-right: 4px;
+  margin-right: 8px;
+  accent-color: #FF385C;
 }
 
 .ehr-label {
-  color: #333;
-  font-size: 11px;
+  color: #484848;
+  font-size: 14px;
 }
 
 .ehr-header {
-  background: linear-gradient(to bottom, #6699cc 0%, #336699 100%);
+  background: linear-gradient(135deg, #FF385C 0%, #E31C5F 100%);
   color: white;
-  padding: 4px 8px;
-  font-weight: 600;
-  border-bottom: 1px solid #1a4080;
+  padding: 12px 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .ehr-subheader {
-  background: linear-gradient(to bottom, #e8e8e8 0%, #d0d0d0 100%);
-  color: #333;
-  padding: 2px 6px;
+  background: #FAFAFA;
+  color: #484848;
+  padding: 8px 16px;
   font-weight: 600;
-  border-bottom: 1px solid #999;
-  font-size: 10px;
+  border-bottom: 1px solid #EBEBEB;
 }
 
 .ehr-tree-item {
-  padding: 1px 4px;
+  padding: 6px 12px;
   cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s ease;
 }
 
 .ehr-tree-item:hover {
-  background: #e0e8f0;
+  background: #F7F7F7;
 }
 
 .ehr-tree-item.selected {
-  background: #316ac5;
-  color: white;
+  background: #FFF1F0;
+  color: #FF385C;
+  font-weight: 600;
 }
 
 .ehr-status-bar {
-  background: #ece9d8;
-  border-top: 1px solid #fff;
-  padding: 2px 8px;
-  font-size: 10px;
-  color: #333;
+  background: #FAFAFA;
+  border-top: 1px solid #EBEBEB;
+  padding: 6px 20px;
+  font-size: 12px;
+  color: #717171;
 }
 
 .ehr-tab {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
-  border: 1px solid #888;
-  border-bottom: none;
-  padding: 3px 12px;
-  margin-right: 2px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 16px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #717171;
+  transition: all 0.15s ease;
+  border-radius: 0;
+}
+
+.ehr-tab:hover {
+  color: #222222;
 }
 
 .ehr-tab.active {
-  background: #fff;
-  border-bottom: 1px solid #fff;
-  margin-bottom: -1px;
-  position: relative;
-  z-index: 1;
+  color: #222222;
+  border-bottom: 2px solid #222222;
+  background: transparent;
 }
 
 .ehr-tab-content {
-  border: 1px solid #888;
-  background: #fff;
-  padding: 8px;
+  border: 1px solid #EBEBEB;
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 0 0 12px 12px;
 }
 
 .ehr-grid-row:nth-child(even) {
-  background: #f0f4f8;
+  background: #FAFAFA;
 }
 
 .ehr-grid-row:hover {
-  background: #d0e0f0;
+  background: #F7F7F7;
 }
 
 .ehr-grid-row.selected {
-  background: #316ac5;
-  color: white;
+  background: #FFF1F0;
+  color: #FF385C;
 }
 
 .ehr-alert-critical {
-  background: #ffcccc;
-  border: 1px solid #cc0000;
-  color: #990000;
+  background: #FFF1F0;
+  border: 1px solid #FFB0A6;
+  color: #C01048;
+  border-radius: 12px;
 }
 
 .ehr-alert-warning {
-  background: #fff3cd;
-  border: 1px solid #cc9900;
-  color: #664d00;
+  background: #FFF8ED;
+  border: 1px solid #FFD699;
+  color: #8B5E00;
+  border-radius: 12px;
 }
 
 .ehr-alert-info {
-  background: #cce5ff;
-  border: 1px solid #0066cc;
+  background: #EFF8FF;
+  border: 1px solid #B3D9FF;
   color: #004085;
+  border-radius: 12px;
 }
 
 .ehr-toolbar {
-  background: linear-gradient(to bottom, #f5f5f5 0%, #e5e5e5 100%);
-  border-bottom: 1px solid #999;
-  padding: 2px 4px;
+  background: #ffffff;
+  border-bottom: 1px solid #EBEBEB;
+  padding: 8px 20px;
 }
 
 .ehr-toolbar-button {
   background: transparent;
   border: 1px solid transparent;
-  padding: 2px 6px;
+  padding: 6px 12px;
   cursor: pointer;
+  border-radius: 20px;
+  font-weight: 600;
+  color: #484848;
+  transition: all 0.15s ease;
+  font-size: 13px;
 }
 
 .ehr-toolbar-button:hover {
-  background: #e0e8f0;
-  border: 1px solid #999;
+  background: #F7F7F7;
+  color: #222222;
 }
 
 .ehr-toolbar-button-active {
-  background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
-  border: 1px solid #888;
-  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15);
+  background: #F7F7F7;
+  border-color: #DDDDDD;
+  color: #222222;
 }
 
 .ehr-splitter {
-  background: #d4d0c8;
+  background: #EBEBEB;
   cursor: col-resize;
-  width: 4px;
+  width: 1px;
 }
 
 .ehr-splitter:hover {
-  background: #b0b0b0;
+  background: #FF385C;
+}
+
+/* Airbnb-style search */
+.airbnb-search {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #DDDDDD;
+  border-radius: 40px;
+  padding: 4px 4px 4px 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.airbnb-search:focus-within {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.airbnb-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #222222;
+  font-weight: 500;
+}
+
+.airbnb-search input::placeholder {
+  color: #717171;
+}
+
+.airbnb-search-btn {
+  background: linear-gradient(135deg, #FF385C, #E31C5F);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.airbnb-search-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(255, 56, 92, 0.4);
+}
+
+.airbnb-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 4px;
+}
+
+.airbnb-badge-critical { background: #FFF1F0; color: #C01048; border: 1px solid #FFB0A6; }
+.airbnb-badge-warning { background: #FFF8ED; color: #8B5E00; border: 1px solid #FFD699; }
+.airbnb-badge-success { background: #F0FFF4; color: #0D6832; border: 1px solid #A3E6C0; }
+.airbnb-badge-info { background: #EFF8FF; color: #0055B3; border: 1px solid #B3D9FF; }
+.airbnb-badge-neutral { background: #F7F7F7; color: #484848; border: 1px solid #EBEBEB; }
+
+.airbnb-card {
+  border-radius: 12px;
+  border: 1px solid #EBEBEB;
+  background: #ffffff;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.airbnb-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeSlideIn 0.4s ease forwards;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.2); }
+}
+
+.pulse-dot {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #F7F7F7 0px, #EBEBEB 40px, #F7F7F7 80px);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.float-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #717171;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }

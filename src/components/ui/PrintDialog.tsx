@@ -40,17 +40,17 @@ export function PrintDialog({ isOpen, onClose, title, documentName, onPrint }: P
       width="md"
       footer={
         <>
-          <button onClick={onClose} className="ehr-button px-4">
+          <button onClick={onClose} className="px-5 py-2.5 bg-white border border-[#DDDDDD] rounded-full text-sm font-semibold text-[#222222] hover:border-[#222222] transition-all">
             Cancel
           </button>
-          <button onClick={() => handlePrint('preview')} className="ehr-button px-4 flex items-center">
-            <FileText className="w-3 h-3 mr-1" /> Preview
+          <button onClick={() => handlePrint('preview')} className="px-5 py-2.5 bg-white border border-[#DDDDDD] rounded-full text-sm font-semibold text-[#222222] hover:border-[#222222] transition-all flex items-center">
+            <FileText className="w-4 h-4 mr-1.5" /> Preview
           </button>
-          <button onClick={() => handlePrint('pdf')} className="ehr-button px-4 flex items-center">
-            <Download className="w-3 h-3 mr-1" /> Save PDF
+          <button onClick={() => handlePrint('pdf')} className="px-5 py-2.5 bg-white border border-[#DDDDDD] rounded-full text-sm font-semibold text-[#222222] hover:border-[#222222] transition-all flex items-center">
+            <Download className="w-4 h-4 mr-1.5" /> Save PDF
           </button>
-          <button onClick={() => handlePrint('print')} className="ehr-button ehr-button-primary px-4 flex items-center">
-            <Printer className="w-3 h-3 mr-1" /> Print
+          <button onClick={() => handlePrint('print')} className="px-5 py-2.5 bg-[#FF385C] text-white rounded-full text-sm font-semibold hover:bg-[#E31C5F] transition-all flex items-center">
+            <Printer className="w-4 h-4 mr-1.5" /> Print
           </button>
         </>
       }

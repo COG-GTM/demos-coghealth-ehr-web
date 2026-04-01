@@ -128,73 +128,77 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   return (
     <>
       {/* Application Header */}
-      <div className="ehr-header flex items-center justify-between px-3">
-        <div className="flex items-center space-x-3">
-          <div className="w-5 h-5 bg-white flex items-center justify-center border border-blue-300">
-            <span className="text-blue-800 font-bold text-[11px]">C</span>
+      <div className="flex items-center justify-between px-5 py-2.5 bg-white border-b border-gray-200">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-7 h-7 bg-[#5e6ad2] rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">C</span>
+            </div>
+            <span className="font-semibold text-[15px] text-gray-900">CogHealth EHR</span>
+            <span className="text-xs text-gray-400 font-medium">v4.2.1</span>
           </div>
-          <span className="font-semibold">CogHealth EHR</span>
-          <span className="text-blue-200 text-[10px]">v4.2.1</span>
-          <span className="text-blue-300">|</span>
+          <div className="h-5 w-px bg-gray-200" />
           {/* Global Patient Search */}
           <div className="relative">
-            <div className="flex items-center">
-              <Search className="w-3 h-3 text-blue-200 mr-1" />
+            <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 px-3 py-1.5 focus-within:border-[#5e6ad2] focus-within:ring-2 focus-within:ring-[#5e6ad2]/10 transition-all">
+              <Search className="w-3.5 h-3.5 text-gray-400 mr-2" />
               <input
                 type="text"
-                placeholder="Patient search..."
+                placeholder="Search patients..."
                 value={globalSearch}
                 onChange={(e) => handleSearch(e.target.value)}
                 onFocus={() => globalSearch.length >= 2 && setShowSearchDropdown(true)}
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
-                className="bg-blue-900/50 border border-blue-400 text-white placeholder-blue-300 text-[10px] px-2 py-0.5 w-40 focus:outline-none focus:border-white"
+                className="bg-transparent border-none text-sm text-gray-700 placeholder-gray-400 w-48 focus:outline-none"
               />
             </div>
             {showSearchDropdown && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50">
+              <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden animate-fade-in">
                 {searchResults.map((patient) => (
                   <div
                     key={patient.id}
                     onClick={() => selectPatient(patient.id)}
-                    className="px-2 py-1.5 hover:bg-blue-100 cursor-pointer text-[11px] text-gray-800 border-b border-gray-200"
+                    className="px-3 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100 last:border-0"
                   >
-                    <div className="font-semibold">{patient.name}</div>
-                    <div className="text-gray-500 text-[10px]">{patient.mrn} • DOB: {patient.dob}</div>
+                    <div className="font-medium text-sm text-gray-900">{patient.name}</div>
+                    <div className="text-gray-500 text-xs mt-0.5">{patient.mrn} &middot; DOB: {patient.dob}</div>
                   </div>
                 ))}
               </div>
             )}
             {showSearchDropdown && searchResults.length === 0 && globalSearch.length >= 2 && (
-              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50 p-2 text-[11px] text-gray-500">
+              <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-3 text-sm text-gray-500 animate-fade-in">
                 No patients found
               </div>
             )}
           </div>
         </div>
-        <div className="flex items-center space-x-3 text-[10px]">
-          <span className="text-blue-100">Springfield Medical Center</span>
-          <span className="text-blue-300">|</span>
-          <div className="flex items-center space-x-1">
-            <Lock className="w-3 h-3" />
-            <span className={sessionTime < SESSION_WARNING_MS ? 'text-yellow-300' : 'text-blue-200'}>
-              Session: {formatSessionTime()}
+        <div className="flex items-center space-x-4 text-sm">
+          <span className="text-gray-500">Springfield Medical Center</span>
+          <div className="h-4 w-px bg-gray-200" />
+          <div className="flex items-center space-x-1.5">
+            <Lock className="w-3.5 h-3.5 text-gray-400" />
+            <span className={`text-xs font-medium ${sessionTime < SESSION_WARNING_MS ? 'text-amber-500' : 'text-gray-400'}`}>
+              {formatSessionTime()}
             </span>
           </div>
-          <span className="text-blue-300">|</span>
-          <div className="flex items-center space-x-1">
-            <User className="w-3 h-3" />
-            <span>Dr. Sarah Anderson</span>
+          <div className="h-4 w-px bg-gray-200" />
+          <div className="flex items-center space-x-2">
+            <div className="w-6 h-6 rounded-full bg-[#5e6ad2]/10 flex items-center justify-center">
+              <User className="w-3.5 h-3.5 text-[#5e6ad2]" />
+            </div>
+            <span className="text-sm font-medium text-gray-700">Dr. Sarah Anderson</span>
           </div>
-          <button onClick={onLogout} className="flex items-center space-x-1 hover:text-white text-blue-200">
-            <LogOut className="w-3 h-3" />
-            <span>Logout</span>
+          <button onClick={onLogout} className="flex items-center space-x-1.5 text-gray-400 hover:text-gray-600 transition-colors ml-1">
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="text-xs font-medium">Logout</span>
           </button>
         </div>
       </div>
 
       {/* Navigation Toolbar */}
-      <div className="ehr-toolbar flex items-center justify-between">
-        <div className="flex items-center space-x-0.5">
+      <div className="flex items-center justify-between px-5 py-1 bg-white border-b border-gray-100">
+        <div className="flex items-center space-x-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path || 
@@ -203,33 +207,37 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
               <Link
                 key={item.path}
                 to={item.path}
-                className={`ehr-toolbar-button flex items-center ${isActive ? 'ehr-toolbar-button-active' : ''}`}
+                className={`flex items-center px-3 py-1.5 rounded-md text-[13px] font-medium transition-all ${
+                  isActive 
+                    ? 'bg-[#5e6ad2]/8 text-[#5e6ad2]' 
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                }`}
               >
-                <Icon className="w-3.5 h-3.5 mr-1" />
+                <Icon className="w-4 h-4 mr-1.5" />
                 {item.label}
               </Link>
             );
           })}
         </div>
 
-        <div className="flex items-center space-x-2 text-[10px] text-gray-600">
+        <div className="flex items-center space-x-3 text-xs text-gray-400">
           <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-          <span className="text-gray-400">|</span>
+          <span className="text-gray-300">&middot;</span>
           <span>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
 
         {/* Mobile menu button */}
         <button
-          className="md:hidden p-1 hover:bg-gray-200"
+          className="md:hidden p-1.5 hover:bg-gray-100 rounded-md transition-colors"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
-          {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          {mobileMenuOpen ? <X className="w-4 h-4 text-gray-500" /> : <Menu className="w-4 h-4 text-gray-500" />}
         </button>
       </div>
 
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-300 bg-white">
-          <div className="px-2 py-1 space-y-0.5">
+        <div className="md:hidden border-t border-gray-100 bg-white shadow-sm">
+          <div className="px-3 py-2 space-y-0.5">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -238,13 +246,13 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
                   key={item.path}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center px-2 py-1.5 text-[11px] ${
+                  className={`flex items-center px-3 py-2 rounded-md text-sm transition-colors ${
                     isActive
-                      ? 'bg-blue-100 border border-blue-300'
-                      : 'hover:bg-gray-100'
+                      ? 'bg-[#5e6ad2]/8 text-[#5e6ad2] font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <Icon className="w-4 h-4 mr-2" />
+                  <Icon className="w-4 h-4 mr-2.5" />
                   {item.label}
                 </Link>
               );
@@ -280,7 +288,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="h-screen flex flex-col" style={{ background: '#d4d0c8', fontFamily: 'Tahoma, sans-serif' }}>
+      <div className="h-screen flex flex-col bg-[#f8f9fa]" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
         <Navigation 
           onSessionWarning={handleSessionWarning}
           onSessionExpired={handleSessionExpired}
@@ -300,24 +308,27 @@ function App() {
           </Routes>
         </main>
 
-        {/* Status Bar - Windows XP style */}
-        <div className="h-5 bg-gradient-to-b from-[#ece9d8] to-[#d4d0c8] border-t border-gray-400 flex items-center justify-between px-2 text-[10px] text-gray-600">
+        {/* Status Bar - Modern */}
+        <div className="h-8 bg-white border-t border-gray-100 flex items-center justify-between px-5 text-xs text-gray-400">
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1">
-              <Shield className="w-3 h-3 text-green-600" />
+            <div className="flex items-center space-x-1.5">
+              <Shield className="w-3 h-3 text-emerald-500" />
               <span>HIPAA Compliant</span>
             </div>
-            <span className="text-gray-400">|</span>
-            <span>Encrypted Connection (TLS 1.3)</span>
-            <span className="text-gray-400">|</span>
+            <div className="h-3 w-px bg-gray-200" />
+            <span>Encrypted (TLS 1.3)</span>
+            <div className="h-3 w-px bg-gray-200" />
             <span>Audit Logging: Active</span>
           </div>
           <div className="flex items-center space-x-4">
-            <span>Database: Connected</span>
-            <span className="text-gray-400">|</span>
+            <div className="flex items-center space-x-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span>Connected</span>
+            </div>
+            <div className="h-3 w-px bg-gray-200" />
             <span>Last Sync: Just now</span>
-            <span className="text-gray-400">|</span>
-            <span className="text-gray-500">CogHealth EHR v4.2.1 - For Demo Use Only</span>
+            <div className="h-3 w-px bg-gray-200" />
+            <span>CogHealth EHR v4.2.1</span>
           </div>
         </div>
 

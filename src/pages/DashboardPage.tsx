@@ -259,106 +259,104 @@ export default function DashboardPage() {
 
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'critical': return 'bg-gray-300 text-gray-800 font-bold';
-      case 'waiting': return 'bg-gray-200 text-gray-700';
-      case 'roomed': return 'bg-gray-200 text-gray-700';
-      case 'in-progress': return 'bg-gray-300 text-gray-800';
-      case 'ready-discharge': return 'bg-gray-100 text-gray-600';
+      case 'critical': return 'bg-red-50 text-red-700 font-medium';
+      case 'waiting': return 'bg-amber-50 text-amber-700';
+      case 'roomed': return 'bg-blue-50 text-blue-700';
+      case 'in-progress': return 'bg-[#5e6ad2]/10 text-[#5e6ad2]';
+      case 'ready-discharge': return 'bg-emerald-50 text-emerald-700';
       default: return 'bg-gray-100 text-gray-600';
     }
   };
 
   const getFlagStyle = (flag: string) => {
     switch (flag) {
-      case 'fall-risk': return { label: 'FALL', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'isolation': return { label: 'ISO', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'npo': return { label: 'NPO', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'allergy': return { label: 'ALLERGY', bg: 'bg-gray-200', color: 'text-gray-800' };
-      case 'code-status': return { label: 'DNR', bg: 'bg-gray-300', color: 'text-gray-800' };
-      case 'vip': return { label: 'VIP', bg: 'bg-gray-100', color: 'text-gray-700' };
-      default: return { label: flag, bg: 'bg-gray-100', color: 'text-gray-700' };
+      case 'fall-risk': return { label: 'FALL', bg: 'bg-amber-50', color: 'text-amber-700' };
+      case 'isolation': return { label: 'ISO', bg: 'bg-purple-50', color: 'text-purple-700' };
+      case 'npo': return { label: 'NPO', bg: 'bg-orange-50', color: 'text-orange-700' };
+      case 'allergy': return { label: 'ALLERGY', bg: 'bg-red-50', color: 'text-red-700' };
+      case 'code-status': return { label: 'DNR', bg: 'bg-gray-100', color: 'text-gray-700' };
+      case 'vip': return { label: 'VIP', bg: 'bg-blue-50', color: 'text-blue-700' };
+      default: return { label: flag, bg: 'bg-gray-100', color: 'text-gray-600' };
     }
   };
 
   return (
-    <div className="h-full flex flex-col relative" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col relative bg-[#f8f9fa]">
       <LoadingOverlay isLoading={loading} text="Loading dashboard..." />
       {/* Toolbar */}
-      <div className="ehr-toolbar flex items-center justify-between">
+      <div className="flex items-center justify-between px-5 py-2 bg-white border-b border-gray-100">
         <div className="flex items-center space-x-1">
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'Refreshed', message: 'Dashboard data has been refreshed.', type: 'info' })}>
-            <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
+          <button className="ehr-toolbar-button flex items-center text-[13px]" onClick={() => setShowAlert({ title: 'Refreshed', message: 'Dashboard data has been refreshed.', type: 'info' })}>
+            <RefreshCw className="w-4 h-4 mr-1.5" /> Refresh
           </button>
-          <span className="text-gray-400">|</span>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowRxDialog(true)}>
-            <Pill className="w-3.5 h-3.5 mr-1" /> e-Prescribe
+          <div className="h-4 w-px bg-gray-200 mx-1" />
+          <button className="ehr-toolbar-button flex items-center text-[13px]" onClick={() => setShowRxDialog(true)}>
+            <Pill className="w-4 h-4 mr-1.5" /> e-Prescribe
           </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowLabDialog(true)}>
-            <FlaskConical className="w-3.5 h-3.5 mr-1" /> Order Labs
+          <button className="ehr-toolbar-button flex items-center text-[13px]" onClick={() => setShowLabDialog(true)}>
+            <FlaskConical className="w-4 h-4 mr-1.5" /> Order Labs
           </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowImagingDialog(true)}>
-            <Radio className="w-3.5 h-3.5 mr-1" /> Order Imaging
+          <button className="ehr-toolbar-button flex items-center text-[13px]" onClick={() => setShowImagingDialog(true)}>
+            <Radio className="w-4 h-4 mr-1.5" /> Order Imaging
           </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'New Note', message: 'Select a patient first to create a clinical note.', type: 'info' })}>
-            <FileText className="w-3.5 h-3.5 mr-1" /> New Note
+          <button className="ehr-toolbar-button flex items-center text-[13px]" onClick={() => setShowAlert({ title: 'New Note', message: 'Select a patient first to create a clinical note.', type: 'info' })}>
+            <FileText className="w-4 h-4 mr-1.5" /> New Note
           </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'Referral', message: 'Select a patient first to create a referral.', type: 'info' })}>
-            <Send className="w-3.5 h-3.5 mr-1" /> Referral
+          <button className="ehr-toolbar-button flex items-center text-[13px]" onClick={() => setShowAlert({ title: 'Referral', message: 'Select a patient first to create a referral.', type: 'info' })}>
+            <Send className="w-4 h-4 mr-1.5" /> Referral
           </button>
-          <span className="text-gray-400">|</span>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPrintDialog(true)}>
-            <Printer className="w-3.5 h-3.5 mr-1" /> Print
+          <div className="h-4 w-px bg-gray-200 mx-1" />
+          <button className="ehr-toolbar-button flex items-center text-[13px]" onClick={() => setShowPrintDialog(true)}>
+            <Printer className="w-4 h-4 mr-1.5" /> Print
           </button>
         </div>
         <div className="flex items-center space-x-2">
-          <button className="ehr-toolbar-button relative">
+          <button className="ehr-toolbar-button relative p-2">
             <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-gray-600 text-white text-[9px] flex items-center justify-center border border-gray-700">3</span>
+            <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-medium flex items-center justify-center rounded-full">3</span>
           </button>
         </div>
       </div>
 
       {/* Critical Alerts Banner */}
       {criticalAlerts.length > 0 && (
-        <div className="ehr-alert-critical px-3 py-2">
+        <div className="mx-5 mt-3 mb-0 bg-red-50 border border-red-100 rounded-lg px-4 py-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <ShieldAlert className="w-4 h-4 mr-2" />
-              <span className="font-semibold text-[11px]">CRITICAL ALERTS ({criticalAlerts.length})</span>
+              <ShieldAlert className="w-4 h-4 mr-2 text-red-500" />
+              <span className="font-semibold text-[13px] text-red-700">Critical Alerts ({criticalAlerts.length})</span>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-5">
               {criticalAlerts.slice(0, 2).map((alert) => (
-                <span key={alert.id} className="text-[11px]">
-                  <strong>{alert.patient}:</strong> {alert.alert} - {alert.action}
+                <span key={alert.id} className="text-[13px] text-red-600">
+                  <span className="font-medium">{alert.patient}:</span> {alert.alert} &mdash; {alert.action}
                 </span>
               ))}
-              <button className="ehr-button text-[10px] px-2 py-0.5">Review All</button>
+              <button className="ehr-button text-xs px-3 py-1 text-red-700 border-red-200 hover:bg-red-100">Review All</button>
             </div>
           </div>
         </div>
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden p-1 space-x-1">
+      <div className="flex-1 flex overflow-hidden p-4 space-x-4">
         {/* Left Column - Inbox & Worklist */}
-        <div className="flex-1 flex flex-col space-y-1 overflow-hidden">
+        <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
           {/* Inbox Panel */}
-          <div className={`ehr-panel flex flex-col overflow-hidden ${expandedPanels.inbox ? 'flex-1' : ''}`}>
+          <div className={`bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden ${expandedPanels.inbox ? 'flex-1' : ''}`}>
             <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
+              className="flex items-center justify-between cursor-pointer px-4 py-3 border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
               onClick={(e) => { e.stopPropagation(); togglePanel('inbox'); }}
             >
               <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.inbox ? '-' : '+'}
-                </span>
-                <span>Inbox</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{inboxCounts.all} unread</span>
+                <svg className={`w-4 h-4 mr-2 text-gray-400 transition-transform ${expandedPanels.inbox ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                <span className="font-semibold text-[14px] text-gray-900">Inbox</span>
+                {inboxCounts.all > 0 && <span className="ml-2 px-2 py-0.5 bg-[#5e6ad2]/10 text-[#5e6ad2] text-[11px] font-medium rounded-full">{inboxCounts.all} unread</span>}
               </div>
             </div>
             {expandedPanels.inbox && (
               <>
-                <div className="ehr-subheader flex items-center space-x-1">
+                <div className="flex items-center space-x-1 px-4 py-2 border-b border-gray-100">
                   {[
                     { key: 'all', label: 'All', count: inboxCounts.all },
                     { key: 'results', label: 'Results', count: inboxCounts.results },
@@ -370,16 +368,16 @@ export default function DashboardPage() {
                     <button
                       key={tab.key}
                       onClick={() => setInboxTab(tab.key as InboxTab)}
-                      className={`ehr-tab ${inboxTab === tab.key ? 'active' : ''}`}
+                      className={`px-3 py-1 text-[12px] font-medium rounded-md transition-all ${inboxTab === tab.key ? 'bg-[#5e6ad2]/8 text-[#5e6ad2]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
                     >
-                      {tab.label} {tab.count > 0 && <span className="ml-1 text-[9px]">({tab.count})</span>}
+                      {tab.label} {tab.count > 0 && <span className="ml-1 text-[10px] opacity-70">({tab.count})</span>}
                     </button>
                   ))}
-                  <span className="text-gray-400 mx-1">|</span>
+                  <div className="h-4 w-px bg-gray-200 mx-1" />
                   <select 
                     value={inboxPriority} 
                     onChange={(e) => setInboxPriority(e.target.value as InboxPriority)}
-                    className="ehr-input text-[10px] py-0"
+                    className="ehr-input text-[12px] py-1 px-2"
                   >
                     <option value="all">All Priority</option>
                     <option value="critical">Critical</option>
@@ -389,52 +387,56 @@ export default function DashboardPage() {
                   <select 
                     value={inboxReadFilter} 
                     onChange={(e) => setInboxReadFilter(e.target.value as InboxReadFilter)}
-                    className="ehr-input text-[10px] py-0"
+                    className="ehr-input text-[12px] py-1 px-2"
                   >
                     <option value="all">All</option>
                     <option value="unread">Unread</option>
                     <option value="read">Read</option>
                   </select>
                   <div className="flex-1" />
-                  <button className="ehr-toolbar-button p-0.5 text-[10px]" onClick={markAllAsRead}>Mark All Read</button>
-                  <button className="ehr-toolbar-button p-0.5"><RefreshCw className="w-3 h-3" /></button>
+                  <button className="text-[12px] text-gray-500 hover:text-[#5e6ad2] font-medium transition-colors" onClick={markAllAsRead}>Mark All Read</button>
+                  <button className="ehr-toolbar-button p-1.5 rounded-md"><RefreshCw className="w-3.5 h-3.5" /></button>
                 </div>
-                <div className="flex-1 overflow-auto bg-white">
-                  <table className="w-full text-[11px]">
-                    <thead className="sticky top-0">
+                <div className="flex-1 overflow-auto">
+                  <table className="w-full text-[13px]">
+                    <thead className="sticky top-0 bg-gray-50/80 backdrop-blur-sm">
                       <tr>
-                        <th className="px-1 py-1 text-left w-6"></th>
-                        <th className="px-1 py-1 text-left w-6">Type</th>
-                        <th className="px-1 py-1 text-left">Patient</th>
-                        <th className="px-1 py-1 text-left">Subject</th>
-                        <th className="px-1 py-1 text-left w-20">Time</th>
-                        <th className="px-1 py-1 text-center w-16">Actions</th>
+                        <th className="px-3 py-2 text-left w-8"></th>
+                        <th className="px-2 py-2 text-left w-8">Type</th>
+                        <th className="px-3 py-2 text-left">Patient</th>
+                        <th className="px-3 py-2 text-left">Subject</th>
+                        <th className="px-3 py-2 text-left w-24">Time</th>
+                        <th className="px-3 py-2 text-center w-24">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredInbox.map((item, idx) => (
+                      {filteredInbox.map((item) => (
                         <tr 
                           key={item.id} 
-                          className={`cursor-pointer ${item.priority === 'critical' ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''} ${!item.read ? 'font-semibold' : ''}`}
+                          className={`cursor-pointer transition-colors hover:bg-gray-50 ${item.priority === 'critical' ? 'bg-red-50/50' : ''} ${!item.read ? 'font-medium' : 'text-gray-500'}`}
                         >
-                          <td className="px-1 py-0.5">
-                            {!item.read && <span className="w-2 h-2 bg-gray-600 inline-block border border-gray-700" />}
-                            {item.flagged && <Flag className="w-3 h-3 text-red-600 inline" />}
+                          <td className="px-3 py-2">
+                            <div className="flex items-center space-x-1">
+                              {!item.read && <span className="w-2 h-2 rounded-full bg-[#5e6ad2] inline-block" />}
+                              {item.flagged && <Flag className="w-3.5 h-3.5 text-amber-500 inline" />}
+                            </div>
                           </td>
-                          <td className="px-1 py-0.5">{getInboxIcon(item.type)}</td>
-                          <td className="px-1 py-0.5">
-                            <span>{item.patientName}</span>
-                            <span className="text-gray-500 ml-1 text-[10px]">{item.patientMrn}</span>
+                          <td className="px-2 py-2 text-gray-400">{getInboxIcon(item.type)}</td>
+                          <td className="px-3 py-2">
+                            <span className="text-gray-900">{item.patientName}</span>
+                            <span className="text-gray-400 ml-1.5 text-[11px]">{item.patientMrn}</span>
                           </td>
-                          <td className="px-1 py-0.5">
-                            <div className={item.priority === 'critical' ? 'text-red-800' : ''}>{item.title}</div>
-                            <div className="text-gray-500 text-[10px] truncate max-w-[300px]">{item.detail}</div>
+                          <td className="px-3 py-2">
+                            <div className={item.priority === 'critical' ? 'text-red-700' : 'text-gray-700'}>{item.title}</div>
+                            <div className="text-gray-400 text-[11px] truncate max-w-[300px]">{item.detail}</div>
                           </td>
-                          <td className="px-1 py-0.5 text-gray-500">{item.timestamp}</td>
-                          <td className="px-1 py-0.5 text-center">
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View"><Eye className="w-3 h-3" /></button>
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => markAsRead(item.id)} title="Mark Read"><CheckCircle2 className="w-3 h-3" /></button>
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => toggleFlag(item.id)} title="Flag"><Flag className={`w-3 h-3 ${item.flagged ? 'text-red-600' : ''}`} /></button>
+                          <td className="px-3 py-2 text-gray-400 text-[12px]">{item.timestamp}</td>
+                          <td className="px-3 py-2 text-center">
+                            <div className="flex items-center justify-center space-x-1">
+                              <button className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View"><Eye className="w-3.5 h-3.5" /></button>
+                              <button className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" onClick={() => markAsRead(item.id)} title="Mark Read"><CheckCircle2 className="w-3.5 h-3.5" /></button>
+                              <button className="p-1 rounded-md hover:bg-gray-100 transition-colors" onClick={() => toggleFlag(item.id)} title="Flag"><Flag className={`w-3.5 h-3.5 ${item.flagged ? 'text-amber-500' : 'text-gray-400 hover:text-gray-600'}`} /></button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -446,22 +448,20 @@ export default function DashboardPage() {
           </div>
 
           {/* Worklist Panel */}
-          <div className={`ehr-panel flex flex-col overflow-hidden ${expandedPanels.worklist ? 'flex-1' : ''}`}>
+          <div className={`bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden ${expandedPanels.worklist ? 'flex-1' : ''}`}>
             <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
+              className="flex items-center justify-between cursor-pointer px-4 py-3 border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
               onClick={(e) => { e.stopPropagation(); togglePanel('worklist'); }}
             >
               <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.worklist ? '-' : '+'}
-                </span>
-                <span>Patient Worklist</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{worklistPatients.length} patients</span>
+                <svg className={`w-4 h-4 mr-2 text-gray-400 transition-transform ${expandedPanels.worklist ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                <span className="font-semibold text-[14px] text-gray-900">Patient Worklist</span>
+                <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-500 text-[11px] font-medium rounded-full">{worklistPatients.length} patients</span>
               </div>
             </div>
             {expandedPanels.worklist && (
               <>
-                <div className="ehr-subheader flex items-center space-x-1">
+                <div className="flex items-center space-x-1 px-4 py-2 border-b border-gray-100">
                   {[
                     { key: 'all', label: 'All' },
                     { key: 'inpatient', label: 'Inpatient' },
@@ -471,110 +471,112 @@ export default function DashboardPage() {
                     <button
                       key={filter.key}
                       onClick={() => setWorklistFilter(filter.key as WorklistFilter)}
-                      className={`ehr-tab ${worklistFilter === filter.key ? 'active' : ''}`}
+                      className={`px-3 py-1 text-[12px] font-medium rounded-md transition-all ${worklistFilter === filter.key ? 'bg-[#5e6ad2]/8 text-[#5e6ad2]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
                     >
                       {filter.label}
                     </button>
                   ))}
-                  <span className="text-gray-400 mx-1">|</span>
-                  <span className="text-[10px] text-gray-600">Sort:</span>
+                  <div className="h-4 w-px bg-gray-200 mx-1" />
+                  <span className="text-[12px] text-gray-400">Sort:</span>
                   <select 
                     value={worklistSort} 
                     onChange={(e) => setWorklistSort(e.target.value as WorklistSort)}
-                    className="ehr-input text-[10px] py-0"
+                    className="ehr-input text-[12px] py-1 px-2"
                   >
                     <option value="status">Status</option>
                     <option value="name">Name</option>
                     <option value="location">Location</option>
                   </select>
                   <button 
-                    className="ehr-toolbar-button p-0.5 text-[10px]" 
+                    className="p-1 rounded-md hover:bg-gray-100 text-gray-400 transition-colors text-[12px]" 
                     onClick={() => setWorklistSortAsc(!worklistSortAsc)}
                   >
                     {worklistSortAsc ? '↑' : '↓'}
                   </button>
                   <div className="flex-1" />
-                  <button className="ehr-button text-[10px] px-2 py-0.5 flex items-center" onClick={() => setShowPrintDialog(true)}>
-                    <Printer className="w-3 h-3 mr-1" /> Print List
+                  <button className="ehr-button text-[12px] px-3 py-1 flex items-center" onClick={() => setShowPrintDialog(true)}>
+                    <Printer className="w-3.5 h-3.5 mr-1.5" /> Print List
                   </button>
                 </div>
-                <div className="flex-1 overflow-auto bg-white">
-                  <table className="w-full text-[11px]">
-                    <thead className="sticky top-0">
+                <div className="flex-1 overflow-auto">
+                  <table className="w-full text-[13px]">
+                    <thead className="sticky top-0 bg-gray-50/80 backdrop-blur-sm">
                       <tr>
-                        <th className="px-1 py-1 text-left">Patient</th>
-                        <th className="px-1 py-1 text-left">Location</th>
-                        <th className="px-1 py-1 text-left">Chief Complaint</th>
-                        <th className="px-1 py-1 text-left">Vitals</th>
-                        <th className="px-1 py-1 text-left">Alerts</th>
-                        <th className="px-1 py-1 text-left">Status</th>
-                        <th className="px-1 py-1 text-center w-16">Actions</th>
+                        <th className="px-3 py-2 text-left">Patient</th>
+                        <th className="px-3 py-2 text-left">Location</th>
+                        <th className="px-3 py-2 text-left">Chief Complaint</th>
+                        <th className="px-3 py-2 text-left">Vitals</th>
+                        <th className="px-3 py-2 text-left">Alerts</th>
+                        <th className="px-3 py-2 text-left">Status</th>
+                        <th className="px-3 py-2 text-center w-20">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredWorklist.map((patient, idx) => (
+                      {filteredWorklist.map((patient) => (
                         <tr 
                           key={patient.id} 
-                          className={`cursor-pointer hover:bg-blue-50 ${patient.status === 'critical' ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''}`}
+                          className={`cursor-pointer transition-colors hover:bg-gray-50 ${patient.status === 'critical' ? 'bg-red-50/50' : ''}`}
                           onClick={() => navigate(`/patients/${patient.id}`)}
                         >
-                          <td className="px-1 py-0.5">
-                            <div className="font-semibold">{patient.name}</div>
-                            <div className="text-gray-500 text-[10px]">{patient.mrn} • {patient.age}{patient.gender}</div>
-                            <div className="flex space-x-0.5 mt-0.5">
+                          <td className="px-3 py-2.5">
+                            <div className="font-medium text-gray-900">{patient.name}</div>
+                            <div className="text-gray-400 text-[11px] mt-0.5">{patient.mrn} &middot; {patient.age}{patient.gender}</div>
+                            <div className="flex space-x-1 mt-1">
                               {patient.flags.map((flag) => {
                                 const style = getFlagStyle(flag);
                                 return (
-                                  <span key={flag} className={`px-1 py-0 text-[9px] ${style.bg} ${style.color}`}>
+                                  <span key={flag} className={`px-1.5 py-0 text-[10px] rounded-full font-medium ${style.bg} ${style.color}`}>
                                     {style.label}
                                   </span>
                                 );
                               })}
                             </div>
                           </td>
-                          <td className="px-1 py-0.5">
-                            <div>{patient.room || patient.appointmentTime}</div>
-                            <div className="text-gray-500 text-[10px]">{patient.location}</div>
+                          <td className="px-3 py-2.5">
+                            <div className="text-gray-700">{patient.room || patient.appointmentTime}</div>
+                            <div className="text-gray-400 text-[11px] mt-0.5">{patient.location}</div>
                           </td>
-                          <td className="px-1 py-0.5">
-                            <div>{patient.chiefComplaint}</div>
-                            {patient.admitDate && <div className="text-gray-500 text-[10px]">Admit: {patient.admitDate}</div>}
+                          <td className="px-3 py-2.5">
+                            <div className="text-gray-700">{patient.chiefComplaint}</div>
+                            {patient.admitDate && <div className="text-gray-400 text-[11px] mt-0.5">Admit: {patient.admitDate}</div>}
                           </td>
-                          <td className="px-1 py-0.5 text-[10px]">
+                          <td className="px-3 py-2.5 text-[12px]">
                             {patient.lastVitals ? (
                               <>
-                                <div>BP: <span className={parseInt(patient.lastVitals.bp) > 140 ? 'text-red-600 font-semibold' : ''}>{patient.lastVitals.bp}</span></div>
-                                <div>HR: {patient.lastVitals.hr} SpO2: {patient.lastVitals.spo2}%</div>
+                                <div className="text-gray-600">BP: <span className={parseInt(patient.lastVitals.bp) > 140 ? 'text-red-600 font-medium' : ''}>{patient.lastVitals.bp}</span></div>
+                                <div className="text-gray-400">HR: {patient.lastVitals.hr} SpO2: {patient.lastVitals.spo2}%</div>
                               </>
                             ) : (
-                              <span className="text-gray-400">-</span>
+                              <span className="text-gray-300">&mdash;</span>
                             )}
                           </td>
-                          <td className="px-1 py-0.5">
+                          <td className="px-3 py-2.5">
                             {patient.alerts.length > 0 ? (
                               <div className="space-y-0.5">
                                 {patient.alerts.slice(0, 2).map((alert, i) => (
-                                  <div key={i} className={`text-[10px] ${alert.includes('CRITICAL') || alert.includes('Troponin') ? 'text-red-700 font-semibold' : 'text-amber-700'}`}>
-                                    • {alert}
+                                  <div key={i} className={`text-[11px] ${alert.includes('CRITICAL') || alert.includes('Troponin') ? 'text-red-600 font-medium' : 'text-amber-600'}`}>
+                                    {alert}
                                   </div>
                                 ))}
                               </div>
                             ) : (
-                              <span className="text-gray-400 text-[10px]">None</span>
+                              <span className="text-gray-300 text-[11px]">None</span>
                             )}
                           </td>
-                          <td className="px-1 py-0.5">
-                            <span className={`px-1.5 py-0.5 text-[10px] ${getStatusStyle(patient.status)}`}>
+                          <td className="px-3 py-2.5">
+                            <span className={`px-2 py-0.5 text-[11px] rounded-full font-medium ${getStatusStyle(patient.status)}`}>
                               {patient.status.replace('-', ' ')}
                             </span>
                           </td>
-                          <td className="px-1 py-0.5 text-center">
-                            <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Open Chart">
-                              <ExternalLink className="w-3 h-3" />
-                            </button>
-                            <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Write Note">
-                              <Edit3 className="w-3 h-3" />
-                            </button>
+                          <td className="px-3 py-2.5 text-center">
+                            <div className="flex items-center justify-center space-x-1">
+                              <button onClick={(e) => { e.stopPropagation(); }} className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" title="Open Chart">
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); }} className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors" title="Write Note">
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -587,72 +589,70 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Column - Sidebar Panels */}
-        <div className="w-64 flex flex-col space-y-1 overflow-auto">
+        <div className="w-72 flex flex-col space-y-4 overflow-auto">
           {/* Unsigned Notes */}
-          <div className="ehr-panel">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
+              className="flex items-center justify-between cursor-pointer px-4 py-3 border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
               onClick={(e) => { e.stopPropagation(); togglePanel('unsigned'); }}
             >
               <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.unsigned ? '-' : '+'}
-                </span>
-                <span>Unsigned Notes ({unsignedNotes.length})</span>
+                <svg className={`w-4 h-4 mr-2 text-gray-400 transition-transform ${expandedPanels.unsigned ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                <span className="font-semibold text-[13px] text-gray-900">Unsigned Notes</span>
+                <span className="ml-2 px-2 py-0.5 bg-amber-50 text-amber-700 text-[11px] font-medium rounded-full">{unsignedNotes.length}</span>
               </div>
             </div>
             {expandedPanels.unsigned && (
-              <div className="bg-white">
-                {unsignedNotes.map((note, idx) => (
-                  <div key={note.id} className={`px-2 py-1.5 border-b border-gray-200 flex items-center justify-between ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+              <div>
+                {unsignedNotes.map((note) => (
+                  <div key={note.id} className="px-4 py-2.5 border-b border-gray-50 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
                     <div>
-                      <div className="font-semibold text-[11px]">{note.patientName}</div>
-                      <div className="text-[10px] text-gray-500">{note.type} • {note.date}</div>
+                      <div className="font-medium text-[13px] text-gray-900">{note.patientName}</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">{note.type} &middot; {note.date}</div>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      {note.daysOld >= 2 && <span className="text-[9px] text-red-600 font-semibold">{note.daysOld}d</span>}
-                      <button className="ehr-button ehr-button-primary text-[10px] px-2 py-0.5">Sign</button>
+                    <div className="flex items-center space-x-2">
+                      {note.daysOld >= 2 && <span className="text-[10px] text-red-500 font-medium">{note.daysOld}d</span>}
+                      <button className="text-[12px] px-2.5 py-1 bg-[#5e6ad2] text-white rounded-md hover:bg-[#4f5bc0] transition-colors font-medium">Sign</button>
                     </div>
                   </div>
                 ))}
-                <div className="p-1 bg-gray-100 border-t">
-                  <button className="ehr-button w-full text-[10px]">Sign All Notes</button>
+                <div className="p-3 border-t border-gray-100">
+                  <button className="ehr-button w-full text-[12px] py-1.5 font-medium">Sign All Notes</button>
                 </div>
               </div>
             )}
           </div>
 
           {/* Pending Orders */}
-          <div className="ehr-panel">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
+              className="flex items-center justify-between cursor-pointer px-4 py-3 border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
               onClick={(e) => { e.stopPropagation(); togglePanel('orders'); }}
             >
               <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.orders ? '-' : '+'}
-                </span>
-                <span>Pending Orders ({pendingOrders.length})</span>
+                <svg className={`w-4 h-4 mr-2 text-gray-400 transition-transform ${expandedPanels.orders ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                <span className="font-semibold text-[13px] text-gray-900">Pending Orders</span>
+                <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-500 text-[11px] font-medium rounded-full">{pendingOrders.length}</span>
               </div>
             </div>
             {expandedPanels.orders && (
-              <div className="bg-white">
-                {pendingOrders.map((order, idx) => (
-                  <div key={order.id} className={`px-2 py-1.5 border-b border-gray-200 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+              <div>
+                {pendingOrders.map((order) => (
+                  <div key={order.id} className="px-4 py-2.5 border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-semibold text-[11px]">{order.patientName}</div>
-                        <div className="text-[10px] text-gray-700">{order.order}</div>
-                        <div className="flex space-x-1 mt-0.5">
-                          <span className="text-[9px] px-1 py-0 bg-gray-200 text-gray-700 border border-gray-400">{order.type}</span>
-                          <span className={`text-[9px] px-1 py-0 border border-gray-400 ${
-                            order.status === 'draft' ? 'bg-gray-100 text-gray-600' :
-                            order.status === 'pending-approval' ? 'bg-gray-200 text-gray-700' :
-                            'bg-gray-100 text-gray-600'
+                        <div className="font-medium text-[13px] text-gray-900">{order.patientName}</div>
+                        <div className="text-[12px] text-gray-500 mt-0.5">{order.order}</div>
+                        <div className="flex space-x-1.5 mt-1">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">{order.type}</span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                            order.status === 'draft' ? 'bg-gray-100 text-gray-500' :
+                            order.status === 'pending-approval' ? 'bg-amber-50 text-amber-700' :
+                            'bg-gray-100 text-gray-500'
                           }`}>{order.status}</span>
                         </div>
                       </div>
-                      <button className="ehr-button text-[10px] px-2 py-0.5">Review</button>
+                      <button className="ehr-button text-[12px] px-2.5 py-1">Review</button>
                     </div>
                   </div>
                 ))}
@@ -661,23 +661,21 @@ export default function DashboardPage() {
           </div>
 
           {/* Today's Schedule */}
-          <div className="ehr-panel">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
+              className="flex items-center justify-between cursor-pointer px-4 py-3 border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
               onClick={(e) => { e.stopPropagation(); togglePanel('schedule'); }}
             >
               <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.schedule ? '-' : '+'}
-                </span>
-                <span>Today's Schedule</span>
+                <svg className={`w-4 h-4 mr-2 text-gray-400 transition-transform ${expandedPanels.schedule ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                <span className="font-semibold text-[13px] text-gray-900">Today&apos;s Schedule</span>
               </div>
             </div>
             {expandedPanels.schedule && (
-              <div className="bg-white p-2">
-                <div className="flex items-center justify-between mb-2 text-[11px]">
-                  <span className="text-gray-500">January 18, 2024</span>
-                  <span className="font-semibold">8 appointments</span>
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-3 text-[12px]">
+                  <span className="text-gray-400">January 18, 2024</span>
+                  <span className="font-medium text-gray-700">8 appointments</span>
                 </div>
                 <div className="space-y-1">
                   {[
@@ -687,74 +685,73 @@ export default function DashboardPage() {
                     { time: '11:30 AM', patient: 'Brown, Emily', status: 'upcoming' },
                     { time: '2:00 PM', patient: 'Wilson, Patricia', status: 'upcoming' },
                   ].map((slot, i) => (
-                    <div key={i} className={`flex items-center justify-between py-1 px-2 text-[11px] ${
-                      slot.status === 'current' ? 'bg-gray-200 border border-gray-400' :
-                      slot.status === 'next' ? 'bg-gray-100' :
-                      slot.status === 'done' ? 'bg-gray-50 text-gray-400' : ''
+                    <div key={i} className={`flex items-center justify-between py-1.5 px-3 text-[12px] rounded-lg ${
+                      slot.status === 'current' ? 'bg-[#5e6ad2]/8 text-[#5e6ad2]' :
+                      slot.status === 'next' ? 'bg-gray-50 text-gray-700' :
+                      slot.status === 'done' ? 'text-gray-300' : 'text-gray-500'
                     }`}>
-                      <span>{slot.time}</span>
+                      <span className="font-medium">{slot.time}</span>
                       <span className={slot.status === 'current' ? 'font-semibold' : ''}>{slot.patient}</span>
                     </div>
                   ))}
                 </div>
-                <button className="ehr-button w-full mt-2 text-[10px]">View Full Schedule</button>
+                <button className="ehr-button w-full mt-3 text-[12px] py-1.5 font-medium">View Full Schedule</button>
               </div>
             )}
           </div>
 
           {/* System Messages */}
-          <div className="ehr-panel">
-            <div className="ehr-header flex items-center">
-              <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">!</span>
-              <span>System Messages</span>
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="flex items-center px-4 py-3 border-b border-gray-100">
+              <Bell className="w-4 h-4 mr-2 text-gray-400" />
+              <span className="font-semibold text-[13px] text-gray-900">System Messages</span>
             </div>
-            <div className="bg-white text-[10px]">
-              <div className="px-2 py-1 border-b border-gray-200">
-                <span className="text-gray-500">01/18 08:00</span> - System maintenance scheduled for 01/20 2:00 AM
+            <div className="text-[12px]">
+              <div className="px-4 py-2.5 border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                <span className="text-gray-400">01/18 08:00</span>
+                <span className="text-gray-600 ml-2">System maintenance scheduled for 01/20 2:00 AM</span>
               </div>
-              <div className="px-2 py-1 border-b border-gray-200">
-                <span className="text-gray-500">01/17 14:30</span> - New formulary updates available
+              <div className="px-4 py-2.5 border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                <span className="text-gray-400">01/17 14:30</span>
+                <span className="text-gray-600 ml-2">New formulary updates available</span>
               </div>
-              <div className="px-2 py-1">
-                <span className="text-gray-500">01/16 09:15</span> - Lab interface upgraded to v3.2
+              <div className="px-4 py-2.5 hover:bg-gray-50/50 transition-colors">
+                <span className="text-gray-400">01/16 09:15</span>
+                <span className="text-gray-600 ml-2">Lab interface upgraded to v3.2</span>
               </div>
             </div>
           </div>
 
           {/* System Status */}
-          <div className="ehr-panel">
-            <div className="ehr-header flex items-center">
-              <span>System Status</span>
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="flex items-center px-4 py-3 border-b border-gray-100">
+              <span className="font-semibold text-[13px] text-gray-900">System Status</span>
             </div>
-            <div className="bg-white p-2 text-[10px]">
-              <table className="w-full">
-                <tbody>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5">Database</td>
-                    <td className="border border-gray-300 px-1 py-0.5 text-green-700">Connected</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">HL7 Interface</td>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50 text-green-700">Active</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5">Pharmacy Link</td>
-                    <td className="border border-gray-300 px-1 py-0.5 text-green-700">Online</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">Last Sync</td>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">2 min ago</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="p-4 text-[12px]">
+              <div className="space-y-2.5">
+                {[
+                  { label: 'Database', status: 'Connected', ok: true },
+                  { label: 'HL7 Interface', status: 'Active', ok: true },
+                  { label: 'Pharmacy Link', status: 'Online', ok: true },
+                  { label: 'Last Sync', status: '2 min ago', ok: true },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <span className="text-gray-500">{item.label}</span>
+                    <div className="flex items-center">
+                      {item.ok && item.label !== 'Last Sync' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5" />}
+                      <span className={item.ok && item.label !== 'Last Sync' ? 'text-emerald-600 font-medium' : 'text-gray-600'}>{item.status}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Status Bar */}
-      <div className="ehr-status-bar flex items-center justify-between">
-        <span>Dr. Sarah Anderson, MD | Internal Medicine | Logged in 2h 34m</span>
+      <div className="h-8 bg-white border-t border-gray-100 flex items-center justify-between px-5 text-xs text-gray-400">
+        <span>Dr. Sarah Anderson, MD &middot; Internal Medicine &middot; Logged in 2h 34m</span>
         <span>Last refreshed: {new Date().toLocaleTimeString()}</span>
       </div>
 

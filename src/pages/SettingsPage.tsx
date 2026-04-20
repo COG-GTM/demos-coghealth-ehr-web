@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useThemeStore } from '../stores/themeStore';
 import { 
   User, 
   Bell, 
@@ -105,7 +106,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col app-bg">
       {/* Header */}
       <div className="ehr-header flex items-center justify-between">
         <span>System Settings</span>
@@ -121,7 +122,7 @@ export default function SettingsPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Navigation */}
-        <div className="w-48 overflow-auto p-2 space-y-1" style={{ background: '#ece9d8' }}>
+        <div className="w-48 overflow-auto p-2 space-y-1 app-bg-alt">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -385,18 +386,18 @@ export default function SettingsPage() {
               <fieldset className="ehr-fieldset">
                 <legend>Theme</legend>
                 <div className="grid grid-cols-3 gap-2">
-                  {['light', 'dark', 'system'].map((theme) => (
+                  {(['light', 'dark', 'system'] as const).map((theme) => (
                     <button
                       key={theme}
-                      onClick={() => setAppearance({ ...appearance, theme })}
+                      onClick={() => { useThemeStore.getState().setTheme(theme); setAppearance({ ...appearance, theme }); }}
                       className={`p-2 border text-center text-[11px] ${
-                        appearance.theme === theme
-                          ? 'border-gray-600 bg-white'
-                          : 'border-gray-400 bg-gray-100 hover:bg-gray-50'
+                        useThemeStore.getState().theme === theme
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400'
+                          : 'border-gray-400 bg-gray-100 hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-500 dark:hover:bg-gray-600'
                       }`}
                     >
-                      <Monitor className="w-4 h-4 mx-auto mb-1 text-gray-600" />
-                      <span className="capitalize">{theme}</span>
+                      <Monitor className="w-4 h-4 mx-auto mb-1" style={{ color: 'var(--ehr-text-muted)' }} />
+                      <span className="capitalize" style={{ color: 'var(--ehr-text)' }}>{theme}</span>
                     </button>
                   ))}
                 </div>

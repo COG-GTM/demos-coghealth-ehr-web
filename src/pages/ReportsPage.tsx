@@ -87,7 +87,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col app-bg">
       {/* Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-1">
@@ -121,7 +121,7 @@ export default function ReportsPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Report Summary */}
-        <div className="w-56 overflow-auto p-2 space-y-2" style={{ background: '#ece9d8' }}>
+        <div className="w-56 overflow-auto p-2 space-y-2 app-bg-alt">
           <fieldset className="ehr-fieldset">
             <legend>Today's Summary</legend>
             <table className="w-full text-[10px]">
@@ -200,7 +200,7 @@ export default function ReportsPage() {
                 <div
                   onClick={() => toggleCategory(category)}
                   className="px-2 py-1 bg-gray-100 hover:bg-gray-200 cursor-pointer flex items-center justify-between text-[11px] border-b border-gray-400"
-                  style={{ background: 'linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%)' }}
+                  style={{ background: 'linear-gradient(to bottom, var(--ehr-button-from) 0%, var(--ehr-button-to) 100%)' }}
                 >
                   <div className="flex items-center space-x-2">
                     <span className="w-4 h-4 border border-gray-500 bg-white flex items-center justify-center text-[10px] font-bold">

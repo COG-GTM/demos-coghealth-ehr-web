@@ -11,7 +11,7 @@ export function LoadingOverlay({ isLoading, text = 'Loading...' }: LoadingOverla
       className="absolute inset-0 z-40 flex items-center justify-center pointer-events-auto"
       style={{ backgroundColor: 'rgba(128, 128, 128, 0.5)' }}
     >
-      <div className="flex flex-col items-center bg-[#ece9d8] border-2 border-gray-400 px-6 py-4 shadow-md" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+      <div className="flex flex-col items-center border-2 px-6 py-4 shadow-md app-bg-alt" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.3)', borderColor: 'var(--ehr-border-strong)' }}>
         <svg
           width="32"
           height="32"
@@ -74,7 +74,7 @@ export function LoadingOverlay({ isLoading, text = 'Loading...' }: LoadingOverla
             />
           </rect>
         </svg>
-        <span className="text-[11px] text-gray-700" style={{ fontFamily: 'Tahoma, sans-serif' }}>{text}</span>
+        <span className="text-[11px]" style={{ fontFamily: 'Tahoma, sans-serif', color: 'var(--ehr-text)' }}>{text}</span>
       </div>
     </div>
   );

@@ -93,6 +93,7 @@ export default function PatientIntakePage() {
         phoneWork: data.phoneWork || undefined,
         email: data.email || undefined,
         active: true,
+        deceased: false,
       };
 
       if (data.street1 || data.city || data.state || data.zipCode) {

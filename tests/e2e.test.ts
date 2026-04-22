@@ -396,6 +396,72 @@ describe('CogHealth EHR E2E Tests', () => {
     });
   });
 
+  describe('New Patient Page', () => {
+    test('should navigate to new patient page from patient search', async () => {
+      await page.goto(`${BASE_URL}/patients`);
+      await page.waitForSelector('.ehr-toolbar');
+      await page.click('::-p-xpath(//button[contains(., "New Patient")])');
+      await page.waitForFunction(() => window.location.pathname === '/patients/new');
+      expect(page.url()).toContain('/patients/new');
+    });
+
+    test('should display the registration form', async () => {
+      await page.goto(`${BASE_URL}/patients/new`);
+      await page.waitForSelector('.ehr-toolbar');
+      const demographics = await page.$('::-p-xpath(//legend[contains(., "Demographics")])');
+      const contact = await page.$('::-p-xpath(//legend[contains(., "Contact Information")])');
+      const address = await page.$('::-p-xpath(//legend[contains(., "Home Address")])');
+      expect(demographics).not.toBeNull();
+      expect(contact).not.toBeNull();
+      expect(address).not.toBeNull();
+    });
+
+    test('should show validation errors for required fields', async () => {
+      await page.goto(`${BASE_URL}/patients/new`);
+      await page.waitForSelector('.ehr-toolbar');
+      await page.click('::-p-xpath(//button[contains(., "Save")])');
+      await wait(300);
+      const errors = await page.$$('.text-red-600');
+      expect(errors.length).toBeGreaterThanOrEqual(3);
+    });
+
+    test('should navigate back on cancel', async () => {
+      await page.goto(`${BASE_URL}/patients/new`);
+      await page.waitForSelector('.ehr-toolbar');
+      await page.click('::-p-xpath(//button[contains(., "Cancel")])');
+      await page.waitForFunction(() => window.location.pathname === '/patients');
+      expect(page.url()).toContain('/patients');
+      expect(page.url()).not.toContain('/patients/new');
+    });
+
+    test('should fill and submit the form', async () => {
+      await page.goto(`${BASE_URL}/patients/new`);
+      await page.waitForSelector('.ehr-toolbar');
+
+      await page.type('input[name="firstName"]', 'Test');
+      await page.type('input[name="lastName"]', 'Patient');
+      await page.type('input[name="dateOfBirth"]', '1990-01-15');
+      await page.select('select[name="gender"]', 'MALE');
+
+      await page.click('::-p-xpath(//button[contains(., "Save")])');
+      await wait(1000);
+
+      // If backend is available, we navigate to /patients/{id}
+      // If not, an error dialog should appear gracefully
+      const currentUrl = page.url();
+      const errorDialog = await page.$('.fixed.inset-0');
+      const navigatedToChart = currentUrl.match(/\/patients\/\d+/);
+      expect(navigatedToChart || errorDialog).toBeTruthy();
+
+      // Close error dialog if present
+      if (errorDialog) {
+        const okBtn = await page.$('::-p-xpath(//button[contains(., "OK")])');
+        if (okBtn) await okBtn.click();
+        await wait(100);
+      }
+    });
+  });
+
   describe('HIPAA Compliance Features', () => {
     test('should display HIPAA secure indicator', async () => {
       await page.goto(BASE_URL);

@@ -253,7 +253,6 @@ export default function PatientSearchPage() {
       });
     } finally {
       setSubmitting(false);
-      setShowDuplicateWarning(false);
     }
   };
 

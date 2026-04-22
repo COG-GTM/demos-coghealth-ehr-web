@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -17,20 +17,35 @@ const widthClasses = {
   xl: 'w-[800px]',
 };
 
+let nextModalId = 0;
+const openModalIds = new Set<number>();
+
 export function Modal({ isOpen, onClose, title, children, width = 'md', footer }: ModalProps) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
+    if (!isOpen) return;
+
+    const id = nextModalId++;
+    openModalIds.add(id);
+
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && Math.max(...openModalIds) === id) {
+        onCloseRef.current();
+      }
     };
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
+    document.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = 'hidden';
+
     return () => {
+      openModalIds.delete(id);
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
+      if (openModalIds.size === 0) {
+        document.body.style.overflow = '';
+      }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -113,7 +128,7 @@ export function ConfirmDialog({
         </>
       }
     >
-      <p className="text-[11px] text-gray-700">{message}</p>
+      <p className="text-[11px] text-gray-700 whitespace-pre-line">{message}</p>
     </Modal>
   );
 }

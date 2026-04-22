@@ -24,7 +24,8 @@ import {
 } from 'lucide-react';
 type PatientFlag = 'FALL_RISK' | 'ALLERGY' | 'ISOLATION' | 'DNR' | 'VIP' | 'DIFFICULT_IV';
 
-import { AlertDialog } from '../components/ui/Modal';
+import { AlertDialog, Modal, ConfirmDialog } from '../components/ui/Modal';
+import type { Gender } from '../types';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
@@ -149,7 +150,111 @@ export default function PatientSearchPage() {
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [showRxDialog, setShowRxDialog] = useState(false);
   const [showLabDialog, setShowLabDialog] = useState(false);
-  const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
+  const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' | 'error' } | null>(null);
+  const [showNewPatientDialog, setShowNewPatientDialog] = useState(false);
+  const [newPatientForm, setNewPatientForm] = useState({
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    dateOfBirth: '',
+    gender: '' as string,
+    maritalStatus: '' as string,
+    email: '',
+    phoneMobile: '',
+    phoneHome: '',
+    address: { street1: '', street2: '', city: '', state: '', zipCode: '' },
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [duplicateMatches, setDuplicateMatches] = useState<string[]>([]);
+
+  const resetNewPatientForm = () => {
+    setNewPatientForm({
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      dateOfBirth: '',
+      gender: '',
+      maritalStatus: '',
+      email: '',
+      phoneMobile: '',
+      phoneHome: '',
+      address: { street1: '', street2: '', city: '', state: '', zipCode: '' },
+    });
+    setFormErrors({});
+  };
+
+  const validateNewPatientForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!newPatientForm.firstName.trim()) {
+      errors.firstName = 'First name is required';
+    }
+    if (!newPatientForm.lastName.trim()) {
+      errors.lastName = 'Last name is required';
+    }
+    if (!newPatientForm.dateOfBirth) {
+      errors.dateOfBirth = 'Valid date of birth is required';
+    } else if (new Date(newPatientForm.dateOfBirth) >= new Date()) {
+      errors.dateOfBirth = 'Date of birth must be in the past';
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleNewPatientSubmit = async () => {
+    if (!validateNewPatientForm()) return;
+    setSubmitting(true);
+    try {
+      if (!showDuplicateWarning) {
+        const searchResult = await patientService.search(newPatientForm.lastName, 0, 10);
+        const dupes = searchResult.content.filter(
+          (p) => p.dateOfBirth === newPatientForm.dateOfBirth
+        );
+        if (dupes.length > 0) {
+          setDuplicateMatches(
+            dupes.map(
+              (p) =>
+                `${p.lastName}, ${p.firstName} (${p.mrn || 'No MRN'}) - DOB: ${new Date(p.dateOfBirth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}`
+            )
+          );
+          setShowDuplicateWarning(true);
+          setSubmitting(false);
+          return;
+        }
+      }
+      const created = await patientService.create({
+        firstName: newPatientForm.firstName.trim(),
+        middleName: newPatientForm.middleName.trim() || undefined,
+        lastName: newPatientForm.lastName.trim(),
+        dateOfBirth: newPatientForm.dateOfBirth,
+        gender: (newPatientForm.gender || undefined) as Gender | undefined,
+        maritalStatus: newPatientForm.maritalStatus || undefined,
+        email: newPatientForm.email.trim() || undefined,
+        phoneMobile: newPatientForm.phoneMobile.trim() || undefined,
+        phoneHome: newPatientForm.phoneHome.trim() || undefined,
+        address: Object.values(newPatientForm.address).some(v => v.trim()) ? newPatientForm.address : undefined,
+        active: true,
+      } as Partial<import('../types').Patient>);
+      setShowNewPatientDialog(false);
+      resetNewPatientForm();
+      setShowAlert({
+        title: 'Patient Created',
+        message: `Patient ${created.lastName}, ${created.firstName} has been registered with MRN ${created.mrn}.`,
+        type: 'success',
+      });
+      await fetchPatients();
+      navigate(`/patients/${created.id}`);
+    } catch (error) {
+      setShowAlert({
+        title: 'Registration Error',
+        message: error instanceof Error ? error.message : 'Failed to register patient.',
+        type: 'error',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const fetchPatients = async (query = '') => {
     setLoading(true);
@@ -275,7 +380,7 @@ export default function PatientSearchPage() {
             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
           </button>
           <span className="text-gray-400">|</span>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'New Patient', message: 'Patient registration form would open here.', type: 'info' })}>
+          <button className="ehr-toolbar-button flex items-center" onClick={() => { resetNewPatientForm(); setShowNewPatientDialog(true); }}>
             <Plus className="w-3.5 h-3.5 mr-1" /> New Patient
           </button>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPrintDialog(true)}>
@@ -820,6 +925,199 @@ export default function PatientSearchPage() {
           />
         </>
       )}
+
+      {/* New Patient Registration Modal */}
+      <Modal
+        isOpen={showNewPatientDialog}
+        onClose={() => { setShowNewPatientDialog(false); resetNewPatientForm(); }}
+        title="Register New Patient"
+        width="xl"
+        footer={
+          <>
+            <button onClick={() => { setShowNewPatientDialog(false); resetNewPatientForm(); }} className="ehr-button px-4">Cancel</button>
+            <button onClick={handleNewPatientSubmit} disabled={submitting} className="ehr-button ehr-button-primary px-4">
+              {submitting ? 'Registering...' : 'Register Patient'}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <fieldset className="ehr-fieldset">
+            <legend>Demographics</legend>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[10px] text-gray-600 mb-0.5">First Name *</label>
+                <input
+                  type="text"
+                  value={newPatientForm.firstName}
+                  onChange={(e) => setNewPatientForm(prev => ({ ...prev, firstName: e.target.value }))}
+                  className="ehr-input w-full"
+                />
+                {formErrors.firstName && <span className="text-[10px] text-red-600">{formErrors.firstName}</span>}
+              </div>
+              <div>
+                <label className="block text-[10px] text-gray-600 mb-0.5">Middle Name</label>
+                <input
+                  type="text"
+                  value={newPatientForm.middleName}
+                  onChange={(e) => setNewPatientForm(prev => ({ ...prev, middleName: e.target.value }))}
+                  className="ehr-input w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] text-gray-600 mb-0.5">Last Name *</label>
+                <input
+                  type="text"
+                  value={newPatientForm.lastName}
+                  onChange={(e) => setNewPatientForm(prev => ({ ...prev, lastName: e.target.value }))}
+                  className="ehr-input w-full"
+                />
+                {formErrors.lastName && <span className="text-[10px] text-red-600">{formErrors.lastName}</span>}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mt-2">
+              <div>
+                <label className="block text-[10px] text-gray-600 mb-0.5">Date of Birth *</label>
+                <input
+                  type="date"
+                  value={newPatientForm.dateOfBirth}
+                  onChange={(e) => setNewPatientForm(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                  className="ehr-input w-full"
+                />
+                {formErrors.dateOfBirth && <span className="text-[10px] text-red-600">{formErrors.dateOfBirth}</span>}
+              </div>
+              <div>
+                <label className="block text-[10px] text-gray-600 mb-0.5">Gender</label>
+                <select
+                  value={newPatientForm.gender}
+                  onChange={(e) => setNewPatientForm(prev => ({ ...prev, gender: e.target.value }))}
+                  className="ehr-input w-full"
+                >
+                  <option value=""></option>
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                  <option value="UNKNOWN">Unknown</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] text-gray-600 mb-0.5">Marital Status</label>
+                <select
+                  value={newPatientForm.maritalStatus}
+                  onChange={(e) => setNewPatientForm(prev => ({ ...prev, maritalStatus: e.target.value }))}
+                  className="ehr-input w-full"
+                >
+                  <option value=""></option>
+                  <option value="SINGLE">Single</option>
+                  <option value="MARRIED">Married</option>
+                  <option value="DIVORCED">Divorced</option>
+                  <option value="WIDOWED">Widowed</option>
+                  <option value="SEPARATED">Separated</option>
+                  <option value="DOMESTIC_PARTNER">Domestic Partner</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+          <div className="grid grid-cols-2 gap-3">
+            <fieldset className="ehr-fieldset">
+              <legend>Contact Information</legend>
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-[10px] text-gray-600 mb-0.5">Mobile Phone</label>
+                  <input
+                    type="text"
+                    value={newPatientForm.phoneMobile}
+                    onChange={(e) => setNewPatientForm(prev => ({ ...prev, phoneMobile: e.target.value }))}
+                    className="ehr-input w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-600 mb-0.5">Home Phone</label>
+                  <input
+                    type="text"
+                    value={newPatientForm.phoneHome}
+                    onChange={(e) => setNewPatientForm(prev => ({ ...prev, phoneHome: e.target.value }))}
+                    className="ehr-input w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-600 mb-0.5">Email</label>
+                  <input
+                    type="text"
+                    value={newPatientForm.email}
+                    onChange={(e) => setNewPatientForm(prev => ({ ...prev, email: e.target.value }))}
+                    className="ehr-input w-full"
+                  />
+                </div>
+              </div>
+            </fieldset>
+            <fieldset className="ehr-fieldset">
+              <legend>Address</legend>
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-[10px] text-gray-600 mb-0.5">Street 1</label>
+                  <input
+                    type="text"
+                    value={newPatientForm.address.street1}
+                    onChange={(e) => setNewPatientForm(prev => ({ ...prev, address: { ...prev.address, street1: e.target.value } }))}
+                    className="ehr-input w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-600 mb-0.5">Street 2</label>
+                  <input
+                    type="text"
+                    value={newPatientForm.address.street2}
+                    onChange={(e) => setNewPatientForm(prev => ({ ...prev, address: { ...prev.address, street2: e.target.value } }))}
+                    className="ehr-input w-full"
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[10px] text-gray-600 mb-0.5">City</label>
+                    <input
+                      type="text"
+                      value={newPatientForm.address.city}
+                      onChange={(e) => setNewPatientForm(prev => ({ ...prev, address: { ...prev.address, city: e.target.value } }))}
+                      className="ehr-input w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-600 mb-0.5">State</label>
+                    <input
+                      type="text"
+                      value={newPatientForm.address.state}
+                      onChange={(e) => setNewPatientForm(prev => ({ ...prev, address: { ...prev.address, state: e.target.value } }))}
+                      className="ehr-input w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-600 mb-0.5">ZIP</label>
+                    <input
+                      type="text"
+                      value={newPatientForm.address.zipCode}
+                      onChange={(e) => setNewPatientForm(prev => ({ ...prev, address: { ...prev.address, zipCode: e.target.value } }))}
+                      className="ehr-input w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Duplicate Patient Warning */}
+      <ConfirmDialog
+        isOpen={showDuplicateWarning}
+        onClose={() => { setShowDuplicateWarning(false); }}
+        onConfirm={() => { handleNewPatientSubmit(); }}
+        title="Possible Duplicate Patient"
+        message={`The following existing patient(s) have a similar name and date of birth:\n\n${duplicateMatches.join('\n')}\n\nDo you want to continue registering this patient?`}
+        confirmText="Continue Registration"
+        cancelText="Cancel"
+        type="warning"
+      />
 
       {showAlert && (
         <AlertDialog

@@ -1111,7 +1111,7 @@ export default function PatientSearchPage() {
       {/* Duplicate Patient Warning */}
       <ConfirmDialog
         isOpen={showDuplicateWarning}
-        onClose={() => { setShowDuplicateWarning(false); setSubmitting(false); }}
+        onClose={() => { setShowDuplicateWarning(false); }}
         onConfirm={() => { handleNewPatientSubmit(); }}
         title="Possible Duplicate Patient"
         message={`The following existing patient(s) have a similar name and date of birth:\n\n${duplicateMatches.join('\n')}\n\nDo you want to continue registering this patient?`}

@@ -20,7 +20,10 @@ const widthClasses = {
 export function Modal({ isOpen, onClose, title, children, width = 'md', footer }: ModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        e.stopImmediatePropagation();
+        onClose();
+      }
     };
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);

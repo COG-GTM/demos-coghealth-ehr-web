@@ -233,7 +233,7 @@ export default function PatientSearchPage() {
         email: newPatientForm.email.trim() || undefined,
         phoneMobile: newPatientForm.phoneMobile.trim() || undefined,
         phoneHome: newPatientForm.phoneHome.trim() || undefined,
-        address: newPatientForm.address,
+        address: Object.values(newPatientForm.address).some(v => v.trim()) ? newPatientForm.address : undefined,
         active: true,
       } as Partial<import('../types').Patient>);
       setShowNewPatientDialog(false);

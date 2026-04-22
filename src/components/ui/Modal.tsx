@@ -41,7 +41,9 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
     return () => {
       openModalIds.delete(id);
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
+      if (openModalIds.size === 0) {
+        document.body.style.overflow = '';
+      }
     };
   }, [isOpen]);
 

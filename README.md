@@ -41,3 +41,4 @@ src/
 | Variable | Description | Default |
 |----------|-------------|---------|
 | VITE_API_URL | Backend API URL | http://localhost:8080/api |
+

@@ -81,7 +81,7 @@ describe('auditService', () => {
     });
 
     it('returns empty array when no log exists', () => {
-      localStorageMock.getItem.mockReturnValueOnce(null);
+      localStorageMock.getItem.mockReturnValueOnce(null as unknown as string);
       expect(getAuditLog()).toEqual([]);
     });
 

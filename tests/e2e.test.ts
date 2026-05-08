@@ -61,6 +61,16 @@ describe('CogHealth EHR E2E Tests', () => {
       expect(statusText).toContain('Medications');
     });
 
+    test('should navigate to Chronic Care page', async () => {
+      await page.click('a[href="/chronic-care"]');
+      await page.waitForFunction(
+        () => window.location.pathname === '/chronic-care' &&
+              document.querySelector('.ehr-status-bar span')?.textContent?.includes('Chronic Care')
+      );
+      const statusText = await page.$eval('.ehr-status-bar span', el => el.textContent);
+      expect(statusText).toContain('Chronic Care');
+    });
+
     test('should navigate to Reports page', async () => {
       await page.click('a[href="/reports"]');
       await page.waitForFunction(

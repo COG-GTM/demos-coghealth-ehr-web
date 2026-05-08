@@ -14,7 +14,8 @@ import {
   Lock,
   Shield,
   FlaskConical,
-  Activity
+  Activity,
+  HeartPulse
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
@@ -26,6 +27,7 @@ import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
+import ChronicCareDashboardPage from './pages/ChronicCareDashboardPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
 import { logLogout } from './services/auditService';
 
@@ -121,6 +123,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     { path: '/labs', icon: FlaskConical, label: 'Lab Results' },
     { path: '/vitals', icon: Activity, label: 'Vitals' },
     { path: '/medications', icon: Pill, label: 'Medications' },
+    { path: '/chronic-care', icon: HeartPulse, label: 'Chronic Care' },
     { path: '/reports', icon: FileText, label: 'Reports' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
@@ -295,6 +298,7 @@ function App() {
             <Route path="/labs" element={<LabResultsPage />} />
             <Route path="/vitals" element={<VitalsPage />} />
             <Route path="/medications" element={<MedicationsPage />} />
+            <Route path="/chronic-care" element={<ChronicCareDashboardPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>

@@ -140,6 +140,7 @@ export default function ChronicCareDashboardPage() {
     let cancelled = false;
 
     const load = async () => {
+      setLoading(true);
       const results = await Promise.allSettled([
         chronicService.getDashboardSummary(),
         chronicService.getAtRiskPatients(),
@@ -420,7 +421,7 @@ export default function ChronicCareDashboardPage() {
                         <td className="px-2 py-1.5 text-gray-600">{formatDate(p.lastFillDate)}</td>
                         <td className="px-2 py-1.5 text-gray-600">{formatDate(p.nextFillDue)}</td>
                         <td className="px-2 py-1.5">
-                          {p.daysOverdue && p.daysOverdue > 0 ? (
+                          {p.daysOverdue != null && p.daysOverdue > 0 ? (
                             <span className="text-red-700 font-semibold">{p.daysOverdue}d</span>
                           ) : (
                             <span className="text-gray-500">—</span>

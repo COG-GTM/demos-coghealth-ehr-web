@@ -19,6 +19,7 @@ import {
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
 import PatientChartPage from './pages/PatientChartPage';
+import NewPatientPage from './pages/NewPatientPage';
 import DashboardPage from './pages/DashboardPage';
 import SchedulePage from './pages/SchedulePage';
 import MedicationsPage from './pages/MedicationsPage';
@@ -290,6 +291,7 @@ function App() {
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/patients" element={<PatientSearchPage />} />
+            <Route path="/patients/new" element={<NewPatientPage />} />
             <Route path="/patients/:id" element={<PatientChartPage />} />
             <Route path="/schedule" element={<SchedulePage />} />
             <Route path="/labs" element={<LabResultsPage />} />

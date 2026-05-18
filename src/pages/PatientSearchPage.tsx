@@ -275,7 +275,7 @@ export default function PatientSearchPage() {
             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
           </button>
           <span className="text-gray-400">|</span>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'New Patient', message: 'Patient registration form would open here.', type: 'info' })}>
+          <button className="ehr-toolbar-button flex items-center" onClick={() => navigate('/patients/new')}>
             <Plus className="w-3.5 h-3.5 mr-1" /> New Patient
           </button>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPrintDialog(true)}>

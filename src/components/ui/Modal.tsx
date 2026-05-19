@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, AlertCircle, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,10 +11,10 @@ interface ModalProps {
 }
 
 const widthClasses = {
-  sm: 'w-80',
-  md: 'w-[480px]',
-  lg: 'w-[640px]',
-  xl: 'w-[800px]',
+  sm: 'w-96',
+  md: 'w-[520px]',
+  lg: 'w-[680px]',
+  xl: 'w-[840px]',
 };
 
 export function Modal({ isOpen, onClose, title, children, width = 'md', footer }: ModalProps) {
@@ -36,32 +36,28 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col`} style={{ fontFamily: 'Tahoma, sans-serif' }}>
-        {/* Window frame */}
-        <div className="bg-white border-2 border-gray-400 shadow-lg flex flex-col" style={{ boxShadow: '2px 2px 8px rgba(0,0,0,0.3)' }}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
+      <div className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col animate-fadeIn`}>
+        <div className="bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-[#ebebeb]">
           {/* Title bar */}
-          <div 
-            className="flex items-center justify-between px-2 py-1"
-            style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
-          >
-            <span className="text-white font-semibold text-[11px]">{title}</span>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#ebebeb]">
+            <h2 className="text-lg font-bold text-[#222222]">{title}</h2>
             <button 
               onClick={onClose}
-              className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f7f7f7] text-[#717171] hover:text-[#222222] transition-colors"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
           
           {/* Content */}
-          <div className="flex-1 overflow-auto p-3 bg-[#ece9d8]">
+          <div className="flex-1 overflow-auto p-6">
             {children}
           </div>
           
           {/* Footer */}
           {footer && (
-            <div className="px-3 py-2 bg-[#ece9d8] border-t border-gray-400 flex justify-end space-x-2">
+            <div className="px-6 py-4 border-t border-[#ebebeb] flex justify-end space-x-3">
               {footer}
             </div>
           )}
@@ -100,20 +96,28 @@ export function ConfirmDialog({
       width="sm"
       footer={
         <>
-          <button onClick={onClose} className="ehr-button px-4">
+          <button onClick={onClose} className="ehr-button px-5 py-2.5 rounded-lg">
             {cancelText}
           </button>
           <button 
             onClick={() => { onConfirm(); onClose(); }} 
-            className={`ehr-button px-4 ${type === 'danger' ? '' : 'ehr-button-primary'}`}
-            style={type === 'danger' ? { background: 'linear-gradient(to bottom, #e87458 0%, #c84030 100%)', color: 'white', border: '1px solid #a02010' } : undefined}
+            className={`px-5 py-2.5 rounded-lg font-semibold transition-all ${
+              type === 'danger' 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : 'ehr-button ehr-button-primary'
+            }`}
           >
             {confirmText}
           </button>
         </>
       }
     >
-      <p className="text-[11px] text-gray-700">{message}</p>
+      <div className="flex items-start space-x-3">
+        {type === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />}
+        {type === 'danger' && <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />}
+        {type === 'info' && <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />}
+        <p className="text-sm text-[#484848] leading-relaxed">{message}</p>
+      </div>
     </Modal>
   );
 }
@@ -127,13 +131,14 @@ interface AlertDialogProps {
 }
 
 export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: AlertDialogProps) {
-  const bgColors = {
-    info: '#cce5ff',
-    success: '#d4edda',
-    warning: '#fff3cd',
-    error: '#f8d7da',
+  const config = {
+    info: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', icon: <Info className="w-5 h-5 text-blue-500" /> },
+    success: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-800', icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" /> },
+    warning: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800', icon: <AlertTriangle className="w-5 h-5 text-amber-500" /> },
+    error: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800', icon: <AlertCircle className="w-5 h-5 text-red-500" /> },
   };
-  
+  const c = config[type];
+
   return (
     <Modal
       isOpen={isOpen}
@@ -141,13 +146,14 @@ export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: 
       title={title}
       width="sm"
       footer={
-        <button onClick={onClose} className="ehr-button ehr-button-primary px-6">
+        <button onClick={onClose} className="ehr-button ehr-button-primary px-8 py-2.5 rounded-lg">
           OK
         </button>
       }
     >
-      <div className="p-2 border border-gray-400" style={{ background: bgColors[type] }}>
-        <p className="text-[11px]">{message}</p>
+      <div className={`flex items-start space-x-3 p-4 rounded-xl ${c.bg} border ${c.border}`}>
+        <div className="flex-shrink-0 mt-0.5">{c.icon}</div>
+        <p className={`text-sm leading-relaxed ${c.text}`}>{message}</p>
       </div>
     </Modal>
   );

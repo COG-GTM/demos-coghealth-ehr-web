@@ -14,11 +14,11 @@ export function LoadingOverlay({ isLoading, text = 'Loading...' }: LoadingOverla
       <div className="flex flex-col items-center bg-white rounded-2xl px-8 py-6 shadow-lg border border-[#ebebeb]">
         <div className="relative w-10 h-10 mb-3">
           <div 
-            className="absolute inset-0 rounded-full border-3"
+            className="absolute inset-0 rounded-full border-[3px]"
             style={{ borderColor: '#ebebeb' }}
           />
           <div 
-            className="absolute inset-0 rounded-full border-3"
+            className="absolute inset-0 rounded-full border-[3px]"
             style={{ 
               borderColor: 'transparent', 
               borderTopColor: '#ff385c',

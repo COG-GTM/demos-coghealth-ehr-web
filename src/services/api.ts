@@ -22,10 +22,17 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     }
   }
 
+  const authHeaders: Record<string, string> = {};
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    authHeaders['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(url, {
     ...fetchOptions,
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
       ...fetchOptions.headers,
     },
   });

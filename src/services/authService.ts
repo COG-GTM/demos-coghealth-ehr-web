@@ -62,8 +62,10 @@ export const authService = {
     return response;
   },
 
-  changePassword: (data: ChangePasswordRequest): Promise<AuthResponse> => {
-    return api.post<AuthResponse>('/auth/change-password', data);
+  changePassword: async (data: ChangePasswordRequest): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/change-password', data);
+    localStorage.setItem(TOKEN_KEY, response.token);
+    return response;
   },
 
   logout: (): void => {

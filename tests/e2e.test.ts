@@ -313,8 +313,7 @@ describe('CogHealth EHR E2E Tests', () => {
     });
 
     test('should display settings tabs', async () => {
-      const tabs = await page.$$('::-p-xpath(//button[contains(., "Profile") or contains(., "Notifications")])');
-      expect(tabs.length).toBeGreaterThan(0);
+      const tabs = await page.$$('::-p-xpath(//button[contains(., "Profile") or contains(., "Notifications")])');      expect(tabs.length).toBeGreaterThan(0);
     });
 
     test('should switch tabs', async () => {
@@ -342,6 +341,85 @@ describe('CogHealth EHR E2E Tests', () => {
       await page.click('::-p-xpath(//button[contains(., "Notifications")])');
       await page.click('input[type="checkbox"]');
       await wait(100);
+    });
+  });
+
+  describe('New Patient Page', () => {
+    beforeEach(async () => {
+      await page.goto(`${BASE_URL}/patients`);
+    });
+
+    test('New Patient button navigates to /patients/new', async () => {
+      await page.click('button:has-text("New Patient")');
+      await page.waitForNavigation();
+      expect(page.url()).toContain('/patients/new');
+    });
+
+    test('should display New Patient Registration form', async () => {
+      await page.goto(`${BASE_URL}/patients/new`);
+      await page.waitForSelector('.ehr-status-bar');
+      const statusText = await page.$eval('.ehr-status-bar span', el => el.textContent);
+      expect(statusText).toContain('New Patient Registration');
+    });
+
+    test('should show validation errors when saving empty form', async () => {
+      await page.goto(`${BASE_URL}/patients/new`);
+      await page.waitForSelector('.ehr-toolbar');
+      await page.click('button:has-text("Save Patient")');
+      await wait(100);
+      const errors = await page.$$('p.text-red-500');
+      expect(errors.length).toBeGreaterThan(0);
+    });
+
+    test('should show error for invalid email', async () => {
+      await page.goto(`${BASE_URL}/patients/new`);
+      await page.waitForSelector('.ehr-toolbar');
+      await page.type('input[placeholder="First name"]', 'John');
+      await page.type('input[placeholder="Last name"]', 'Doe');
+      const dobInput = await page.$('input[type="date"]');
+      await dobInput?.type('1990-01-01');
+      await page.type('input[placeholder="patient@example.com"]', 'not-an-email');
+      await page.click('button:has-text("Save Patient")');
+      await wait(100);
+      const emailError = await page.$('p.text-red-500');
+      expect(emailError).not.toBeNull();
+    });
+
+    test('should show error for invalid ZIP code', async () => {
+      await page.goto(`${BASE_URL}/patients/new`);
+      await page.waitForSelector('.ehr-toolbar');
+      await page.type('input[placeholder="First name"]', 'John');
+      await page.type('input[placeholder="Last name"]', 'Doe');
+      const dobInput = await page.$('input[type="date"]');
+      await dobInput?.type('1990-01-01');
+      await page.type('input[placeholder="12345"]', '999');
+      await page.click('button:has-text("Save Patient")');
+      await wait(100);
+      const zipError = await page.$('p.text-red-500');
+      expect(zipError).not.toBeNull();
+    });
+
+    test('Cancel without changes navigates back to /patients', async () => {
+      await page.goto(`${BASE_URL}/patients/new`);
+      await page.waitForSelector('.ehr-toolbar');
+      await page.click('button:has-text("Cancel")');
+      await page.waitForNavigation();
+      expect(page.url()).toContain('/patients');
+      expect(page.url()).not.toContain('/patients/new');
+    });
+
+    test('Cancel with unsaved changes shows confirm dialog', async () => {
+      await page.goto(`${BASE_URL}/patients/new`);
+      await page.waitForSelector('.ehr-toolbar');
+      await page.type('input[placeholder="First name"]', 'Jane');
+      await page.click('button:has-text("Cancel")');
+      await page.waitForSelector('.fixed.inset-0');
+      const modalTitle = await page.$eval('.fixed.inset-0 span.text-white', el => el.textContent);
+      expect(modalTitle).toContain('Discard');
+      // Stay on page
+      await page.click('button:has-text("Stay")');
+      await wait(100);
+      expect(page.url()).toContain('/patients/new');
     });
   });
 

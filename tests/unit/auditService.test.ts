@@ -11,7 +11,6 @@ import {
   logOrder,
   logLogout,
 } from '../../src/services/auditService';
-import type { AuditEvent } from '../../src/services/auditService';
 
 const mockLocalStorage: Record<string, string> = {};
 const mockSessionStorage: Record<string, string> = {};

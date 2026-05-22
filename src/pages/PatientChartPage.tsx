@@ -80,6 +80,20 @@ export default function PatientChartPage() {
   const [showRxDialog, setShowRxDialog] = useState(false);
   const [showLabDialog, setShowLabDialog] = useState(false);
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
+  const [celebrationEmojis, setCelebrationEmojis] = useState<{ id: number; emoji: string; x: number; y: number }[]>([]);
+
+  const triggerCelebration = (e: React.MouseEvent) => {
+    const emojis = ['🎉', '✨', '💊', '❤️', '🩺', '⭐'];
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const newEmojis = Array.from({ length: 8 }, (_, i) => ({
+      id: Date.now() + i,
+      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    }));
+    setCelebrationEmojis(prev => [...prev, ...newEmojis]);
+    setTimeout(() => setCelebrationEmojis([]), 1500);
+  };
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -199,10 +213,15 @@ export default function PatientChartPage() {
                       </thead>
                       <tbody>
                         {problems.map((problem, idx) => (
-                          <tr key={problem.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
+                          <tr 
+                            key={problem.id} 
+                            className={`${idx % 2 === 1 ? 'bg-gray-50' : ''} ${problem.priority === 'high' ? 'cursor-pointer hover:bg-yellow-50' : ''}`}
+                            onClick={problem.priority === 'high' ? triggerCelebration : undefined}
+                          >
                             <td className="px-2 py-1">
                               <span className={`inline-block w-2 h-2 mr-1 border border-gray-500 ${problem.priority === 'high' ? 'bg-gray-400' : problem.priority === 'medium' ? 'bg-gray-300' : 'bg-gray-200'}`} />
                               {problem.name}
+                              {problem.priority === 'high' && <span className="ml-1 text-[9px]">✨</span>}
                             </td>
                             <td className="px-2 py-1 font-mono text-[10px]">{problem.icd10}</td>
                             <td className="px-2 py-1">{problem.onset}</td>
@@ -484,6 +503,29 @@ export default function PatientChartPage() {
           type={showAlert.type}
         />
       )}
+
+      {/* Celebration Emojis */}
+      {celebrationEmojis.map((emoji) => (
+        <div
+          key={emoji.id}
+          className="fixed pointer-events-none text-2xl z-50"
+          style={{
+            left: emoji.x,
+            top: emoji.y,
+            animation: 'burst 1.5s ease-out forwards',
+            transform: `translate(${(Math.random() - 0.5) * 100}px, ${(Math.random() - 0.5) * 100}px)`,
+          }}
+        >
+          {emoji.emoji}
+        </div>
+      ))}
+
+      <style>{`
+        @keyframes burst {
+          0% { opacity: 1; transform: translate(0, 0) scale(1); }
+          100% { opacity: 0; transform: translate(var(--tx, 0), var(--ty, -100px)) scale(0.5); }
+        }
+      `}</style>
     </div>
   );
 }

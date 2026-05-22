@@ -19,6 +19,7 @@ import {
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
 import PatientChartPage from './pages/PatientChartPage';
+import NewPatientPage from './pages/NewPatientPage';
 import DashboardPage from './pages/DashboardPage';
 import SchedulePage from './pages/SchedulePage';
 import MedicationsPage from './pages/MedicationsPage';
@@ -260,6 +261,8 @@ function App() {
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSessionExpired, setShowSessionExpired] = useState(false);
+  const [konamiEmojis, setKonamiEmojis] = useState<{ id: number; emoji: string; x: number; y: number }[]>([]);
+  const [showKonamiMessage, setShowKonamiMessage] = useState(false);
 
   const handleSessionWarning = useCallback(() => {
     setShowSessionWarning(true);
@@ -271,6 +274,40 @@ function App() {
 
   const handleLogout = useCallback(() => {
     setShowLogoutConfirm(true);
+  }, []);
+
+  // Konami Code Easter Egg
+  useEffect(() => {
+    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    let konamiIndex = 0;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === konamiCode[konamiIndex]) {
+        konamiIndex++;
+        if (konamiIndex === konamiCode.length) {
+          // Konami code activated!
+          const emojis = ['🎮', '🕹️', '⭐', '🌟', '✨', '🎉', '🏆', '💎', '🔥', '💯'];
+          const centerX = window.innerWidth / 2;
+          const centerY = window.innerHeight / 2;
+          const newEmojis = Array.from({ length: 30 }, (_, i) => ({
+            id: Date.now() + i,
+            emoji: emojis[Math.floor(Math.random() * emojis.length)],
+            x: centerX,
+            y: centerY,
+          }));
+          setKonamiEmojis(newEmojis);
+          setShowKonamiMessage(true);
+          setTimeout(() => setKonamiEmojis([]), 3000);
+          setTimeout(() => setShowKonamiMessage(false), 3000);
+          konamiIndex = 0;
+        }
+      } else {
+        konamiIndex = 0;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const performLogout = (reason: 'manual' | 'timeout' = 'manual') => {
@@ -290,6 +327,7 @@ function App() {
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/patients" element={<PatientSearchPage />} />
+            <Route path="/patients/new" element={<NewPatientPage />} />
             <Route path="/patients/:id" element={<PatientChartPage />} />
             <Route path="/schedule" element={<SchedulePage />} />
             <Route path="/labs" element={<LabResultsPage />} />
@@ -353,6 +391,41 @@ function App() {
           cancelText="Cancel"
           type="warning"
         />
+
+        {/* Konami Code Easter Egg */}
+        {konamiEmojis.map((emoji) => (
+          <div
+            key={emoji.id}
+            className="fixed pointer-events-none text-4xl z-50"
+            style={{
+              left: emoji.x,
+              top: emoji.y,
+              animation: 'konami-burst 3s ease-out forwards',
+              transform: `translate(${(Math.random() - 0.5) * 400}px, ${(Math.random() - 0.5) * 400}px)`,
+            }}
+          >
+            {emoji.emoji}
+          </div>
+        ))}
+
+        {showKonamiMessage && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="bg-white border-4 border-yellow-400 rounded-lg p-8 shadow-2xl animate-bounce">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🎮</div>
+                <div className="text-3xl font-bold text-purple-600">KONAMI CODE ACTIVATED!</div>
+                <div className="text-xl text-gray-600 mt-2">+30 Lives to Your Coding Skills! ✨</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <style>{`
+          @keyframes konami-burst {
+            0% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: translate(var(--tx, 0), var(--ty, -200px)) scale(0.3) rotate(720deg); }
+          }
+        `}</style>
       </div>
     </BrowserRouter>
   );

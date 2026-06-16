@@ -9,6 +9,10 @@
   --ehr-panel-bg: #f5f5f5;
   --ehr-panel-alt-bg: #e8e8e8;
   --ehr-accent-bg: #6699cc;
+  --ehr-dialog-info-bg: #cce5ff;
+  --ehr-dialog-success-bg: #d4edda;
+  --ehr-dialog-warning-bg: #fff3cd;
+  --ehr-dialog-error-bg: #f8d7da;
 }
 
 @theme {
@@ -262,6 +266,10 @@ td {
   --ehr-panel-bg: #1f2733;
   --ehr-panel-alt-bg: #28323f;
   --ehr-accent-bg: #2d4a7c;
+  --ehr-dialog-info-bg: #15243a;
+  --ehr-dialog-success-bg: #133023;
+  --ehr-dialog-warning-bg: #332a0a;
+  --ehr-dialog-error-bg: #3a1414;
 
   color-scheme: dark;
 }

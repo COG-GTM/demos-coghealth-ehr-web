@@ -128,10 +128,10 @@ interface AlertDialogProps {
 
 export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: AlertDialogProps) {
   const bgColors = {
-    info: '#cce5ff',
-    success: '#d4edda',
-    warning: '#fff3cd',
-    error: '#f8d7da',
+    info: 'var(--ehr-dialog-info-bg)',
+    success: 'var(--ehr-dialog-success-bg)',
+    warning: 'var(--ehr-dialog-warning-bg)',
+    error: 'var(--ehr-dialog-error-bg)',
   };
   
   return (

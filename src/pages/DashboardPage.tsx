@@ -281,7 +281,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="h-full flex flex-col relative" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col relative" style={{ background: 'var(--ehr-app-bg)' }}>
       <LoadingOverlay isLoading={loading} text="Loading dashboard..." />
       {/* Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">

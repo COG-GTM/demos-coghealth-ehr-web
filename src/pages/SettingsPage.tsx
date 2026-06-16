@@ -14,6 +14,7 @@ import {
   Check
 } from 'lucide-react';
 import { AlertDialog } from '../components/ui/Modal';
+import { applyTheme, type ThemeChoice } from '../utils/theme';
 
 type SettingsTab = 'profile' | 'notifications' | 'security' | 'appearance' | 'practice';
 
@@ -105,7 +106,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col" style={{ background: 'var(--ehr-app-bg)' }}>
       {/* Header */}
       <div className="ehr-header flex items-center justify-between">
         <span>System Settings</span>
@@ -121,7 +122,7 @@ export default function SettingsPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Navigation */}
-        <div className="w-48 overflow-auto p-2 space-y-1" style={{ background: '#ece9d8' }}>
+        <div className="w-48 overflow-auto p-2 space-y-1" style={{ background: 'var(--ehr-statusbar-bg)' }}>
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -388,7 +389,10 @@ export default function SettingsPage() {
                   {['light', 'dark', 'system'].map((theme) => (
                     <button
                       key={theme}
-                      onClick={() => setAppearance({ ...appearance, theme })}
+                      onClick={() => {
+                        setAppearance({ ...appearance, theme });
+                        applyTheme(theme as ThemeChoice);
+                      }}
                       className={`p-2 border text-center text-[11px] ${
                         appearance.theme === theme
                           ? 'border-gray-600 bg-white'

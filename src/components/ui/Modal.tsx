@@ -55,13 +55,13 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           </div>
           
           {/* Content */}
-          <div className="flex-1 overflow-auto p-3 bg-[#ece9d8]">
+          <div className="flex-1 overflow-auto p-3 bg-[var(--ehr-statusbar-bg)]">
             {children}
           </div>
           
           {/* Footer */}
           {footer && (
-            <div className="px-3 py-2 bg-[#ece9d8] border-t border-gray-400 flex justify-end space-x-2">
+            <div className="px-3 py-2 bg-[var(--ehr-statusbar-bg)] border-t border-gray-400 flex justify-end space-x-2">
               {footer}
             </div>
           )}

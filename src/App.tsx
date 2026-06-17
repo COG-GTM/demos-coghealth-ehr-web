@@ -277,6 +277,8 @@ function App() {
   }, []);
 
   const performLogout = async (reason: 'manual' | 'timeout' = 'manual') => {
+    setShowSessionExpired(false);
+    setShowLogoutConfirm(false);
     logLogout(reason);
     await flushQueue();
     stopAuditQueue();

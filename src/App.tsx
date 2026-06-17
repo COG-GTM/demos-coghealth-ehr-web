@@ -98,7 +98,6 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
       );
       setSearchResults(results);
       setShowSearchDropdown(true);
-      logPatientSearch(query, results.length);
     } else {
       setSearchResults([]);
       setShowSearchDropdown(false);
@@ -106,6 +105,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   };
 
   const selectPatient = (patientId: number) => {
+    logPatientSearch(globalSearch, searchResults.length);
     setGlobalSearch('');
     setShowSearchDropdown(false);
     navigate(`/patients/${patientId}`);

@@ -8,6 +8,7 @@ const AUDIT_ENDPOINT = '/api/audit';
 const queue: AuditEvent[] = [];
 let flushTimer: ReturnType<typeof setInterval> | null = null;
 let isFlushing = false;
+let visibilityHandler: (() => void) | null = null;
 
 function getAuditUrl(): string {
   const base = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
@@ -86,11 +87,12 @@ export function startAuditQueue(): void {
   if (flushTimer !== null) return;
   flushTimer = setInterval(() => void flushQueue(), FLUSH_INTERVAL_MS);
   window.addEventListener('beforeunload', flushOnUnload);
-  window.addEventListener('visibilitychange', () => {
+  visibilityHandler = () => {
     if (document.visibilityState === 'hidden') {
       void flushQueue();
     }
-  });
+  };
+  window.addEventListener('visibilitychange', visibilityHandler);
 }
 
 export function stopAuditQueue(): void {
@@ -99,7 +101,25 @@ export function stopAuditQueue(): void {
     flushTimer = null;
   }
   window.removeEventListener('beforeunload', flushOnUnload);
-  void flushQueue();
+  if (visibilityHandler) {
+    window.removeEventListener('visibilitychange', visibilityHandler);
+    visibilityHandler = null;
+  }
+}
+
+/**
+ * Synchronously flush all queued events using sendBeacon.
+ * Use this before page unload or reload to ensure events are delivered.
+ */
+export function flushQueueSync(): void {
+  if (queue.length === 0) return;
+  const batch = queue.splice(0);
+  const url = getAuditUrl();
+  const blob = new Blob(
+    [JSON.stringify({ events: batch })],
+    { type: 'application/json' }
+  );
+  navigator.sendBeacon(url, blob);
 }
 
 export function getQueueLength(): number {

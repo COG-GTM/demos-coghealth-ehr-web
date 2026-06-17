@@ -89,7 +89,7 @@ export function startAuditQueue(): void {
   window.addEventListener('beforeunload', flushOnUnload);
   visibilityHandler = () => {
     if (document.visibilityState === 'hidden') {
-      void flushQueue();
+      flushQueueSync();
     }
   };
   window.addEventListener('visibilitychange', visibilityHandler);

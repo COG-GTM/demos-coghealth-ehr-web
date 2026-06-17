@@ -29,6 +29,7 @@ import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
+import { logPatientSearch } from '../services/auditService';
 import { patientService } from '../services/patientService';
 import type { Patient } from '../types';
 
@@ -219,6 +220,7 @@ export default function PatientSearchPage() {
     }
 
     setSearchResults(results);
+    logPatientSearch(term || '(all)', results.length);
   };
 
   const toggleFilter = (category: keyof FilterState, value: string) => {

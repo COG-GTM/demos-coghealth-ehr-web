@@ -26,7 +26,8 @@ import { AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
-import { logPatientAccess } from '../services/auditService';
+import { PHIAccessJustificationModal } from '../components/PHIAccessJustificationModal';
+import { logPatientAccess, logPHIView, logPrint, logPrescription, logOrder } from '../services/auditService';
 import { patientService } from '../services/patientService';
 
 interface Problem { id: number; name: string; icd10: string; status: string; onset: string; priority: string; }
@@ -59,7 +60,14 @@ type TabId = 'summary' | 'encounters' | 'medications' | 'problems' | 'allergies'
 export default function PatientChartPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<TabId>('summary');
+  const [activeTab, setActiveTabInternal] = useState<TabId>('summary');
+
+  const setActiveTab = (tab: TabId) => {
+    setActiveTabInternal(tab);
+    if (patient && tab !== 'summary') {
+      logPHIView(patient.id?.toString() ?? '', tab, `chart-tab-${tab}`);
+    }
+  };
   const [patient, setPatient] = useState<Patient | null>(null);
   const [problems] = useState<Problem[]>(defaultProblems);
   const [medications] = useState<Medication[]>(defaultMedications);
@@ -80,17 +88,18 @@ export default function PatientChartPage() {
   const [showRxDialog, setShowRxDialog] = useState(false);
   const [showLabDialog, setShowLabDialog] = useState(false);
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
+  const [showJustificationModal, setShowJustificationModal] = useState(true);
+  const [phiAccessGranted, setPhiAccessGranted] = useState(false);
 
   useEffect(() => {
+    setShowJustificationModal(true);
+    setPhiAccessGranted(false);
     const fetchPatient = async () => {
       if (!id) return;
       setLoading(true);
       try {
         const data = await patientService.getById(parseInt(id));
         setPatient(data);
-        if (data.id && data.mrn) {
-          logPatientAccess(data.id.toString(), data.mrn, `${data.lastName}, ${data.firstName}`);
-        }
       } catch (error) {
         console.error('Failed to fetch patient:', error);
       } finally {
@@ -102,6 +111,32 @@ export default function PatientChartPage() {
 
   if (loading || !patient) {
     return <div className="h-full flex items-center justify-center">Loading patient...</div>;
+  }
+
+  if (!phiAccessGranted) {
+    return (
+      <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center text-gray-500 text-[11px]">
+            <p>Access to patient records requires justification.</p>
+          </div>
+        </div>
+        <PHIAccessJustificationModal
+          isOpen={showJustificationModal}
+          patientId={patient.id?.toString() ?? id ?? ''}
+          onConfirm={() => {
+            setShowJustificationModal(false);
+            setPhiAccessGranted(true);
+            if (patient.id && patient.mrn) {
+              logPatientAccess(patient.id.toString(), patient.mrn, `${patient.lastName}, ${patient.firstName}`);
+            }
+          }}
+          onCancel={() => {
+            navigate('/patients');
+          }}
+        />
+      </div>
+    );
   }
 
   const togglePanel = (panel: string) => {
@@ -441,7 +476,7 @@ export default function PatientChartPage() {
         isOpen={showPrintDialog}
         onClose={() => setShowPrintDialog(false)}
         onPrint={(options) => {
-          console.log('Print options:', options);
+          logPrint(patient.id?.toString(), `Patient Chart (${options.action})`);
           setShowPrintDialog(false);
           setShowAlert({ title: 'Print Sent', message: `Patient chart sent to printer (${options.action}).`, type: 'success' });
         }}
@@ -456,7 +491,7 @@ export default function PatientChartPage() {
         patientMrn={patient.mrn}
         patientAllergies={allergies.map(a => a.allergen)}
         onSubmit={(rx) => {
-          console.log('New Rx:', rx);
+          logPrescription(patient.id?.toString() ?? '', `${rx.medication} ${rx.strength}`);
           setShowRxDialog(false);
           setShowAlert({ title: 'Prescription Sent', message: `${rx.medication} ${rx.strength} sent to ${rx.pharmacy}.`, type: 'success' });
         }}
@@ -469,7 +504,7 @@ export default function PatientChartPage() {
         patientName={`${patient.lastName}, ${patient.firstName}`}
         patientMrn={patient.mrn}
         onSubmit={(orders) => {
-          console.log('Lab order:', orders);
+          logOrder(patient.id?.toString() ?? '', 'LAB', orders.map(o => o.code).join(', '));
           setShowLabDialog(false);
           setShowAlert({ title: 'Lab Order Placed', message: `${orders.length} test(s) ordered for ${patient.lastName}, ${patient.firstName}.`, type: 'success' });
         }}

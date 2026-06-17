@@ -1,3 +1,6 @@
+import { getCurrentUser } from './authContext';
+import { enqueueAuditEvent } from './auditQueue';
+
 export type AuditEventType = 
   | 'LOGIN'
   | 'LOGOUT'
@@ -13,7 +16,8 @@ export type AuditEventType =
   | 'NOTE_SIGN'
   | 'PRESCRIPTION_CREATE'
   | 'SETTINGS_CHANGE'
-  | 'FAILED_LOGIN';
+  | 'FAILED_LOGIN'
+  | 'PHI_ACCESS_JUSTIFIED';
 
 export interface AuditEvent {
   id: string;
@@ -33,9 +37,6 @@ export interface AuditEvent {
   details?: string;
   success: boolean;
 }
-
-const AUDIT_LOG_KEY = 'coghealth_audit_log';
-const MAX_LOG_ENTRIES = 1000;
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -63,14 +64,15 @@ export function logAuditEvent(
     success?: boolean;
   } = {}
 ): void {
+  const user = getCurrentUser();
   const event: AuditEvent = {
     id: generateId(),
     timestamp: new Date().toISOString(),
     eventType,
-    userId: 'USR001',
-    userName: 'Dr. Sarah Anderson',
-    userRole: 'Physician',
-    ipAddress: '192.168.1.100',
+    userId: user.userId,
+    userName: user.userName,
+    userRole: user.userRole,
+    ipAddress: user.ipAddress,
     sessionId: getSessionId(),
     patientId: options.patientId,
     patientMrn: options.patientMrn,
@@ -82,35 +84,7 @@ export function logAuditEvent(
     success: options.success ?? true,
   };
 
-  const existingLog = getAuditLog();
-  existingLog.unshift(event);
-  
-  if (existingLog.length > MAX_LOG_ENTRIES) {
-    existingLog.splice(MAX_LOG_ENTRIES);
-  }
-  
-  localStorage.setItem(AUDIT_LOG_KEY, JSON.stringify(existingLog));
-  
-
-}
-
-export function getAuditLog(): AuditEvent[] {
-  try {
-    const log = localStorage.getItem(AUDIT_LOG_KEY);
-    return log ? JSON.parse(log) : [];
-  } catch {
-    return [];
-  }
-}
-
-export function clearAuditLog(): void {
-  localStorage.removeItem(AUDIT_LOG_KEY);
-}
-
-export function getPatientAccessLog(patientId: string): AuditEvent[] {
-  return getAuditLog().filter(
-    event => event.patientId === patientId && event.eventType === 'PATIENT_ACCESS'
-  );
+  enqueueAuditEvent(event);
 }
 
 export function logPatientAccess(patientId: string, patientMrn: string, patientName: string): void {
@@ -166,5 +140,31 @@ export function logOrder(patientId: string, orderType: string, orderDetails: str
 export function logLogout(reason: 'manual' | 'timeout' = 'manual'): void {
   logAuditEvent(reason === 'timeout' ? 'SESSION_TIMEOUT' : 'LOGOUT', {
     action: reason === 'timeout' ? 'Session timed out' : 'User logged out',
+  });
+}
+
+export function logLogin(): void {
+  logAuditEvent('LOGIN', {
+    action: 'User logged in',
+  });
+}
+
+export function logFailedLogin(attemptedUserId?: string): void {
+  logAuditEvent('FAILED_LOGIN', {
+    action: 'Failed login attempt',
+    details: attemptedUserId ? `Attempted user: ${attemptedUserId}` : undefined,
+    success: false,
+  });
+}
+
+export function logPHIAccessJustification(
+  patientId: string,
+  reason: string,
+  details?: string
+): void {
+  logAuditEvent('PHI_ACCESS_JUSTIFIED', {
+    patientId,
+    action: 'PHI access justified',
+    details: details ? `${reason}: ${details}` : reason,
   });
 }

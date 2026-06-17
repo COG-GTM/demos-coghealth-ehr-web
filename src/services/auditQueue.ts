@@ -74,7 +74,7 @@ export async function flushQueue(): Promise<void> {
 
 function flushOnUnload(): void {
   if (queue.length === 0) return;
-  const batch = queue.splice(0, MAX_BATCH_SIZE);
+  const batch = queue.splice(0);
   const url = getAuditUrl();
   const blob = new Blob(
     [JSON.stringify({ events: batch })],

@@ -27,7 +27,9 @@ import SettingsPage from './pages/SettingsPage';
 import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
-import { logLogout } from './services/auditService';
+import { logLogout, logLogin, logPatientSearch } from './services/auditService';
+import { setCurrentUser, clearCurrentUser } from './services/authContext';
+import { startAuditQueue, stopAuditQueue, flushQueue, flushQueueSync } from './services/auditQueue';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
@@ -103,6 +105,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   };
 
   const selectPatient = (patientId: number) => {
+    logPatientSearch(globalSearch, searchResults.length);
     setGlobalSearch('');
     setShowSearchDropdown(false);
     navigate(`/patients/${patientId}`);
@@ -273,10 +276,32 @@ function App() {
     setShowLogoutConfirm(true);
   }, []);
 
-  const performLogout = (reason: 'manual' | 'timeout' = 'manual') => {
+  const performLogout = async (reason: 'manual' | 'timeout' = 'manual') => {
+    setShowSessionExpired(false);
+    setShowLogoutConfirm(false);
     logLogout(reason);
+    await flushQueue();
+    stopAuditQueue();
+    flushQueueSync();
+    clearCurrentUser();
+    sessionStorage.removeItem('coghealth_session_id');
+    sessionStorage.removeItem('coghealth_auth_token');
     window.location.reload();
   };
+
+  useEffect(() => {
+    setCurrentUser({
+      userId: 'USR001',
+      userName: 'Dr. Sarah Anderson',
+      userRole: 'Physician',
+      ipAddress: '192.168.1.100',
+    });
+    startAuditQueue();
+    logLogin();
+    return () => {
+      stopAuditQueue();
+    };
+  }, []);
 
   return (
     <BrowserRouter>
@@ -304,13 +329,13 @@ function App() {
         <div className="h-5 bg-gradient-to-b from-[#ece9d8] to-[#d4d0c8] border-t border-gray-400 flex items-center justify-between px-2 text-[10px] text-gray-600">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-1">
-              <Shield className="w-3 h-3 text-green-600" />
-              <span>HIPAA Compliant</span>
+              <Shield className="w-3 h-3 text-yellow-600" />
+              <span>HIPAA Controls: Partial</span>
             </div>
             <span className="text-gray-400">|</span>
             <span>Encrypted Connection (TLS 1.3)</span>
             <span className="text-gray-400">|</span>
-            <span>Audit Logging: Active</span>
+            <span>Audit Logging: Server-Side Queue</span>
           </div>
           <div className="flex items-center space-x-4">
             <span>Database: Connected</span>

@@ -29,7 +29,7 @@ import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
 import { logLogout, logLogin, logPatientSearch } from './services/auditService';
 import { setCurrentUser, clearCurrentUser } from './services/authContext';
-import { startAuditQueue, stopAuditQueue, flushQueueSync } from './services/auditQueue';
+import { startAuditQueue, stopAuditQueue, flushQueue, flushQueueSync } from './services/auditQueue';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
@@ -276,8 +276,9 @@ function App() {
     setShowLogoutConfirm(true);
   }, []);
 
-  const performLogout = (reason: 'manual' | 'timeout' = 'manual') => {
+  const performLogout = async (reason: 'manual' | 'timeout' = 'manual') => {
     logLogout(reason);
+    await flushQueue();
     stopAuditQueue();
     flushQueueSync();
     clearCurrentUser();

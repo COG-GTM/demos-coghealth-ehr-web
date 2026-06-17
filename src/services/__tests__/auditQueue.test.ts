@@ -36,12 +36,14 @@ function createMockEvent(overrides: Partial<AuditEvent> = {}): AuditEvent {
 }
 
 describe('auditQueue', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     mockFetch.mockClear();
     mockSendBeacon.mockClear();
     sessionStorage.clear();
-    // Drain any queued events
+    // Drain any queued events from previous tests
     mockFetch.mockResolvedValue({ ok: true });
+    await flushQueue();
+    mockFetch.mockClear();
   });
 
   afterEach(() => {

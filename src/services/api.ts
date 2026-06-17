@@ -4,6 +4,10 @@ interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
 }
 
+function getAuthToken(): string | null {
+  return sessionStorage.getItem('coghealth_auth_token');
+}
+
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { params, ...fetchOptions } = options;
   
@@ -22,10 +26,17 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     }
   }
 
+  const authHeaders: Record<string, string> = {};
+  const token = getAuthToken();
+  if (token) {
+    authHeaders['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(url, {
     ...fetchOptions,
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
       ...fetchOptions.headers,
     },
   });

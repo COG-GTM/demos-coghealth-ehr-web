@@ -26,6 +26,7 @@ import { AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
+import { PHIAccessJustificationModal } from '../components/PHIAccessJustificationModal';
 import { logPatientAccess, logPHIView, logPrint, logPrescription, logOrder } from '../services/auditService';
 import { patientService } from '../services/patientService';
 
@@ -87,8 +88,12 @@ export default function PatientChartPage() {
   const [showRxDialog, setShowRxDialog] = useState(false);
   const [showLabDialog, setShowLabDialog] = useState(false);
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
+  const [showJustificationModal, setShowJustificationModal] = useState(true);
+  const [phiAccessGranted, setPhiAccessGranted] = useState(false);
 
   useEffect(() => {
+    setShowJustificationModal(true);
+    setPhiAccessGranted(false);
     const fetchPatient = async () => {
       if (!id) return;
       setLoading(true);
@@ -109,6 +114,29 @@ export default function PatientChartPage() {
 
   if (loading || !patient) {
     return <div className="h-full flex items-center justify-center">Loading patient...</div>;
+  }
+
+  if (!phiAccessGranted) {
+    return (
+      <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center text-gray-500 text-[11px]">
+            <p>Access to patient records requires justification.</p>
+          </div>
+        </div>
+        <PHIAccessJustificationModal
+          isOpen={showJustificationModal}
+          patientId={patient.id?.toString() ?? id ?? ''}
+          onConfirm={() => {
+            setShowJustificationModal(false);
+            setPhiAccessGranted(true);
+          }}
+          onCancel={() => {
+            navigate('/patients');
+          }}
+        />
+      </div>
+    );
   }
 
   const togglePanel = (panel: string) => {

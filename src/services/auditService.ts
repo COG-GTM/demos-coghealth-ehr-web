@@ -13,7 +13,8 @@ export type AuditEventType =
   | 'NOTE_SIGN'
   | 'PRESCRIPTION_CREATE'
   | 'SETTINGS_CHANGE'
-  | 'FAILED_LOGIN';
+  | 'FAILED_LOGIN'
+  | 'PHI_ACCESS_JUSTIFIED';
 
 export interface AuditEvent {
   id: string;
@@ -166,5 +167,17 @@ export function logOrder(patientId: string, orderType: string, orderDetails: str
 export function logLogout(reason: 'manual' | 'timeout' = 'manual'): void {
   logAuditEvent(reason === 'timeout' ? 'SESSION_TIMEOUT' : 'LOGOUT', {
     action: reason === 'timeout' ? 'Session timed out' : 'User logged out',
+  });
+}
+
+export function logPHIAccessJustification(
+  patientId: string,
+  reason: string,
+  details?: string
+): void {
+  logAuditEvent('PHI_ACCESS_JUSTIFIED', {
+    patientId,
+    action: 'PHI access justified',
+    details: details ? `${reason}: ${details}` : reason,
   });
 }

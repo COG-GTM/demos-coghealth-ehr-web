@@ -100,9 +100,6 @@ export default function PatientChartPage() {
       try {
         const data = await patientService.getById(parseInt(id));
         setPatient(data);
-        if (data.id && data.mrn) {
-          logPatientAccess(data.id.toString(), data.mrn, `${data.lastName}, ${data.firstName}`);
-        }
       } catch (error) {
         console.error('Failed to fetch patient:', error);
       } finally {
@@ -130,6 +127,9 @@ export default function PatientChartPage() {
           onConfirm={() => {
             setShowJustificationModal(false);
             setPhiAccessGranted(true);
+            if (patient.id && patient.mrn) {
+              logPatientAccess(patient.id.toString(), patient.mrn, `${patient.lastName}, ${patient.firstName}`);
+            }
           }}
           onCancel={() => {
             navigate('/patients');

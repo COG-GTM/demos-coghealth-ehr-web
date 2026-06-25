@@ -274,7 +274,7 @@ export default function SchedulePage() {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="ehr-desktop h-full flex flex-col">
       {/* Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-1">
@@ -444,7 +444,7 @@ export default function SchedulePage() {
         </div>
 
         {/* Detail Panel */}
-        <div className="w-80 flex flex-col overflow-hidden" style={{ background: '#ece9d8' }}>
+        <div className="ehr-sidebar w-80 flex flex-col overflow-hidden">
           {selectedAppointment ? (
             <>
               {/* Patient Header */}

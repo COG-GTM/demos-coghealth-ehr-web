@@ -267,7 +267,7 @@ export default function PatientSearchPage() {
     (filters.hasBalance !== null ? 1 : 0) + (filters.hasOpenEncounters !== null ? 1 : 0) + (filters.hasAlerts !== null ? 1 : 0);
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="ehr-desktop h-full flex flex-col">
       {/* Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-1">
@@ -304,7 +304,7 @@ export default function PatientSearchPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Filter Panel */}
-        <div className="w-52 flex flex-col border-r border-gray-500" style={{ background: '#ece9d8' }}>
+        <div className="ehr-sidebar w-52 flex flex-col border-r border-gray-500">
           <div className="ehr-header text-xs flex items-center justify-between">
             <span>Filter Patients</span>
             {activeFilterCount > 0 && (
@@ -552,15 +552,14 @@ export default function PatientSearchPage() {
                       No patients found
                     </td>
                   </tr>
-                ) : searchResults.map((patient, idx) => {
+                ) : searchResults.map((patient) => {
                   const isSelected = selectedPatient?.id === patient.id;
                   return (
                     <tr
                       key={patient.id}
                       onClick={() => handleSelectPatient(patient)}
                       onDoubleClick={() => handleOpenChart(patient.id)}
-                      className={`cursor-pointer ${isSelected ? 'ehr-grid-row selected' : `ehr-grid-row ${idx % 2 === 0 ? '' : ''}`}`}
-                      style={isSelected ? { background: '#316ac5', color: 'white' } : idx % 2 === 1 ? { background: '#f0f4f8' } : {}}
+                      className={`ehr-grid-row cursor-pointer ${isSelected ? 'selected' : ''}`}
                     >
                       <td className="px-1 py-0.5">
                         <div className="flex items-center space-x-0.5">
@@ -632,7 +631,7 @@ export default function PatientSearchPage() {
 
         {/* Patient Detail Panel */}
         {selectedPatient && (
-          <div className="w-72 flex flex-col border-l border-gray-500" style={{ background: '#f5f5f5' }}>
+          <div className="ehr-detail w-72 flex flex-col border-l border-gray-500">
             <div className="ehr-header text-xs flex items-center justify-between">
               <span>Patient Details</span>
               <button onClick={() => setSelectedPatient(null)} className="text-white/80 hover:text-white">
@@ -641,9 +640,9 @@ export default function PatientSearchPage() {
             </div>
             <div className="flex-1 overflow-auto">
               {/* Patient Header */}
-              <div className="p-2 border-b border-gray-400" style={{ background: '#e8e8e8' }}>
+              <div className="ehr-detail-header p-2 border-b border-gray-400">
                 <div className="flex items-center space-x-2">
-                  <div className="w-10 h-10 flex items-center justify-center border border-gray-500" style={{ background: '#6699cc' }}>
+                  <div className="ehr-avatar w-10 h-10 flex items-center justify-center border border-gray-500">
                     <User className="w-5 h-5 text-white" />
                   </div>
                   <div>

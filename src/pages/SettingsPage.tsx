@@ -397,7 +397,10 @@ export default function SettingsPage() {
                   ] as { value: Theme; icon: typeof Monitor }[]).map(({ value, icon: Icon }) => (
                     <button
                       key={value}
-                      onClick={() => setTheme(value)}
+                      onClick={() => {
+                        setTheme(value);
+                        setAppearance((prev) => ({ ...prev, theme: value }));
+                      }}
                       className={`p-2 border text-center text-[11px] ${
                         currentTheme === value
                           ? 'border-gray-600 bg-white'

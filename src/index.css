@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Tahoma&display=swap');
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary-50: #e8f4fc;
   --color-primary-100: #d1e9f9;
@@ -236,3 +238,270 @@ td {
 .ehr-splitter:hover {
   background: #b0b0b0;
 }
+
+/* ==========================================================================
+   Themeable neutral surfaces
+   These replace hard-coded inline backgrounds so they can switch with theme.
+   ========================================================================== */
+
+.ehr-app-bg {
+  background: #d4d0c8;
+}
+
+.ehr-status-surface {
+  background: #ece9d8;
+}
+
+.ehr-statusbar-surface {
+  background: linear-gradient(to bottom, #ece9d8 0%, #d4d0c8 100%);
+}
+
+/* ==========================================================================
+   Dark theme
+   Scoped under .dark (toggled on <html>). Overrides the legacy EHR component
+   classes, base elements, and the neutral Tailwind utilities used throughout
+   the app. Accent colors (alerts, status) are remapped for dark contrast.
+   ========================================================================== */
+
+.dark {
+  --ehr-bg: #1b1b1f;
+  --ehr-surface: #25252b;
+  --ehr-surface-2: #2d2d34;
+  --ehr-surface-3: #36363e;
+  --ehr-border: #3c3c45;
+  --ehr-border-strong: #4c4c57;
+  --ehr-text: #e4e4e9;
+  --ehr-text-muted: #a9a9b4;
+  --ehr-text-dim: #7c7c88;
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: var(--ehr-bg);
+  color: var(--ehr-text);
+}
+
+/* Themeable surfaces */
+.dark .ehr-app-bg {
+  background: var(--ehr-bg);
+}
+.dark .ehr-status-surface {
+  background: var(--ehr-surface-2);
+  color: var(--ehr-text-muted);
+}
+.dark .ehr-statusbar-surface {
+  background: linear-gradient(to bottom, #2d2d34 0%, #1f1f24 100%);
+}
+
+/* Tables */
+.dark th {
+  background: linear-gradient(to bottom, #35353d 0%, #2a2a30 100%);
+  border-color: var(--ehr-border-strong);
+  color: var(--ehr-text);
+}
+.dark td {
+  border-color: var(--ehr-border);
+}
+
+/* Panels & fieldsets */
+.dark .ehr-panel {
+  background: var(--ehr-surface);
+  border-color: var(--ehr-border);
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.04), 1px 1px 2px rgba(0, 0, 0, 0.4);
+}
+.dark .ehr-fieldset {
+  border-color: var(--ehr-border);
+  background: var(--ehr-surface);
+}
+.dark .ehr-fieldset legend {
+  color: var(--ehr-text);
+}
+.dark .ehr-label {
+  color: var(--ehr-text-muted);
+}
+
+/* Buttons */
+.dark .ehr-button {
+  background: linear-gradient(to bottom, #3a3a42 0%, #2c2c33 100%);
+  border-color: var(--ehr-border-strong);
+  color: var(--ehr-text);
+  box-shadow: 1px 1px 0 rgba(255, 255, 255, 0.05) inset, -1px -1px 0 rgba(0, 0, 0, 0.3) inset;
+}
+.dark .ehr-button:hover {
+  background: linear-gradient(to bottom, #45454e 0%, #36363d 100%);
+}
+.dark .ehr-button:active {
+  background: linear-gradient(to bottom, #2a2a30 0%, #36363d 100%);
+  box-shadow: -1px -1px 0 rgba(255, 255, 255, 0.05) inset, 1px 1px 0 rgba(0, 0, 0, 0.3) inset;
+}
+.dark .ehr-button-primary {
+  background: linear-gradient(to bottom, #2a5db0 0%, #1a4080 100%);
+  border-color: #14305f;
+  color: #fff;
+}
+.dark .ehr-button-primary:hover {
+  background: linear-gradient(to bottom, #3a6dc0 0%, #2a5090 100%);
+}
+
+/* Inputs */
+.dark .ehr-input {
+  border-color: var(--ehr-border-strong);
+  background: var(--ehr-surface-2);
+  color: var(--ehr-text);
+}
+.dark .ehr-input:focus {
+  border-color: #4a90d9;
+  box-shadow: 0 0 2px rgba(74, 144, 217, 0.6);
+}
+
+/* Sub-header / toolbar / tabs */
+.dark .ehr-subheader {
+  background: linear-gradient(to bottom, #35353d 0%, #2a2a30 100%);
+  color: var(--ehr-text);
+  border-color: var(--ehr-border);
+}
+.dark .ehr-toolbar {
+  background: linear-gradient(to bottom, #2d2d34 0%, #25252b 100%);
+  border-color: var(--ehr-border);
+  color: var(--ehr-text);
+}
+.dark .ehr-toolbar-button {
+  color: var(--ehr-text-muted);
+}
+.dark .ehr-toolbar-button:hover {
+  background: var(--ehr-surface-3);
+  border-color: var(--ehr-border-strong);
+}
+.dark .ehr-toolbar-button-active {
+  background: linear-gradient(to bottom, #3a3a42 0%, #2c2c33 100%);
+  border-color: var(--ehr-border-strong);
+  color: var(--ehr-text);
+}
+.dark .ehr-tab {
+  background: linear-gradient(to bottom, #2d2d34 0%, #25252b 100%);
+  border-color: var(--ehr-border-strong);
+  color: var(--ehr-text-muted);
+}
+.dark .ehr-tab.active {
+  background: var(--ehr-surface);
+  border-bottom-color: var(--ehr-surface);
+  color: var(--ehr-text);
+}
+.dark .ehr-tab-content {
+  border-color: var(--ehr-border-strong);
+  background: var(--ehr-surface);
+}
+
+/* Grid rows / tree items */
+.dark .ehr-grid-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.025);
+}
+.dark .ehr-grid-row:hover {
+  background: var(--ehr-surface-3);
+}
+.dark .ehr-grid-row.selected {
+  background: #2a5db0;
+  color: #fff;
+}
+.dark .ehr-tree-item:hover {
+  background: var(--ehr-surface-3);
+}
+
+/* Status bar */
+.dark .ehr-status-bar {
+  background: var(--ehr-surface-2);
+  border-color: var(--ehr-border);
+  color: var(--ehr-text-muted);
+}
+
+/* Splitter */
+.dark .ehr-splitter {
+  background: var(--ehr-surface-3);
+}
+.dark .ehr-splitter:hover {
+  background: var(--ehr-border-strong);
+}
+
+/* Alerts */
+.dark .ehr-alert-critical {
+  background: #3a1a1a;
+  border-color: #cc4444;
+  color: #ff9b9b;
+}
+.dark .ehr-alert-warning {
+  background: #3a2f12;
+  border-color: #cc9900;
+  color: #f0d27a;
+}
+.dark .ehr-alert-info {
+  background: #15293f;
+  border-color: #3a82c4;
+  color: #9ccaf0;
+}
+
+/* --------------------------------------------------------------------------
+   Tailwind neutral utility overrides under .dark
+   Unlayered rules win over Tailwind's @layer utilities.
+   -------------------------------------------------------------------------- */
+
+.dark .bg-white { background-color: var(--ehr-surface); }
+.dark .bg-gray-50 { background-color: var(--ehr-surface); }
+.dark .bg-gray-100 { background-color: var(--ehr-surface-2); }
+.dark .bg-gray-200 { background-color: var(--ehr-surface-3); }
+.dark .bg-gray-300 { background-color: #40404a; }
+.dark .bg-gray-400 { background-color: #52525c; }
+.dark .bg-gray-500 { background-color: #5b5b66; }
+.dark .bg-gray-600 { background-color: #4b5563; }
+.dark .bg-\[\#ece9d8\] { background-color: var(--ehr-surface-2); }
+.dark .bg-\[\#f5f5f5\] { background-color: var(--ehr-surface); }
+.dark .bg-\[\#e8e8e8\] { background-color: var(--ehr-surface-2); }
+
+.dark .text-gray-400 { color: var(--ehr-text-dim); }
+.dark .text-gray-500 { color: var(--ehr-text-muted); }
+.dark .text-gray-600 { color: var(--ehr-text-muted); }
+.dark .text-gray-700 { color: #c6c6cd; }
+.dark .text-gray-800 { color: var(--ehr-text); }
+.dark .text-gray-900 { color: #f4f4f7; }
+
+.dark .border-gray-200 { border-color: var(--ehr-border); }
+.dark .border-gray-300 { border-color: var(--ehr-border); }
+.dark .border-gray-400 { border-color: var(--ehr-border-strong); }
+.dark .border-gray-500 { border-color: var(--ehr-border-strong); }
+.dark .border-gray-600 { border-color: #5a5a64; }
+.dark .border-gray-700 { border-color: #6a6a74; }
+.dark .border-white { border-color: rgba(255, 255, 255, 0.12); }
+
+/* Accent text remapped for contrast on dark surfaces */
+.dark .text-red-500 { color: #f87171; }
+.dark .text-red-600 { color: #f87171; }
+.dark .text-red-700 { color: #f87171; }
+.dark .text-red-800 { color: #fca5a5; }
+.dark .text-red-900 { color: #fca5a5; }
+.dark .text-green-600 { color: #4ade80; }
+.dark .text-green-700 { color: #4ade80; }
+.dark .text-green-800 { color: #86efac; }
+.dark .text-blue-600 { color: #93c5fd; }
+.dark .text-blue-800 { color: #93c5fd; }
+.dark .text-yellow-700 { color: #facc15; }
+.dark .text-yellow-800 { color: #facc15; }
+.dark .text-amber-600 { color: #fbbf24; }
+.dark .text-amber-700 { color: #fbbf24; }
+.dark .text-orange-600 { color: #fb923c; }
+.dark .text-orange-800 { color: #fdba74; }
+.dark .text-purple-600 { color: #c084fc; }
+.dark .text-purple-800 { color: #d8b4fe; }
+
+/* Accent backgrounds (alert pills) remapped for dark */
+.dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.14); }
+.dark .bg-blue-100 { background-color: rgba(59, 130, 246, 0.2); }
+.dark .bg-red-50 { background-color: #3a1a1a; }
+.dark .bg-red-100 { background-color: #3a1a1a; }
+.dark .bg-yellow-100 { background-color: #3a2f12; }
+.dark .bg-green-100 { background-color: #16301f; }
+
+/* Hover states */
+.dark .hover\:bg-gray-50:hover { background-color: var(--ehr-surface); }
+.dark .hover\:bg-gray-100:hover { background-color: var(--ehr-surface-2); }
+.dark .hover\:bg-gray-200:hover { background-color: var(--ehr-surface-3); }
+.dark .hover\:bg-blue-50:hover { background-color: rgba(59, 130, 246, 0.14); }
+.dark .hover\:bg-blue-100:hover { background-color: rgba(59, 130, 246, 0.2); }

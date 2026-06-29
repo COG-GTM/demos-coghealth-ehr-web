@@ -267,7 +267,7 @@ export default function PatientSearchPage() {
     (filters.hasBalance !== null ? 1 : 0) + (filters.hasOpenEncounters !== null ? 1 : 0) + (filters.hasAlerts !== null ? 1 : 0);
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col ehr-app-bg">
       {/* Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-1">
@@ -304,7 +304,7 @@ export default function PatientSearchPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Filter Panel */}
-        <div className="w-52 flex flex-col border-r border-gray-500" style={{ background: '#ece9d8' }}>
+        <div className="w-52 flex flex-col border-r border-gray-500 ehr-status-surface">
           <div className="ehr-header text-xs flex items-center justify-between">
             <span>Filter Patients</span>
             {activeFilterCount > 0 && (

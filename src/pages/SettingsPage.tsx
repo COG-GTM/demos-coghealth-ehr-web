@@ -14,6 +14,7 @@ import {
   Check
 } from 'lucide-react';
 import { AlertDialog } from '../components/ui/Modal';
+import { useThemeStore, type Theme } from '../stores/themeStore';
 
 type SettingsTab = 'profile' | 'notifications' | 'security' | 'appearance' | 'practice';
 
@@ -73,6 +74,17 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<UserProfile>(defaultProfile);
   const [notifications, setNotifications] = useState(defaultNotifications);
   const [appearance, setAppearance] = useState(defaultAppearance);
+  const setTheme = useThemeStore((s) => s.setTheme);
+
+  const applyAppearanceTheme = (theme: string) => {
+    setAppearance({ ...appearance, theme });
+    if (theme === 'system') {
+      const systemTheme: Theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      setTheme(systemTheme);
+    } else {
+      setTheme(theme as Theme);
+    }
+  };
 
   const [initialized, setInitialized] = useState(false);
   if (!initialized) {
@@ -388,7 +400,7 @@ export default function SettingsPage() {
                   {['light', 'dark', 'system'].map((theme) => (
                     <button
                       key={theme}
-                      onClick={() => setAppearance({ ...appearance, theme })}
+                      onClick={() => applyAppearanceTheme(theme)}
                       className={`p-2 border text-center text-[11px] ${
                         appearance.theme === theme
                           ? 'border-gray-600 bg-white'

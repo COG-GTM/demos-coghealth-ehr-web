@@ -1,6 +1,13 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertDialog } from '../components/ui/Modal';
+import { DraggablePanel } from '../components/ui/DraggablePanel';
+import {
+  useDashboardLayoutStore,
+  isDefaultLayout,
+  PANEL_TITLES,
+  type PanelId,
+} from '../stores/dashboardLayoutStore';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
@@ -24,7 +31,8 @@ import {
   ExternalLink,
   ShieldAlert,
   Radio,
-  ClipboardList
+  ClipboardList,
+  LayoutGrid
 } from 'lucide-react';
 
 type InboxTab = 'all' | 'results' | 'messages' | 'rxRefills' | 'orders' | 'cosign';
@@ -280,6 +288,424 @@ export default function DashboardPage() {
     }
   };
 
+  const leftPanels = useDashboardLayoutStore((s) => s.left);
+  const rightPanels = useDashboardLayoutStore((s) => s.right);
+  const resetLayout = useDashboardLayoutStore((s) => s.resetLayout);
+  const layoutIsDefault = isDefaultLayout({ left: leftPanels, right: rightPanels });
+
+  const panelContent: Record<PanelId, ReactNode> = {
+    inbox: (
+      <>
+        <div 
+          className="ehr-header flex items-center justify-between cursor-pointer"
+          onClick={(e) => { e.stopPropagation(); togglePanel('inbox'); }}
+        >
+          <div className="flex items-center">
+            <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
+              {expandedPanels.inbox ? '-' : '+'}
+            </span>
+            <span>Inbox</span>
+            <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{inboxCounts.all} unread</span>
+          </div>
+        </div>
+        {expandedPanels.inbox && (
+          <>
+            <div className="ehr-subheader flex items-center space-x-1">
+              {[
+                { key: 'all', label: 'All', count: inboxCounts.all },
+                { key: 'results', label: 'Results', count: inboxCounts.results },
+                { key: 'messages', label: 'Messages', count: inboxCounts.messages },
+                { key: 'rxRefills', label: 'Rx Refills', count: inboxCounts.rxRefills },
+                { key: 'orders', label: 'Orders', count: inboxCounts.orders },
+                { key: 'cosign', label: 'Co-sign', count: inboxCounts.cosign },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setInboxTab(tab.key as InboxTab)}
+                  className={`ehr-tab ${inboxTab === tab.key ? 'active' : ''}`}
+                >
+                  {tab.label} {tab.count > 0 && <span className="ml-1 text-[9px]">({tab.count})</span>}
+                </button>
+              ))}
+              <span className="text-gray-400 mx-1">|</span>
+              <select 
+                value={inboxPriority} 
+                onChange={(e) => setInboxPriority(e.target.value as InboxPriority)}
+                className="ehr-input text-[10px] py-0"
+              >
+                <option value="all">All Priority</option>
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="normal">Normal</option>
+              </select>
+              <select 
+                value={inboxReadFilter} 
+                onChange={(e) => setInboxReadFilter(e.target.value as InboxReadFilter)}
+                className="ehr-input text-[10px] py-0"
+              >
+                <option value="all">All</option>
+                <option value="unread">Unread</option>
+                <option value="read">Read</option>
+              </select>
+              <div className="flex-1" />
+              <button className="ehr-toolbar-button p-0.5 text-[10px]" onClick={markAllAsRead}>Mark All Read</button>
+              <button className="ehr-toolbar-button p-0.5"><RefreshCw className="w-3 h-3" /></button>
+            </div>
+            <div className="flex-1 overflow-auto bg-white">
+              <table className="w-full text-[11px]">
+                <thead className="sticky top-0">
+                  <tr>
+                    <th className="px-1 py-1 text-left w-6"></th>
+                    <th className="px-1 py-1 text-left w-6">Type</th>
+                    <th className="px-1 py-1 text-left">Patient</th>
+                    <th className="px-1 py-1 text-left">Subject</th>
+                    <th className="px-1 py-1 text-left w-20">Time</th>
+                    <th className="px-1 py-1 text-center w-16">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredInbox.map((item, idx) => (
+                    <tr 
+                      key={item.id} 
+                      className={`cursor-pointer ${item.priority === 'critical' ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''} ${!item.read ? 'font-semibold' : ''}`}
+                    >
+                      <td className="px-1 py-0.5">
+                        {!item.read && <span className="w-2 h-2 bg-gray-600 inline-block border border-gray-700" />}
+                        {item.flagged && <Flag className="w-3 h-3 text-red-600 inline" />}
+                      </td>
+                      <td className="px-1 py-0.5">{getInboxIcon(item.type)}</td>
+                      <td className="px-1 py-0.5">
+                        <span>{item.patientName}</span>
+                        <span className="text-gray-500 ml-1 text-[10px]">{item.patientMrn}</span>
+                      </td>
+                      <td className="px-1 py-0.5">
+                        <div className={item.priority === 'critical' ? 'text-red-800' : ''}>{item.title}</div>
+                        <div className="text-gray-500 text-[10px] truncate max-w-[300px]">{item.detail}</div>
+                      </td>
+                      <td className="px-1 py-0.5 text-gray-500">{item.timestamp}</td>
+                      <td className="px-1 py-0.5 text-center">
+                        <button className="ehr-toolbar-button p-0.5" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View"><Eye className="w-3 h-3" /></button>
+                        <button className="ehr-toolbar-button p-0.5" onClick={() => markAsRead(item.id)} title="Mark Read"><CheckCircle2 className="w-3 h-3" /></button>
+                        <button className="ehr-toolbar-button p-0.5" onClick={() => toggleFlag(item.id)} title="Flag"><Flag className={`w-3 h-3 ${item.flagged ? 'text-red-600' : ''}`} /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </>
+    ),
+    worklist: (
+      <>
+        <div 
+          className="ehr-header flex items-center justify-between cursor-pointer"
+          onClick={(e) => { e.stopPropagation(); togglePanel('worklist'); }}
+        >
+          <div className="flex items-center">
+            <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
+              {expandedPanels.worklist ? '-' : '+'}
+            </span>
+            <span>Patient Worklist</span>
+            <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{worklistPatients.length} patients</span>
+          </div>
+        </div>
+        {expandedPanels.worklist && (
+          <>
+            <div className="ehr-subheader flex items-center space-x-1">
+              {[
+                { key: 'all', label: 'All' },
+                { key: 'inpatient', label: 'Inpatient' },
+                { key: 'outpatient', label: 'Clinic' },
+                { key: 'critical', label: 'Critical' },
+              ].map((filter) => (
+                <button
+                  key={filter.key}
+                  onClick={() => setWorklistFilter(filter.key as WorklistFilter)}
+                  className={`ehr-tab ${worklistFilter === filter.key ? 'active' : ''}`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+              <span className="text-gray-400 mx-1">|</span>
+              <span className="text-[10px] text-gray-600">Sort:</span>
+              <select 
+                value={worklistSort} 
+                onChange={(e) => setWorklistSort(e.target.value as WorklistSort)}
+                className="ehr-input text-[10px] py-0"
+              >
+                <option value="status">Status</option>
+                <option value="name">Name</option>
+                <option value="location">Location</option>
+              </select>
+              <button 
+                className="ehr-toolbar-button p-0.5 text-[10px]" 
+                onClick={() => setWorklistSortAsc(!worklistSortAsc)}
+              >
+                {worklistSortAsc ? '↑' : '↓'}
+              </button>
+              <div className="flex-1" />
+              <button className="ehr-button text-[10px] px-2 py-0.5 flex items-center" onClick={() => setShowPrintDialog(true)}>
+                <Printer className="w-3 h-3 mr-1" /> Print List
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto bg-white">
+              <table className="w-full text-[11px]">
+                <thead className="sticky top-0">
+                  <tr>
+                    <th className="px-1 py-1 text-left">Patient</th>
+                    <th className="px-1 py-1 text-left">Location</th>
+                    <th className="px-1 py-1 text-left">Chief Complaint</th>
+                    <th className="px-1 py-1 text-left">Vitals</th>
+                    <th className="px-1 py-1 text-left">Alerts</th>
+                    <th className="px-1 py-1 text-left">Status</th>
+                    <th className="px-1 py-1 text-center w-16">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredWorklist.map((patient, idx) => (
+                    <tr 
+                      key={patient.id} 
+                      className={`cursor-pointer hover:bg-blue-50 ${patient.status === 'critical' ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''}`}
+                      onClick={() => navigate(`/patients/${patient.id}`)}
+                    >
+                      <td className="px-1 py-0.5">
+                        <div className="font-semibold">{patient.name}</div>
+                        <div className="text-gray-500 text-[10px]">{patient.mrn} • {patient.age}{patient.gender}</div>
+                        <div className="flex space-x-0.5 mt-0.5">
+                          {patient.flags.map((flag) => {
+                            const style = getFlagStyle(flag);
+                            return (
+                              <span key={flag} className={`px-1 py-0 text-[9px] ${style.bg} ${style.color}`}>
+                                {style.label}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </td>
+                      <td className="px-1 py-0.5">
+                        <div>{patient.room || patient.appointmentTime}</div>
+                        <div className="text-gray-500 text-[10px]">{patient.location}</div>
+                      </td>
+                      <td className="px-1 py-0.5">
+                        <div>{patient.chiefComplaint}</div>
+                        {patient.admitDate && <div className="text-gray-500 text-[10px]">Admit: {patient.admitDate}</div>}
+                      </td>
+                      <td className="px-1 py-0.5 text-[10px]">
+                        {patient.lastVitals ? (
+                          <>
+                            <div>BP: <span className={parseInt(patient.lastVitals.bp) > 140 ? 'text-red-600 font-semibold' : ''}>{patient.lastVitals.bp}</span></div>
+                            <div>HR: {patient.lastVitals.hr} SpO2: {patient.lastVitals.spo2}%</div>
+                          </>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-1 py-0.5">
+                        {patient.alerts.length > 0 ? (
+                          <div className="space-y-0.5">
+                            {patient.alerts.slice(0, 2).map((alert, i) => (
+                              <div key={i} className={`text-[10px] ${alert.includes('CRITICAL') || alert.includes('Troponin') ? 'text-red-700 font-semibold' : 'text-amber-700'}`}>
+                                • {alert}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-[10px]">None</span>
+                        )}
+                      </td>
+                      <td className="px-1 py-0.5">
+                        <span className={`px-1.5 py-0.5 text-[10px] ${getStatusStyle(patient.status)}`}>
+                          {patient.status.replace('-', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-1 py-0.5 text-center">
+                        <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Open Chart">
+                          <ExternalLink className="w-3 h-3" />
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Write Note">
+                          <Edit3 className="w-3 h-3" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </>
+    ),
+    unsigned: (
+      <>
+        <div 
+          className="ehr-header flex items-center justify-between cursor-pointer"
+          onClick={(e) => { e.stopPropagation(); togglePanel('unsigned'); }}
+        >
+          <div className="flex items-center">
+            <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
+              {expandedPanels.unsigned ? '-' : '+'}
+            </span>
+            <span>Unsigned Notes ({unsignedNotes.length})</span>
+          </div>
+        </div>
+        {expandedPanels.unsigned && (
+          <div className="bg-white">
+            {unsignedNotes.map((note, idx) => (
+              <div key={note.id} className={`px-2 py-1.5 border-b border-gray-200 flex items-center justify-between ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                <div>
+                  <div className="font-semibold text-[11px]">{note.patientName}</div>
+                  <div className="text-[10px] text-gray-500">{note.type} • {note.date}</div>
+                </div>
+                <div className="flex items-center space-x-1">
+                  {note.daysOld >= 2 && <span className="text-[9px] text-red-600 font-semibold">{note.daysOld}d</span>}
+                  <button className="ehr-button ehr-button-primary text-[10px] px-2 py-0.5">Sign</button>
+                </div>
+              </div>
+            ))}
+            <div className="p-1 bg-gray-100 border-t">
+              <button className="ehr-button w-full text-[10px]">Sign All Notes</button>
+            </div>
+          </div>
+        )}
+      </>
+    ),
+    orders: (
+      <>
+        <div 
+          className="ehr-header flex items-center justify-between cursor-pointer"
+          onClick={(e) => { e.stopPropagation(); togglePanel('orders'); }}
+        >
+          <div className="flex items-center">
+            <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
+              {expandedPanels.orders ? '-' : '+'}
+            </span>
+            <span>Pending Orders ({pendingOrders.length})</span>
+          </div>
+        </div>
+        {expandedPanels.orders && (
+          <div className="bg-white">
+            {pendingOrders.map((order, idx) => (
+              <div key={order.id} className={`px-2 py-1.5 border-b border-gray-200 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="font-semibold text-[11px]">{order.patientName}</div>
+                    <div className="text-[10px] text-gray-700">{order.order}</div>
+                    <div className="flex space-x-1 mt-0.5">
+                      <span className="text-[9px] px-1 py-0 bg-gray-200 text-gray-700 border border-gray-400">{order.type}</span>
+                      <span className={`text-[9px] px-1 py-0 border border-gray-400 ${
+                        order.status === 'draft' ? 'bg-gray-100 text-gray-600' :
+                        order.status === 'pending-approval' ? 'bg-gray-200 text-gray-700' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>{order.status}</span>
+                    </div>
+                  </div>
+                  <button className="ehr-button text-[10px] px-2 py-0.5">Review</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </>
+    ),
+    schedule: (
+      <>
+        <div 
+          className="ehr-header flex items-center justify-between cursor-pointer"
+          onClick={(e) => { e.stopPropagation(); togglePanel('schedule'); }}
+        >
+          <div className="flex items-center">
+            <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
+              {expandedPanels.schedule ? '-' : '+'}
+            </span>
+            <span>Today's Schedule</span>
+          </div>
+        </div>
+        {expandedPanels.schedule && (
+          <div className="bg-white p-2">
+            <div className="flex items-center justify-between mb-2 text-[11px]">
+              <span className="text-gray-500">January 18, 2024</span>
+              <span className="font-semibold">8 appointments</span>
+            </div>
+            <div className="space-y-1">
+              {[
+                { time: '9:00 AM', patient: 'Completed (3)', status: 'done' },
+                { time: '10:30 AM', patient: 'Johnson, Sarah', status: 'current' },
+                { time: '11:00 AM', patient: 'Williams, Michael', status: 'next' },
+                { time: '11:30 AM', patient: 'Brown, Emily', status: 'upcoming' },
+                { time: '2:00 PM', patient: 'Wilson, Patricia', status: 'upcoming' },
+              ].map((slot, i) => (
+                <div key={i} className={`flex items-center justify-between py-1 px-2 text-[11px] ${
+                  slot.status === 'current' ? 'bg-gray-200 border border-gray-400' :
+                  slot.status === 'next' ? 'bg-gray-100' :
+                  slot.status === 'done' ? 'bg-gray-50 text-gray-400' : ''
+                }`}>
+                  <span>{slot.time}</span>
+                  <span className={slot.status === 'current' ? 'font-semibold' : ''}>{slot.patient}</span>
+                </div>
+              ))}
+            </div>
+            <button className="ehr-button w-full mt-2 text-[10px]">View Full Schedule</button>
+          </div>
+        )}
+      </>
+    ),
+    messages: (
+      <>
+        <div className="ehr-header flex items-center">
+          <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">!</span>
+          <span>System Messages</span>
+        </div>
+        <div className="bg-white text-[10px]">
+          <div className="px-2 py-1 border-b border-gray-200">
+            <span className="text-gray-500">01/18 08:00</span> - System maintenance scheduled for 01/20 2:00 AM
+          </div>
+          <div className="px-2 py-1 border-b border-gray-200">
+            <span className="text-gray-500">01/17 14:30</span> - New formulary updates available
+          </div>
+          <div className="px-2 py-1">
+            <span className="text-gray-500">01/16 09:15</span> - Lab interface upgraded to v3.2
+          </div>
+        </div>
+      </>
+    ),
+    status: (
+      <>
+        <div className="ehr-header flex items-center">
+          <span>System Status</span>
+        </div>
+        <div className="bg-white p-2 text-[10px]">
+          <table className="w-full">
+            <tbody>
+              <tr>
+                <td className="border border-gray-300 px-1 py-0.5">Database</td>
+                <td className="border border-gray-300 px-1 py-0.5 text-green-700">Connected</td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">HL7 Interface</td>
+                <td className="border border-gray-300 px-1 py-0.5 bg-gray-50 text-green-700">Active</td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-1 py-0.5">Pharmacy Link</td>
+                <td className="border border-gray-300 px-1 py-0.5 text-green-700">Online</td>
+              </tr>
+              <tr>
+                <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">Last Sync</td>
+                <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">2 min ago</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </>
+    ),
+  };
+
+  const panelClassName = (id: PanelId) =>
+    id === 'inbox' || id === 'worklist'
+      ? `flex flex-col overflow-hidden ${expandedPanels[id] ? 'flex-1' : ''}`
+      : '';
+
   return (
     <div className="h-full flex flex-col relative" style={{ background: '#d4d0c8' }}>
       <LoadingOverlay isLoading={loading} text="Loading dashboard..." />
@@ -311,6 +737,15 @@ export default function DashboardPage() {
           </button>
         </div>
         <div className="flex items-center space-x-2">
+          {!layoutIsDefault && (
+            <button
+              className="ehr-toolbar-button flex items-center"
+              onClick={resetLayout}
+              title="Restore the default panel arrangement"
+            >
+              <LayoutGrid className="w-3.5 h-3.5 mr-1" /> Reset Layout
+            </button>
+          )}
           <button className="ehr-toolbar-button relative">
             <Bell className="w-4 h-4" />
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-gray-600 text-white text-[9px] flex items-center justify-center border border-gray-700">3</span>
@@ -340,415 +775,34 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden p-1 space-x-1">
-        {/* Left Column - Inbox & Worklist */}
+        {/* Left Column - drag a title bar to reorder */}
         <div className="flex-1 flex flex-col space-y-1 overflow-hidden">
-          {/* Inbox Panel */}
-          <div className={`ehr-panel flex flex-col overflow-hidden ${expandedPanels.inbox ? 'flex-1' : ''}`}>
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('inbox'); }}
+          {leftPanels.map((id) => (
+            <DraggablePanel
+              key={id}
+              panelId={id}
+              column="left"
+              title={PANEL_TITLES[id]}
+              className={panelClassName(id)}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.inbox ? '-' : '+'}
-                </span>
-                <span>Inbox</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{inboxCounts.all} unread</span>
-              </div>
-            </div>
-            {expandedPanels.inbox && (
-              <>
-                <div className="ehr-subheader flex items-center space-x-1">
-                  {[
-                    { key: 'all', label: 'All', count: inboxCounts.all },
-                    { key: 'results', label: 'Results', count: inboxCounts.results },
-                    { key: 'messages', label: 'Messages', count: inboxCounts.messages },
-                    { key: 'rxRefills', label: 'Rx Refills', count: inboxCounts.rxRefills },
-                    { key: 'orders', label: 'Orders', count: inboxCounts.orders },
-                    { key: 'cosign', label: 'Co-sign', count: inboxCounts.cosign },
-                  ].map((tab) => (
-                    <button
-                      key={tab.key}
-                      onClick={() => setInboxTab(tab.key as InboxTab)}
-                      className={`ehr-tab ${inboxTab === tab.key ? 'active' : ''}`}
-                    >
-                      {tab.label} {tab.count > 0 && <span className="ml-1 text-[9px]">({tab.count})</span>}
-                    </button>
-                  ))}
-                  <span className="text-gray-400 mx-1">|</span>
-                  <select 
-                    value={inboxPriority} 
-                    onChange={(e) => setInboxPriority(e.target.value as InboxPriority)}
-                    className="ehr-input text-[10px] py-0"
-                  >
-                    <option value="all">All Priority</option>
-                    <option value="critical">Critical</option>
-                    <option value="high">High</option>
-                    <option value="normal">Normal</option>
-                  </select>
-                  <select 
-                    value={inboxReadFilter} 
-                    onChange={(e) => setInboxReadFilter(e.target.value as InboxReadFilter)}
-                    className="ehr-input text-[10px] py-0"
-                  >
-                    <option value="all">All</option>
-                    <option value="unread">Unread</option>
-                    <option value="read">Read</option>
-                  </select>
-                  <div className="flex-1" />
-                  <button className="ehr-toolbar-button p-0.5 text-[10px]" onClick={markAllAsRead}>Mark All Read</button>
-                  <button className="ehr-toolbar-button p-0.5"><RefreshCw className="w-3 h-3" /></button>
-                </div>
-                <div className="flex-1 overflow-auto bg-white">
-                  <table className="w-full text-[11px]">
-                    <thead className="sticky top-0">
-                      <tr>
-                        <th className="px-1 py-1 text-left w-6"></th>
-                        <th className="px-1 py-1 text-left w-6">Type</th>
-                        <th className="px-1 py-1 text-left">Patient</th>
-                        <th className="px-1 py-1 text-left">Subject</th>
-                        <th className="px-1 py-1 text-left w-20">Time</th>
-                        <th className="px-1 py-1 text-center w-16">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredInbox.map((item, idx) => (
-                        <tr 
-                          key={item.id} 
-                          className={`cursor-pointer ${item.priority === 'critical' ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''} ${!item.read ? 'font-semibold' : ''}`}
-                        >
-                          <td className="px-1 py-0.5">
-                            {!item.read && <span className="w-2 h-2 bg-gray-600 inline-block border border-gray-700" />}
-                            {item.flagged && <Flag className="w-3 h-3 text-red-600 inline" />}
-                          </td>
-                          <td className="px-1 py-0.5">{getInboxIcon(item.type)}</td>
-                          <td className="px-1 py-0.5">
-                            <span>{item.patientName}</span>
-                            <span className="text-gray-500 ml-1 text-[10px]">{item.patientMrn}</span>
-                          </td>
-                          <td className="px-1 py-0.5">
-                            <div className={item.priority === 'critical' ? 'text-red-800' : ''}>{item.title}</div>
-                            <div className="text-gray-500 text-[10px] truncate max-w-[300px]">{item.detail}</div>
-                          </td>
-                          <td className="px-1 py-0.5 text-gray-500">{item.timestamp}</td>
-                          <td className="px-1 py-0.5 text-center">
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View"><Eye className="w-3 h-3" /></button>
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => markAsRead(item.id)} title="Mark Read"><CheckCircle2 className="w-3 h-3" /></button>
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => toggleFlag(item.id)} title="Flag"><Flag className={`w-3 h-3 ${item.flagged ? 'text-red-600' : ''}`} /></button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Worklist Panel */}
-          <div className={`ehr-panel flex flex-col overflow-hidden ${expandedPanels.worklist ? 'flex-1' : ''}`}>
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('worklist'); }}
-            >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.worklist ? '-' : '+'}
-                </span>
-                <span>Patient Worklist</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{worklistPatients.length} patients</span>
-              </div>
-            </div>
-            {expandedPanels.worklist && (
-              <>
-                <div className="ehr-subheader flex items-center space-x-1">
-                  {[
-                    { key: 'all', label: 'All' },
-                    { key: 'inpatient', label: 'Inpatient' },
-                    { key: 'outpatient', label: 'Clinic' },
-                    { key: 'critical', label: 'Critical' },
-                  ].map((filter) => (
-                    <button
-                      key={filter.key}
-                      onClick={() => setWorklistFilter(filter.key as WorklistFilter)}
-                      className={`ehr-tab ${worklistFilter === filter.key ? 'active' : ''}`}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
-                  <span className="text-gray-400 mx-1">|</span>
-                  <span className="text-[10px] text-gray-600">Sort:</span>
-                  <select 
-                    value={worklistSort} 
-                    onChange={(e) => setWorklistSort(e.target.value as WorklistSort)}
-                    className="ehr-input text-[10px] py-0"
-                  >
-                    <option value="status">Status</option>
-                    <option value="name">Name</option>
-                    <option value="location">Location</option>
-                  </select>
-                  <button 
-                    className="ehr-toolbar-button p-0.5 text-[10px]" 
-                    onClick={() => setWorklistSortAsc(!worklistSortAsc)}
-                  >
-                    {worklistSortAsc ? '↑' : '↓'}
-                  </button>
-                  <div className="flex-1" />
-                  <button className="ehr-button text-[10px] px-2 py-0.5 flex items-center" onClick={() => setShowPrintDialog(true)}>
-                    <Printer className="w-3 h-3 mr-1" /> Print List
-                  </button>
-                </div>
-                <div className="flex-1 overflow-auto bg-white">
-                  <table className="w-full text-[11px]">
-                    <thead className="sticky top-0">
-                      <tr>
-                        <th className="px-1 py-1 text-left">Patient</th>
-                        <th className="px-1 py-1 text-left">Location</th>
-                        <th className="px-1 py-1 text-left">Chief Complaint</th>
-                        <th className="px-1 py-1 text-left">Vitals</th>
-                        <th className="px-1 py-1 text-left">Alerts</th>
-                        <th className="px-1 py-1 text-left">Status</th>
-                        <th className="px-1 py-1 text-center w-16">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredWorklist.map((patient, idx) => (
-                        <tr 
-                          key={patient.id} 
-                          className={`cursor-pointer hover:bg-blue-50 ${patient.status === 'critical' ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''}`}
-                          onClick={() => navigate(`/patients/${patient.id}`)}
-                        >
-                          <td className="px-1 py-0.5">
-                            <div className="font-semibold">{patient.name}</div>
-                            <div className="text-gray-500 text-[10px]">{patient.mrn} • {patient.age}{patient.gender}</div>
-                            <div className="flex space-x-0.5 mt-0.5">
-                              {patient.flags.map((flag) => {
-                                const style = getFlagStyle(flag);
-                                return (
-                                  <span key={flag} className={`px-1 py-0 text-[9px] ${style.bg} ${style.color}`}>
-                                    {style.label}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </td>
-                          <td className="px-1 py-0.5">
-                            <div>{patient.room || patient.appointmentTime}</div>
-                            <div className="text-gray-500 text-[10px]">{patient.location}</div>
-                          </td>
-                          <td className="px-1 py-0.5">
-                            <div>{patient.chiefComplaint}</div>
-                            {patient.admitDate && <div className="text-gray-500 text-[10px]">Admit: {patient.admitDate}</div>}
-                          </td>
-                          <td className="px-1 py-0.5 text-[10px]">
-                            {patient.lastVitals ? (
-                              <>
-                                <div>BP: <span className={parseInt(patient.lastVitals.bp) > 140 ? 'text-red-600 font-semibold' : ''}>{patient.lastVitals.bp}</span></div>
-                                <div>HR: {patient.lastVitals.hr} SpO2: {patient.lastVitals.spo2}%</div>
-                              </>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </td>
-                          <td className="px-1 py-0.5">
-                            {patient.alerts.length > 0 ? (
-                              <div className="space-y-0.5">
-                                {patient.alerts.slice(0, 2).map((alert, i) => (
-                                  <div key={i} className={`text-[10px] ${alert.includes('CRITICAL') || alert.includes('Troponin') ? 'text-red-700 font-semibold' : 'text-amber-700'}`}>
-                                    • {alert}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-gray-400 text-[10px]">None</span>
-                            )}
-                          </td>
-                          <td className="px-1 py-0.5">
-                            <span className={`px-1.5 py-0.5 text-[10px] ${getStatusStyle(patient.status)}`}>
-                              {patient.status.replace('-', ' ')}
-                            </span>
-                          </td>
-                          <td className="px-1 py-0.5 text-center">
-                            <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Open Chart">
-                              <ExternalLink className="w-3 h-3" />
-                            </button>
-                            <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Write Note">
-                              <Edit3 className="w-3 h-3" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </div>
+              {panelContent[id]}
+            </DraggablePanel>
+          ))}
         </div>
 
-        {/* Right Column - Sidebar Panels */}
+        {/* Right Column - drag a title bar to reorder */}
         <div className="w-64 flex flex-col space-y-1 overflow-auto">
-          {/* Unsigned Notes */}
-          <div className="ehr-panel">
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('unsigned'); }}
+          {rightPanels.map((id) => (
+            <DraggablePanel
+              key={id}
+              panelId={id}
+              column="right"
+              title={PANEL_TITLES[id]}
+              className={panelClassName(id)}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.unsigned ? '-' : '+'}
-                </span>
-                <span>Unsigned Notes ({unsignedNotes.length})</span>
-              </div>
-            </div>
-            {expandedPanels.unsigned && (
-              <div className="bg-white">
-                {unsignedNotes.map((note, idx) => (
-                  <div key={note.id} className={`px-2 py-1.5 border-b border-gray-200 flex items-center justify-between ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                    <div>
-                      <div className="font-semibold text-[11px]">{note.patientName}</div>
-                      <div className="text-[10px] text-gray-500">{note.type} • {note.date}</div>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      {note.daysOld >= 2 && <span className="text-[9px] text-red-600 font-semibold">{note.daysOld}d</span>}
-                      <button className="ehr-button ehr-button-primary text-[10px] px-2 py-0.5">Sign</button>
-                    </div>
-                  </div>
-                ))}
-                <div className="p-1 bg-gray-100 border-t">
-                  <button className="ehr-button w-full text-[10px]">Sign All Notes</button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Pending Orders */}
-          <div className="ehr-panel">
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('orders'); }}
-            >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.orders ? '-' : '+'}
-                </span>
-                <span>Pending Orders ({pendingOrders.length})</span>
-              </div>
-            </div>
-            {expandedPanels.orders && (
-              <div className="bg-white">
-                {pendingOrders.map((order, idx) => (
-                  <div key={order.id} className={`px-2 py-1.5 border-b border-gray-200 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="font-semibold text-[11px]">{order.patientName}</div>
-                        <div className="text-[10px] text-gray-700">{order.order}</div>
-                        <div className="flex space-x-1 mt-0.5">
-                          <span className="text-[9px] px-1 py-0 bg-gray-200 text-gray-700 border border-gray-400">{order.type}</span>
-                          <span className={`text-[9px] px-1 py-0 border border-gray-400 ${
-                            order.status === 'draft' ? 'bg-gray-100 text-gray-600' :
-                            order.status === 'pending-approval' ? 'bg-gray-200 text-gray-700' :
-                            'bg-gray-100 text-gray-600'
-                          }`}>{order.status}</span>
-                        </div>
-                      </div>
-                      <button className="ehr-button text-[10px] px-2 py-0.5">Review</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Today's Schedule */}
-          <div className="ehr-panel">
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('schedule'); }}
-            >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.schedule ? '-' : '+'}
-                </span>
-                <span>Today's Schedule</span>
-              </div>
-            </div>
-            {expandedPanels.schedule && (
-              <div className="bg-white p-2">
-                <div className="flex items-center justify-between mb-2 text-[11px]">
-                  <span className="text-gray-500">January 18, 2024</span>
-                  <span className="font-semibold">8 appointments</span>
-                </div>
-                <div className="space-y-1">
-                  {[
-                    { time: '9:00 AM', patient: 'Completed (3)', status: 'done' },
-                    { time: '10:30 AM', patient: 'Johnson, Sarah', status: 'current' },
-                    { time: '11:00 AM', patient: 'Williams, Michael', status: 'next' },
-                    { time: '11:30 AM', patient: 'Brown, Emily', status: 'upcoming' },
-                    { time: '2:00 PM', patient: 'Wilson, Patricia', status: 'upcoming' },
-                  ].map((slot, i) => (
-                    <div key={i} className={`flex items-center justify-between py-1 px-2 text-[11px] ${
-                      slot.status === 'current' ? 'bg-gray-200 border border-gray-400' :
-                      slot.status === 'next' ? 'bg-gray-100' :
-                      slot.status === 'done' ? 'bg-gray-50 text-gray-400' : ''
-                    }`}>
-                      <span>{slot.time}</span>
-                      <span className={slot.status === 'current' ? 'font-semibold' : ''}>{slot.patient}</span>
-                    </div>
-                  ))}
-                </div>
-                <button className="ehr-button w-full mt-2 text-[10px]">View Full Schedule</button>
-              </div>
-            )}
-          </div>
-
-          {/* System Messages */}
-          <div className="ehr-panel">
-            <div className="ehr-header flex items-center">
-              <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">!</span>
-              <span>System Messages</span>
-            </div>
-            <div className="bg-white text-[10px]">
-              <div className="px-2 py-1 border-b border-gray-200">
-                <span className="text-gray-500">01/18 08:00</span> - System maintenance scheduled for 01/20 2:00 AM
-              </div>
-              <div className="px-2 py-1 border-b border-gray-200">
-                <span className="text-gray-500">01/17 14:30</span> - New formulary updates available
-              </div>
-              <div className="px-2 py-1">
-                <span className="text-gray-500">01/16 09:15</span> - Lab interface upgraded to v3.2
-              </div>
-            </div>
-          </div>
-
-          {/* System Status */}
-          <div className="ehr-panel">
-            <div className="ehr-header flex items-center">
-              <span>System Status</span>
-            </div>
-            <div className="bg-white p-2 text-[10px]">
-              <table className="w-full">
-                <tbody>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5">Database</td>
-                    <td className="border border-gray-300 px-1 py-0.5 text-green-700">Connected</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">HL7 Interface</td>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50 text-green-700">Active</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5">Pharmacy Link</td>
-                    <td className="border border-gray-300 px-1 py-0.5 text-green-700">Online</td>
-                  </tr>
-                  <tr>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">Last Sync</td>
-                    <td className="border border-gray-300 px-1 py-0.5 bg-gray-50">2 min ago</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+              {panelContent[id]}
+            </DraggablePanel>
+          ))}
         </div>
       </div>
 

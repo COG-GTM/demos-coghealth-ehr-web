@@ -68,7 +68,10 @@ export function DraggablePanel({ panelId, column, title, className = '', childre
     endDrag();
   };
 
+  // Ignore keys bubbling from controls inside the panel, so Alt+Arrow keeps
+  // working normally in the filter dropdowns and buttons a panel may contain.
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
     if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
     e.preventDefault();
     nudgePanel(column, panelId, e.key === 'ArrowUp' ? -1 : 1);

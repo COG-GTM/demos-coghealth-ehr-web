@@ -117,6 +117,19 @@ td {
   border-bottom: 1px solid #1a4080;
 }
 
+.ehr-draggable-panel > .ehr-header {
+  cursor: grab;
+}
+
+.ehr-draggable-panel > .ehr-header:active {
+  cursor: grabbing;
+}
+
+.ehr-draggable-panel:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+}
+
 .ehr-subheader {
   background: linear-gradient(to bottom, #e8e8e8 0%, #d0d0d0 100%);
   color: #333;

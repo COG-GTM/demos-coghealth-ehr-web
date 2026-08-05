@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Tahoma&display=swap');
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary-50: #e8f4fc;
   --color-primary-100: #d1e9f9;
@@ -20,6 +22,7 @@
 body {
   font-size: 11px;
   background-color: #d4d0c8;
+  color: #222;
 }
 
 input, select, textarea, button {
@@ -225,6 +228,256 @@ td {
   background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
   border: 1px solid #888;
   box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15);
+}
+
+.dark,
+.dark body {
+  color-scheme: dark;
+}
+
+.dark body,
+.dark #root {
+  background-color: #1b1f24 !important;
+  color: #e5e7eb;
+}
+
+.dark .ehr-panel {
+  background: #252a31;
+  border-color: #59636f;
+  box-shadow: inset 1px 1px 0 #3b434d, 1px 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.dark .ehr-toolbar,
+.dark .ehr-subheader {
+  background: linear-gradient(to bottom, #303741 0%, #252b33 100%);
+  color: #e5e7eb;
+  border-color: #59636f;
+}
+
+.dark .ehr-button {
+  background: linear-gradient(to bottom, #3b434d 0%, #2c333b 100%);
+  border-color: #697582;
+  color: #f3f4f6;
+  box-shadow: 1px 1px 0 #59636f inset, -1px -1px 0 #1a1e23 inset;
+}
+
+.dark .ehr-button:hover,
+.dark .ehr-toolbar-button:hover {
+  background: #46515d;
+  border-color: #8b98a5;
+}
+
+.dark .ehr-button:active {
+  background: #252b33;
+}
+
+.dark .ehr-input,
+.dark input,
+.dark select,
+.dark textarea {
+  background: #20252b;
+  border-color: #687583;
+  color: #f3f4f6;
+}
+
+.dark .ehr-input::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #9ca8b4;
+}
+
+.dark .ehr-fieldset {
+  background: #252a31;
+  border-color: #59636f;
+}
+
+.dark .ehr-fieldset legend,
+.dark .ehr-label {
+  color: #e5e7eb;
+}
+
+.dark .ehr-fieldset legend {
+  background: #252a31;
+}
+
+.dark .ehr-status-bar {
+  background: #20252b;
+  border-color: #59636f;
+  color: #cbd5e1;
+}
+
+.dark .ehr-tab {
+  background: linear-gradient(to bottom, #3b434d 0%, #2c333b 100%);
+  border-color: #697582;
+  color: #e5e7eb;
+}
+
+.dark .ehr-tab.active,
+.dark .ehr-tab-content {
+  background: #252a31;
+  border-color: #697582;
+  color: #e5e7eb;
+}
+
+.dark .ehr-grid-row:nth-child(even) {
+  background: #20252b;
+}
+
+.dark .ehr-grid-row:hover,
+.dark .ehr-tree-item:hover {
+  background: #344454;
+}
+
+.dark .ehr-toolbar-button-active {
+  background: #3b4652;
+  border-color: #788695;
+  color: #fff;
+}
+
+.dark .ehr-splitter {
+  background: #303741;
+}
+
+.dark th {
+  background: linear-gradient(to bottom, #3b434d 0%, #2c333b 100%);
+  border-color: #59636f;
+  color: #f3f4f6;
+}
+
+.dark td {
+  border-color: #46515d;
+}
+
+.dark .bg-white,
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-gray-200,
+.dark .bg-gray-300 {
+  background-color: #252a31 !important;
+}
+
+.dark .bg-blue-50,
+.dark .bg-blue-100,
+.dark .bg-blue-200 {
+  background-color: #263b50 !important;
+}
+
+.dark [class~="hover:bg-blue-50"]:hover,
+.dark [class~="hover:bg-blue-100"]:hover,
+.dark [class~="hover:bg-gray-50"]:hover,
+.dark [class~="hover:bg-gray-100"]:hover,
+.dark [class~="hover:bg-gray-200"]:hover {
+  background-color: #344454 !important;
+}
+
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700 {
+  color: #f3f4f6 !important;
+}
+
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: #b8c2cc !important;
+}
+
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .border-gray-400,
+.dark .border-gray-500 {
+  border-color: #59636f !important;
+}
+
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #46515d !important;
+}
+
+.dark [style*="#d4d0c8"] {
+  background: #1b1f24 !important;
+}
+
+.dark [style*="#D4D0C8"],
+.dark [style*="rgb(212, 208, 200)"],
+.dark [style*="background-color: rgb(212, 208, 200)"] {
+  background: #1b1f24 !important;
+}
+
+.dark [style*="#ece9d8"],
+.dark [style*="#fafafa"] {
+  background: #252a31 !important;
+}
+
+.dark [class*="bg-[#ece9d8]"],
+.dark [class*="bg-[#ECE9D8]"],
+.dark [class*="bg-[#f8f8f8]"],
+.dark [class*="bg-[#F8F8F8]"],
+.dark [class*="bg-[#fafafa]"],
+.dark [class*="bg-[#FAFAFA]"],
+.dark [class*="bg-[#f5f5f5]"],
+.dark [class*="bg-[#F5F5F5]"],
+.dark [class*="bg-[#e8e8e8]"],
+.dark [class*="bg-[#E8E8E8]"],
+.dark [class*="bg-[#f0f4f8]"],
+.dark [class*="bg-[#F0F4F8]"] {
+  background: #252a31 !important;
+}
+
+.dark [style*="#ECE9D8"],
+.dark [style*="rgb(236, 233, 216)"],
+.dark [style*="background-color: rgb(236, 233, 216)"],
+.dark [style*="#f5f5f5"],
+.dark [style*="#F5F5F5"],
+.dark [style*="rgb(245, 245, 245)"],
+.dark [style*="background-color: rgb(245, 245, 245)"],
+.dark [style*="#e8e8e8"],
+.dark [style*="#E8E8E8"],
+.dark [style*="rgb(232, 232, 232)"],
+.dark [style*="background-color: rgb(232, 232, 232)"] {
+  background: #252a31 !important;
+}
+
+.dark [class*="from-[#f8f8f8]"],
+.dark [class*="from-[#F8F8F8]"],
+.dark [class*="to-[#e8e8e8]"],
+.dark [class*="to-[#E8E8E8]"],
+.dark [style*="linear-gradient(to bottom, #f8f8f8"],
+.dark [style*="linear-gradient(to bottom, #F8F8F8"] {
+  background: #252a31 !important;
+}
+
+.dark [style*="background: white"],
+.dark [style*="background: '#fff'"] {
+  background: #252a31 !important;
+}
+
+.dark [style*="background: rgb(255, 255, 255)"],
+.dark [style*="background-color: rgb(255, 255, 255)"] {
+  background: #252a31 !important;
+}
+
+.dark .modal-message {
+  background: #173653 !important;
+  border-color: #3b82c4 !important;
+  color: #c5e3ff !important;
+}
+
+.dark .ehr-alert-info {
+  background: #173653;
+  border-color: #3b82c4;
+  color: #c5e3ff;
+}
+
+.dark .ehr-alert-warning {
+  background: #4a3915;
+  border-color: #b58a25;
+  color: #ffe9a3;
+}
+
+.dark .ehr-alert-critical {
+  background: #4b2025;
+  border-color: #d35b67;
+  color: #ffc5ca;
 }
 
 .ehr-splitter {

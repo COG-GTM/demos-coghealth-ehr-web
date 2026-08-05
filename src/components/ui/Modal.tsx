@@ -146,7 +146,7 @@ export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: 
         </button>
       }
     >
-      <div className="p-2 border border-gray-400" style={{ background: bgColors[type] }}>
+      <div className="modal-message p-2 border border-gray-400" style={{ background: bgColors[type] }}>
         <p className="text-[11px]">{message}</p>
       </div>
     </Modal>

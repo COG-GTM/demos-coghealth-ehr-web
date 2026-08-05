@@ -255,6 +255,13 @@ export default function MedicationsPage() {
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [showRxDialog, setShowRxDialog] = useState(false);
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
+  const selectedPatientAllergies = selectedOrder
+    ? Array.from(new Set(
+      defaultMedicationOrders
+        .filter(order => order.patientId === selectedOrder.patientId)
+        .flatMap(order => order.allergies.map(allergy => allergy.split(' - ')[0]))
+    ))
+    : [];
 
   const togglePanel = (panel: string) => {
     setExpandedPanels(prev => ({ ...prev, [panel]: !prev[panel] }));
@@ -791,7 +798,7 @@ export default function MedicationsPage() {
         patientMrn={selectedOrder?.patientMrn}
         patientId={selectedOrder?.patientId.toString()}
         activeMedications={selectedOrder ? defaultMedicationOrders.filter(order => order.status === 'ACTIVE' && order.patientId === selectedOrder.patientId).map(order => ({ name: order.genericName, class: order.therapeuticClass })) : []}
-        patientAllergies={selectedOrder?.allergies.map(allergy => allergy.split(' - ')[0])}
+        patientAllergies={selectedPatientAllergies}
         onSubmit={(rx) => {
           console.log('New Rx:', rx);
           setShowRxDialog(false);

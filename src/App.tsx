@@ -14,7 +14,9 @@ import {
   Lock,
   Shield,
   FlaskConical,
-  Activity
+  Activity,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
@@ -28,6 +30,7 @@ import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
 import { logLogout } from './services/auditService';
+import { useThemeStore } from './stores/themeStore';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
@@ -55,6 +58,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   const [searchResults, setSearchResults] = useState<typeof defaultPatientSearch>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [sessionTime, setSessionTime] = useState(SESSION_TIMEOUT_MS);
+  const { isDark, toggleTheme } = useThemeStore();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -174,6 +178,16 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
         <div className="flex items-center space-x-3 text-[10px]">
           <span className="text-blue-100">Springfield Medical Center</span>
           <span className="text-blue-300">|</span>
+          <button
+            onClick={toggleTheme}
+            className="flex items-center space-x-1 text-blue-200 hover:text-white hover:bg-white/10 px-1 py-0.5"
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
+            <span>{isDark ? 'Light' : 'Dark'}</span>
+          </button>
+          <span className="text-blue-300">|</span>
           <div className="flex items-center space-x-1">
             <Lock className="w-3 h-3" />
             <span className={sessionTime < SESSION_WARNING_MS ? 'text-yellow-300' : 'text-blue-200'}>
@@ -260,6 +274,7 @@ function App() {
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSessionExpired, setShowSessionExpired] = useState(false);
+  const isDark = useThemeStore((state) => state.isDark);
 
   const handleSessionWarning = useCallback(() => {
     setShowSessionWarning(true);
@@ -280,7 +295,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="h-screen flex flex-col" style={{ background: '#d4d0c8', fontFamily: 'Tahoma, sans-serif' }}>
+      <div className={`h-screen flex flex-col ${isDark ? 'dark' : ''}`} style={{ background: '#d4d0c8', fontFamily: 'Tahoma, sans-serif' }}>
         <Navigation 
           onSessionWarning={handleSessionWarning}
           onSessionExpired={handleSessionExpired}
@@ -301,7 +316,7 @@ function App() {
         </main>
 
         {/* Status Bar - Windows XP style */}
-        <div className="h-5 bg-gradient-to-b from-[#ece9d8] to-[#d4d0c8] border-t border-gray-400 flex items-center justify-between px-2 text-[10px] text-gray-600">
+        <div className="h-5 bg-gradient-to-b from-[#ece9d8] to-[#d4d0c8] border-t border-gray-400 flex items-center justify-between px-2 text-[10px] text-gray-600 dark:bg-[#20252b] dark:text-gray-300">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-1">
               <Shield className="w-3 h-3 text-green-600" />

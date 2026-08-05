@@ -80,47 +80,66 @@ const crossSensitivity: Record<string, string[]> = {
 };
 
 function normalize(value: string): string {
-  return value.toLowerCase().replace(/\([^)]*\)/g, '').replace(/\b(hcl|calcium|sodium|er|extended release)\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  return value.toLowerCase().replace(/\([^)]*\)/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+const ingredientAliases: Record<string, string> = {
+  'metoprolol succinate': 'metoprolol',
+};
+const knownIngredients = Object.keys(drugClasses).sort((a, b) => b.length - a.length);
+
+function resolveIngredient(value: string): string {
+  const normalized = normalize(value);
+  const matchedIngredient = knownIngredients.find(ingredient => normalized === ingredient || normalized.startsWith(`${ingredient} `));
+  return matchedIngredient ? ingredientAliases[matchedIngredient] || matchedIngredient : normalized;
 }
 
 function medicationInfo(medication: InteractionMedication | string): { name: string; key: string; className: string } {
   const name = typeof medication === 'string' ? medication : medication.name;
-  const key = normalize(name);
+  const key = resolveIngredient(name);
   const suppliedClass = typeof medication === 'string' ? '' : medication.class || '';
-  return { name, key, className: normalize(suppliedClass) || drugClasses[key] || '' };
+  return { name, key, className: drugClasses[key] || normalize(suppliedClass) };
 }
 
-function createAlert(rule: InteractionRule, agents: string[], index: number): CdsAlert {
-  return { id: `cds-${rule.severity.toLowerCase()}-${index + 1}`, severity: rule.severity, category: 'DRUG_DRUG', title: rule.title, conflictingAgents: agents, mechanism: rule.mechanism, management: rule.management };
+function alertId(category: CdsAlertCategory, rule: string, agents: string[]): string {
+  const identity = [category, rule, ...agents.map(resolveIngredient).sort()].join('|');
+  return `cds-${normalize(identity).replace(/\s+/g, '-')}`;
+}
+
+function createAlert(rule: InteractionRule, agents: string[]): CdsAlert {
+  return { id: alertId('DRUG_DRUG', rule.title, agents), severity: rule.severity, category: 'DRUG_DRUG', title: rule.title, conflictingAgents: agents, mechanism: rule.mechanism, management: rule.management };
 }
 
 export function screenPrescription({ medication, activeMedications = [], allergies = [] }: ScreenPrescriptionInput): CdsAlert[] {
   const candidate = medicationInfo(medication);
   const active = activeMedications.map(medicationInfo);
   const alerts: CdsAlert[] = [];
+  const addAlert = (alert: CdsAlert) => {
+    if (!alerts.some(existing => existing.id === alert.id)) alerts.push(alert);
+  };
   const exactDuplicate = active.find(med => med.key === candidate.key);
   if (exactDuplicate) {
-    alerts.push({ id: 'cds-duplicate-exact', severity: 'MAJOR', category: 'DUPLICATE_THERAPY', title: 'Duplicate medication', conflictingAgents: [exactDuplicate.name], mechanism: 'The prescribed medication is already present on the active medication list, creating avoidable duplicate exposure.', management: 'Reconcile the medication list and discontinue or renew the existing therapy rather than creating a duplicate order.' });
+    addAlert({ id: alertId('DUPLICATE_THERAPY', 'duplicate exact', [candidate.key, exactDuplicate.key]), severity: 'MAJOR', category: 'DUPLICATE_THERAPY', title: 'Duplicate medication', conflictingAgents: [exactDuplicate.name], mechanism: 'The prescribed medication is already present on the active medication list, creating avoidable duplicate exposure.', management: 'Reconcile the medication list and discontinue or renew the existing therapy rather than creating a duplicate order.' });
   } else {
     const classDuplicate = active.find(med => med.className && candidate.className && med.className === candidate.className);
-    if (classDuplicate) alerts.push({ id: 'cds-duplicate-class', severity: 'MODERATE', category: 'DUPLICATE_THERAPY', title: 'Duplicate therapeutic class', conflictingAgents: [classDuplicate.name], mechanism: `Both medications belong to the ${candidate.className} therapeutic class, creating potentially duplicative therapy.`, management: 'Confirm the intended regimen and discontinue the existing class member if this is a switch rather than combination therapy.' });
+    if (classDuplicate) addAlert({ id: alertId('DUPLICATE_THERAPY', 'duplicate class', [candidate.key, classDuplicate.key]), severity: 'MODERATE', category: 'DUPLICATE_THERAPY', title: 'Duplicate therapeutic class', conflictingAgents: [classDuplicate.name], mechanism: `Both medications belong to the ${candidate.className} therapeutic class, creating potentially duplicative therapy.`, management: 'Confirm the intended regimen and discontinue the existing class member if this is a switch rather than combination therapy.' });
   }
 
   allergies.forEach(allergy => {
-    const allergyKey = normalize(allergy);
+    const allergyKey = resolveIngredient(allergy);
     const matches = crossSensitivity[allergyKey] || [];
     if (matches.includes(candidate.key) || matches.includes(candidate.className)) {
       const penicillin = allergyKey === 'penicillin';
-      alerts.push({ id: `cds-allergy-${allergyKey}`, severity: penicillin ? 'CONTRAINDICATED' : 'MAJOR', category: 'DRUG_ALLERGY', title: penicillin ? 'Documented penicillin allergy' : 'Potential sulfonamide cross-sensitivity', conflictingAgents: [allergy, candidate.name], mechanism: penicillin ? 'Amoxicillin is a penicillin derivative and may trigger an IgE-mediated or severe delayed hypersensitivity reaction in a patient with penicillin allergy.' : 'Sulfonamide allergy may cross-react with sulfonamide-derived diuretics, with risk dependent on the prior reaction and clinical context.', management: penicillin ? 'Do not prescribe; select a non-penicillin alternative and clarify reaction history.' : 'Review the documented reaction; consider a non-sulfonamide alternative or supervised use with appropriate monitoring.' });
+      addAlert({ id: alertId('DRUG_ALLERGY', allergyKey, [allergyKey, candidate.key]), severity: penicillin ? 'CONTRAINDICATED' : 'MAJOR', category: 'DRUG_ALLERGY', title: penicillin ? 'Documented penicillin allergy' : 'Potential sulfonamide cross-sensitivity', conflictingAgents: [allergy, candidate.name], mechanism: penicillin ? 'Amoxicillin is a penicillin derivative and may trigger an IgE-mediated or severe delayed hypersensitivity reaction in a patient with penicillin allergy.' : 'Sulfonamide allergy may cross-react with sulfonamide-derived diuretics, with risk dependent on the prior reaction and clinical context.', management: penicillin ? 'Do not prescribe; select a non-penicillin alternative and clarify reaction history.' : 'Review the documented reaction; consider a non-sulfonamide alternative or supervised use with appropriate monitoring.' });
     }
   });
 
-  active.forEach((existing, index) => {
+  active.forEach(existing => {
     interactionRules.forEach(rule => {
       const matches = rule.drugs
         ? rule.drugs.includes(candidate.key) && rule.drugs.includes(existing.key)
         : Boolean(rule.classes && rule.classes.includes(candidate.className) && rule.classes.includes(existing.className));
-      if (matches) alerts.push(createAlert(rule, [candidate.name, existing.name], index + alerts.length));
+      if (matches) addAlert(createAlert(rule, [candidate.name, existing.name]));
     });
   });
   return alerts.sort((a, b) => severityRank[b.severity] - severityRank[a.severity]);

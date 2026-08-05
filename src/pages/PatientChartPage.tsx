@@ -455,7 +455,7 @@ export default function PatientChartPage() {
         patientName={`${patient.lastName}, ${patient.firstName}`}
         patientMrn={patient.mrn}
         patientAllergies={allergies.map(a => a.allergen)}
-        activeMedications={medications.map(med => ({ name: med.name, class: med.name.includes('Metformin') ? 'Antidiabetic' : undefined }))}
+        activeMedications={medications.map(med => ({ name: med.name }))}
         patientId={patient.id?.toString()}
         onSubmit={(rx) => {
           console.log('New Rx:', rx);

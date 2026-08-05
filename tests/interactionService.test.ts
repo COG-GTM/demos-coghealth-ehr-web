@@ -42,6 +42,19 @@ describe('interactionService', () => {
     expect(screenPrescription({ medication: 'LOSARTAN', activeMedications: ['lIsInOpRiL'] })[0].severity).toBe('MAJOR');
   });
 
+  it('resolves salts, formulations, and strengths to canonical ingredients', () => {
+    expect(screenPrescription({ medication: 'Amlodipine 5mg', activeMedications: ['Metoprolol Succinate 25mg'] })[0].severity).toBe('MINOR');
+    expect(screenPrescription({ medication: 'Prednisone 10mg', activeMedications: ['Metformin HCl ER 500mg'] })[0].severity).toBe('MODERATE');
+    expect(screenPrescription({ medication: 'Metformin HCl ER 500mg', activeMedications: ['metformin 1000 mg'] })[0].severity).toBe('MAJOR');
+  });
+
+  it('generates unique deterministic ids for multi-alert screens', () => {
+    const first = screenPrescription({ medication: 'Amoxicillin 500mg', activeMedications: ['Lisinopril'], allergies: ['Penicillin'] });
+    const second = screenPrescription({ medication: 'Amoxicillin 500mg', activeMedications: ['Lisinopril'], allergies: ['Penicillin'] });
+    expect(new Set(first.map(alert => alert.id)).size).toBe(first.length);
+    expect(first.map(alert => alert.id)).toEqual(second.map(alert => alert.id));
+  });
+
   it('identifies when an override is required', () => {
     expect(requiresPrescriptionOverride(screenPrescription({ medication: 'Amoxicillin', allergies: ['Penicillin'] }))).toBe(true);
     expect(requiresPrescriptionOverride(screenPrescription({ medication: 'Levothyroxine', activeMedications: ['Omeprazole'] }))).toBe(false);

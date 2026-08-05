@@ -790,7 +790,7 @@ export default function MedicationsPage() {
         patientName={selectedOrder?.patientName}
         patientMrn={selectedOrder?.patientMrn}
         patientId={selectedOrder?.patientId.toString()}
-        activeMedications={defaultMedicationOrders.filter(order => order.status === 'ACTIVE' && (!selectedOrder || order.patientId === selectedOrder.patientId)).map(order => ({ name: order.genericName, class: order.therapeuticClass }))}
+        activeMedications={selectedOrder ? defaultMedicationOrders.filter(order => order.status === 'ACTIVE' && order.patientId === selectedOrder.patientId).map(order => ({ name: order.genericName, class: order.therapeuticClass })) : []}
         patientAllergies={selectedOrder?.allergies.map(allergy => allergy.split(' - ')[0])}
         onSubmit={(rx) => {
           console.log('New Rx:', rx);

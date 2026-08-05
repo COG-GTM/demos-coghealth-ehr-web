@@ -296,6 +296,10 @@ td {
   color: #e5e7eb;
 }
 
+.dark .ehr-fieldset legend {
+  background: #252a31;
+}
+
 .dark .ehr-status-bar {
   background: #20252b;
   border-color: #59636f;
@@ -352,6 +356,20 @@ td {
   background-color: #252a31 !important;
 }
 
+.dark .bg-blue-50,
+.dark .bg-blue-100,
+.dark .bg-blue-200 {
+  background-color: #263b50 !important;
+}
+
+.dark [class~="hover:bg-blue-50"]:hover,
+.dark [class~="hover:bg-blue-100"]:hover,
+.dark [class~="hover:bg-gray-50"]:hover,
+.dark [class~="hover:bg-gray-100"]:hover,
+.dark [class~="hover:bg-gray-200"]:hover {
+  background-color: #344454 !important;
+}
+
 .dark .text-gray-900,
 .dark .text-gray-800,
 .dark .text-gray-700 {
@@ -379,20 +397,69 @@ td {
   background: #1b1f24 !important;
 }
 
+.dark [style*="#D4D0C8"],
+.dark [style*="rgb(212, 208, 200)"],
+.dark [style*="background-color: rgb(212, 208, 200)"] {
+  background: #1b1f24 !important;
+}
+
 .dark [style*="#ece9d8"],
 .dark [style*="#fafafa"] {
   background: #252a31 !important;
 }
 
 .dark [class*="bg-[#ece9d8]"],
+.dark [class*="bg-[#ECE9D8]"],
 .dark [class*="bg-[#f8f8f8]"],
-.dark [class*="bg-[#fafafa]"] {
+.dark [class*="bg-[#F8F8F8]"],
+.dark [class*="bg-[#fafafa]"],
+.dark [class*="bg-[#FAFAFA]"],
+.dark [class*="bg-[#f5f5f5]"],
+.dark [class*="bg-[#F5F5F5]"],
+.dark [class*="bg-[#e8e8e8]"],
+.dark [class*="bg-[#E8E8E8]"],
+.dark [class*="bg-[#f0f4f8]"],
+.dark [class*="bg-[#F0F4F8]"] {
+  background: #252a31 !important;
+}
+
+.dark [style*="#ECE9D8"],
+.dark [style*="rgb(236, 233, 216)"],
+.dark [style*="background-color: rgb(236, 233, 216)"],
+.dark [style*="#f5f5f5"],
+.dark [style*="#F5F5F5"],
+.dark [style*="rgb(245, 245, 245)"],
+.dark [style*="background-color: rgb(245, 245, 245)"],
+.dark [style*="#e8e8e8"],
+.dark [style*="#E8E8E8"],
+.dark [style*="rgb(232, 232, 232)"],
+.dark [style*="background-color: rgb(232, 232, 232)"] {
+  background: #252a31 !important;
+}
+
+.dark [class*="from-[#f8f8f8]"],
+.dark [class*="from-[#F8F8F8]"],
+.dark [class*="to-[#e8e8e8]"],
+.dark [class*="to-[#E8E8E8]"],
+.dark [style*="linear-gradient(to bottom, #f8f8f8"],
+.dark [style*="linear-gradient(to bottom, #F8F8F8"] {
   background: #252a31 !important;
 }
 
 .dark [style*="background: white"],
 .dark [style*="background: '#fff'"] {
   background: #252a31 !important;
+}
+
+.dark [style*="background: rgb(255, 255, 255)"],
+.dark [style*="background-color: rgb(255, 255, 255)"] {
+  background: #252a31 !important;
+}
+
+.dark .modal-message {
+  background: #173653 !important;
+  border-color: #3b82c4 !important;
+  color: #c5e3ff !important;
 }
 
 .dark .ehr-alert-info {

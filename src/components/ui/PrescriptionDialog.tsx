@@ -1,17 +1,28 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pill, Search, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Modal } from './Modal';
+import { logCdsAlertOverride } from '../../services/auditService';
+import { requiresPrescriptionOverride, screenPrescription, type CdsAlert, type InteractionMedication } from '../../services/interactionService';
 
-interface PrescriptionDialogProps {
+export interface PrescriptionDialogProps {
   isOpen: boolean;
   onClose: () => void;
   patientName?: string;
   patientMrn?: string;
   patientAllergies?: string[];
+  activeMedications?: (InteractionMedication | string)[];
+  patientId?: string;
   onSubmit: (prescription: PrescriptionData) => void;
 }
 
-interface PrescriptionData {
+export interface PrescriptionOverride {
+  reason: string;
+  acknowledgedAlertIds: string[];
+  acknowledgingUser: string;
+  timestamp: string;
+}
+
+export interface PrescriptionData {
   medication: string;
   strength: string;
   form: string;
@@ -21,6 +32,8 @@ interface PrescriptionData {
   daw: boolean;
   pharmacy: string;
   notes?: string;
+  alerts: CdsAlert[];
+  override?: PrescriptionOverride;
 }
 
 const commonMedications = [
@@ -62,9 +75,12 @@ const sigTemplates = [
   'Take 1 capsule by mouth twice daily',
 ];
 
-export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, patientAllergies = [], onSubmit }: PrescriptionDialogProps) {
+export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, patientAllergies = [], activeMedications = [], patientId, onSubmit }: PrescriptionDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMed, setSelectedMed] = useState<typeof commonMedications[0] | null>(null);
+  const [acknowledgedAlerts, setAcknowledgedAlerts] = useState<Record<string, boolean>>({});
+  const [overrideReason, setOverrideReason] = useState('');
+  const [overrideOther, setOverrideOther] = useState('');
   const [prescription, setPrescription] = useState<Partial<PrescriptionData>>({
     strength: '',
     sig: 'Take 1 tablet by mouth once daily',
@@ -79,9 +95,19 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
     med.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     med.class.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const alerts = useMemo(
+    () => selectedMed ? screenPrescription({ medication: selectedMed, activeMedications, allergies: patientAllergies }) : [],
+    [selectedMed, activeMedications, patientAllergies]
+  );
+  const blockingAlerts = alerts.filter(alert => alert.severity === 'CONTRAINDICATED' || alert.severity === 'MAJOR');
+  const overrideReady = !requiresPrescriptionOverride(alerts) ||
+    (blockingAlerts.every(alert => acknowledgedAlerts[alert.id]) && Boolean(overrideReason) && (overrideReason !== 'Other' || Boolean(overrideOther.trim())));
 
   const selectMedication = (med: typeof commonMedications[0]) => {
     setSelectedMed(med);
+    setAcknowledgedAlerts({});
+    setOverrideReason('');
+    setOverrideOther('');
     setPrescription(prev => ({
       ...prev,
       medication: med.name,
@@ -102,8 +128,21 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
         daw: prescription.daw || false,
         pharmacy: prescription.pharmacy || pharmacies[0],
         notes: prescription.notes,
+        alerts,
+        override: blockingAlerts.length > 0 ? {
+          reason: overrideReason === 'Other' ? overrideOther.trim() : overrideReason,
+          acknowledgedAlertIds: blockingAlerts.map(alert => alert.id),
+          acknowledgingUser: 'Dr. Sarah Anderson',
+          timestamp: new Date().toISOString(),
+        } : undefined,
       });
+      if (blockingAlerts.length > 0) {
+        blockingAlerts.forEach(alert => logCdsAlertOverride(patientId || patientMrn || 'unknown', selectedMed.name, alert.severity, overrideReason === 'Other' ? overrideOther.trim() : overrideReason));
+      }
       setSelectedMed(null);
+      setAcknowledgedAlerts({});
+      setOverrideReason('');
+      setOverrideOther('');
       setSearchQuery('');
       setPrescription({
         strength: '',
@@ -132,7 +171,7 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
           <button 
             onClick={handleSubmit} 
             className="ehr-button ehr-button-primary px-4"
-            disabled={!selectedMed || !prescription.strength}
+            disabled={!selectedMed || !prescription.strength || !overrideReady}
           >
             Sign & Send to Pharmacy
           </button>
@@ -297,13 +336,62 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
         </div>
 
         {selectedMed && (
-          <div className="ehr-alert-warning p-2 flex items-start text-[10px]">
-            <AlertTriangle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-            <div>
-              <strong>Drug Interaction Check:</strong> No significant interactions found with current medications.
-              <br />
-              <span className="text-gray-600">Always verify patient's complete medication list before prescribing.</span>
-            </div>
+          <div className="space-y-1">
+            {alerts.length === 0 ? (
+              <div className="ehr-alert-info p-2 flex items-start text-[10px]">
+                <AlertCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                <div><strong>CDS screening:</strong> No alerts identified for this medication and the documented patient history.</div>
+              </div>
+            ) : alerts.map(alert => {
+              const alertClass = alert.severity === 'CONTRAINDICATED' || alert.severity === 'MAJOR'
+                ? 'ehr-alert-critical'
+                : alert.severity === 'MODERATE' ? 'ehr-alert-warning' : 'ehr-alert-info';
+              return (
+                <div key={alert.id} className={`${alertClass} p-2 text-[10px]`}>
+                  <div className="flex items-start">
+                    <AlertTriangle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="font-bold">{alert.severity} — {alert.title}</div>
+                      <div><strong>Conflicting agent:</strong> {alert.conflictingAgents.join(' + ')}</div>
+                      <div><strong>Mechanism:</strong> {alert.mechanism}</div>
+                      <div><strong>Management:</strong> {alert.management}</div>
+                      {(alert.severity === 'CONTRAINDICATED' || alert.severity === 'MAJOR') && (
+                        <label className="flex items-center mt-1 font-semibold">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(acknowledgedAlerts[alert.id])}
+                            onChange={event => setAcknowledgedAlerts(prev => ({ ...prev, [alert.id]: event.target.checked }))}
+                            className="ehr-checkbox mr-1"
+                          />
+                          I acknowledge this blocking alert
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {blockingAlerts.length > 0 && (
+              <div className="ehr-fieldset p-2">
+                <div className="text-[10px] font-bold mb-1">Override justification required for blocking alerts</div>
+                <select value={overrideReason} onChange={event => setOverrideReason(event.target.value)} className="ehr-input w-full">
+                  <option value="">Select reason...</option>
+                  <option>Benefit outweighs risk</option>
+                  <option>Patient previously tolerated</option>
+                  <option>Dose adjusted / will monitor labs</option>
+                  <option>Documented tolerance / allergy not reproducible</option>
+                  <option>Other</option>
+                </select>
+                {overrideReason === 'Other' && (
+                  <input
+                    value={overrideOther}
+                    onChange={event => setOverrideOther(event.target.value)}
+                    className="ehr-input w-full mt-1"
+                    placeholder="Enter override reason"
+                  />
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

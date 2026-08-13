@@ -1,44 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Calendar, FileText, FlaskConical, LayoutDashboard, Pill, Search, Settings, Users } from 'lucide-react';
-import { defaultPatientSearch, type DefaultPatient } from '../../data/defaultPatients';
+import { FileText, Search, Users } from 'lucide-react';
+import type { DefaultPatient } from '../../data/defaultPatients';
 import { patientService } from '../../services/patientService';
 import { logPatientAccess } from '../../services/auditService';
 import { useRecentPatientStore } from '../../stores/recentPatientStore';
-import { fuzzyMatch, type FuzzyMatch } from '../../utils/fuzzyMatch';
+import { buildCommandPaletteSections } from '../../utils/commandPaletteItems';
+import type { FuzzyMatch } from '../../utils/fuzzyMatch';
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
   onOpen?: () => void;
 }
-
-interface PaletteItem {
-  id: string;
-  label: string;
-  detail?: string;
-  section: 'Patients' | 'Navigate' | 'Actions';
-  icon: typeof Users;
-  match: FuzzyMatch | null;
-  run: () => void;
-}
-
-const navigationItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/patients', label: 'Patients', icon: Users },
-  { path: '/schedule', label: 'Schedule', icon: Calendar },
-  { path: '/labs', label: 'Lab Results', icon: FlaskConical },
-  { path: '/vitals', label: 'Vitals', icon: Activity },
-  { path: '/medications', label: 'Medications', icon: Pill },
-  { path: '/reports', label: 'Reports', icon: FileText },
-  { path: '/settings', label: 'Settings', icon: Settings },
-];
-
-const actionItems = [
-  { path: '/medications', label: 'New Prescription', detail: 'Open medication workspace' },
-  { path: '/schedule', label: 'New Order', detail: 'Open scheduling and orders workspace' },
-  { path: '/patients', label: 'Print Chart', detail: 'Open patient workspace' },
-];
 
 function HighlightedText({ value, match }: { value: string; match: FuzzyMatch | null }) {
   if (!match || match.indices.length === 0) return <>{value}</>;
@@ -80,22 +54,30 @@ export function CommandPalette({ isOpen, onClose, onOpen }: CommandPaletteProps)
   }, [isOpen]);
 
   useEffect(() => {
-    if (!query.trim()) {
-      return;
-    }
+    if (!query.trim()) return;
     let active = true;
-    patientService.search(query, 0, 20)
-      .then((page) => {
-        if (!active) return;
-        setApiPatients(page.content.map(patientFromApi).filter((patient): patient is DefaultPatient => patient !== null));
-      })
-      .catch(() => {
-        if (active) setApiPatients([]);
-      });
+    const timeout = window.setTimeout(() => {
+      patientService.search(query, 0, 20)
+        .then((page) => {
+          if (!active) return;
+          setApiPatients(page.content.map(patientFromApi).filter((patient): patient is DefaultPatient => patient !== null));
+        })
+        .catch(() => {
+          if (active) setApiPatients([]);
+        });
+    }, 200);
     return () => {
       active = false;
+      window.clearTimeout(timeout);
     };
   }, [query]);
+
+  const closePalette = useCallback(() => {
+    setQuery('');
+    setApiPatients([]);
+    setHighlightedIndex(0);
+    onClose();
+  }, [onClose]);
 
   const runPatient = (patient: DefaultPatient) => {
     addRecentPatient(patient);
@@ -104,60 +86,17 @@ export function CommandPalette({ isOpen, onClose, onOpen }: CommandPaletteProps)
     navigate(`/patients/${patient.id}`);
   };
 
-  const closePalette = useCallback(() => {
-    setQuery('');
-    setHighlightedIndex(0);
-    onClose();
-  }, [onClose]);
-
-  const items = (() => {
-    const patients = [...apiPatients, ...defaultPatientSearch, ...recentPatients]
-      .filter((patient, index, all) => all.findIndex((candidate) => candidate.id === patient.id) === index);
-    const patientItems: PaletteItem[] = patients.map((patient) => {
-      const nameMatch = fuzzyMatch(query, patient.name);
-      const mrnMatch = fuzzyMatch(query, patient.mrn);
-      const match = nameMatch && mrnMatch ? (nameMatch.score >= mrnMatch.score ? nameMatch : mrnMatch)
-        : nameMatch || mrnMatch;
-      return {
-        id: `patient-${patient.id}`,
-        label: patient.name,
-        detail: `${patient.mrn} • DOB: ${patient.dob}`,
-        section: 'Patients',
-        icon: Users,
-        match,
-        run: () => runPatient(patient),
-      };
-    });
-    const nav: PaletteItem[] = navigationItems.map((item) => ({
-      id: `navigate-${item.path}`,
-      label: item.label,
-      section: 'Navigate',
-      icon: item.icon,
-      match: fuzzyMatch(query, item.label),
-      run: () => {
+  const sections = buildCommandPaletteSections(query, apiPatients, recentPatients);
+  const items = sections.flatMap((section) => section.items.map((item) => ({
+    ...item,
+    run: () => {
+      if (item.kind === 'patient' && item.patient) runPatient(item.patient);
+      else if (item.target) {
         closePalette();
-        navigate(item.path);
-      },
-    }));
-    const actions: PaletteItem[] = actionItems.map((item) => ({
-      id: `action-${item.label}`,
-      label: item.label,
-      detail: item.detail,
-      section: 'Actions',
-      icon: FileText,
-      match: fuzzyMatch(query, item.label),
-      run: () => {
-        closePalette();
-        navigate(item.path);
-      },
-    }));
-    const sections = [patientItems, nav, actions].map((section) => (
-      query.trim()
-        ? section.filter((item) => item.match).sort((left, right) => (right.match?.score ?? 0) - (left.match?.score ?? 0))
-        : section
-    ));
-    return sections.flat();
-  })();
+        navigate(item.target);
+      }
+    },
+  })));
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -197,7 +136,6 @@ export function CommandPalette({ isOpen, onClose, onOpen }: CommandPaletteProps)
 
   if (!isOpen) return null;
 
-  let currentSection = '';
   return (
     <div className="command-palette-backdrop" onMouseDown={(event) => event.target === event.currentTarget && closePalette()}>
       <div className="command-palette-window" role="dialog" aria-modal="true" aria-label="Clinical command palette">
@@ -211,7 +149,9 @@ export function CommandPalette({ isOpen, onClose, onOpen }: CommandPaletteProps)
             ref={inputRef}
             value={query}
             onChange={(event) => {
-              setQuery(event.target.value);
+              const nextQuery = event.target.value;
+              setQuery(nextQuery);
+              if (!nextQuery.trim()) setApiPatients([]);
               setHighlightedIndex(0);
             }}
             placeholder="Find a patient, page, or action..."
@@ -222,12 +162,12 @@ export function CommandPalette({ isOpen, onClose, onOpen }: CommandPaletteProps)
           {items.length === 0 ? (
             <div className="command-palette-empty">No matching patients, pages, or actions.</div>
           ) : items.map((item, index) => {
-            const showSection = item.section !== currentSection;
-            currentSection = item.section;
-            const Icon = item.icon;
+            const Icon = item.section === 'Recent' || item.section === 'Patients' ? Users : FileText;
             return (
               <div key={item.id}>
-                {showSection && <div className="command-palette-section">{item.section}</div>}
+                {index === 0 || items[index - 1].section !== item.section
+                  ? <div className="command-palette-section">{item.section}</div>
+                  : null}
                 <button
                   type="button"
                   data-palette-index={index}

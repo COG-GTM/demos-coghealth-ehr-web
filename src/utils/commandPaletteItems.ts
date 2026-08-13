@@ -13,6 +13,7 @@ export interface PaletteCandidate {
   target?: string;
   patient?: DefaultPatient;
   match: FuzzyMatch | null;
+  matchField?: 'label' | 'detail';
 }
 
 export interface PaletteSection {
@@ -46,6 +47,7 @@ function patientCandidate(patient: DefaultPatient, section: 'Recent' | 'Patients
   const mrnMatch = fuzzyMatch(query, patient.mrn);
   const match = nameMatch && mrnMatch ? (nameMatch.score >= mrnMatch.score ? nameMatch : mrnMatch)
     : nameMatch || mrnMatch;
+  const matchField = match === mrnMatch && mrnMatch ? 'detail' : 'label';
   return {
     id: `${section.toLowerCase()}-patient-${patient.id}`,
     label: patient.name,
@@ -54,6 +56,7 @@ function patientCandidate(patient: DefaultPatient, section: 'Recent' | 'Patients
     kind: 'patient',
     patient,
     match,
+    matchField,
   };
 }
 

@@ -34,4 +34,22 @@ describe('buildCommandPaletteSections', () => {
     expect(action?.target).toBe('/patients');
     expect(action?.detail).toContain('Select a patient');
   });
+
+  it('attributes MRN matches to the rendered detail field', () => {
+    const sections = buildCommandPaletteSections('1236', [], []);
+    const patient = sections.find((section) => section.section === 'Patients')?.items[0];
+
+    expect(patient?.label).toBe('Williams, Michael');
+    expect(patient?.matchField).toBe('detail');
+    expect(patient?.match?.indices).toEqual([5, 6, 7, 8]);
+  });
+
+  it('attributes name matches to the rendered label field', () => {
+    const sections = buildCommandPaletteSections('smi', [], []);
+    const patient = sections.find((section) => section.section === 'Patients')?.items[0];
+
+    expect(patient?.label).toBe('Smith, John');
+    expect(patient?.matchField).toBe('label');
+    expect(patient?.match?.indices).toEqual([0, 1, 2]);
+  });
 });

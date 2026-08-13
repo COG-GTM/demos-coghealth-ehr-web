@@ -177,8 +177,14 @@ export function CommandPalette({ isOpen, onClose, onOpen }: CommandPaletteProps)
                 >
                   <Icon className="w-3.5 h-3.5 shrink-0" />
                   <span className="min-w-0 flex-1 text-left">
-                    <span className="block"><HighlightedText value={item.label} match={item.match} /></span>
-                    {item.detail && <span className="block command-palette-detail">{item.detail}</span>}
+                    <span className="block">
+                      <HighlightedText value={item.label} match={item.matchField === 'label' ? item.match : null} />
+                    </span>
+                    {item.detail && (
+                      <span className="block command-palette-detail">
+                        <HighlightedText value={item.detail} match={item.matchField === 'detail' ? item.match : null} />
+                      </span>
+                    )}
                   </span>
                 </button>
               </div>

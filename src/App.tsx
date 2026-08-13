@@ -1,20 +1,12 @@
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  Users, 
-  Calendar, 
-  Pill, 
-  FileText, 
-  Settings,
-  LayoutDashboard,
+import {
   Menu,
   X,
   User,
   LogOut,
   Search,
   Lock,
-  Shield,
-  FlaskConical,
-  Activity
+  Shield
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
@@ -27,19 +19,13 @@ import SettingsPage from './pages/SettingsPage';
 import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
+import ClinicalCommandPalette from './components/ui/ClinicalCommandPalette';
 import { logLogout } from './services/auditService';
+import { demoPatients, formatPatientDob, formatPatientName } from './data/demoPatients';
+import { navItems } from './data/navigation';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
-
-const defaultPatientSearch = [
-  { id: 1, name: 'Smith, John', mrn: 'MRN001234', dob: '03/15/1965' },
-  { id: 2, name: 'Johnson, Sarah', mrn: 'MRN001235', dob: '07/22/1978' },
-  { id: 3, name: 'Williams, Michael', mrn: 'MRN001236', dob: '11/08/1952' },
-  { id: 4, name: 'Brown, Emily', mrn: 'MRN001237', dob: '04/30/1989' },
-  { id: 5, name: 'Davis, Robert', mrn: 'MRN001238', dob: '08/20/1945' },
-  { id: 6, name: 'Martinez, Maria', mrn: 'MRN001240', dob: '12/05/1970' },
-];
 
 interface NavigationProps {
   onSessionWarning: () => void;
@@ -52,7 +38,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
-  const [searchResults, setSearchResults] = useState<typeof defaultPatientSearch>([]);
+  const [searchResults, setSearchResults] = useState<typeof demoPatients>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [sessionTime, setSessionTime] = useState(SESSION_TIMEOUT_MS);
 
@@ -90,9 +76,10 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   const handleSearch = (query: string) => {
     setGlobalSearch(query);
     if (query.length >= 2) {
-      const results = defaultPatientSearch.filter(p =>
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.mrn.toLowerCase().includes(query.toLowerCase())
+      const results = demoPatients.filter(p =>
+        formatPatientName(p).toLowerCase().includes(query.toLowerCase()) ||
+        (p.mrn ?? '').toLowerCase().includes(query.toLowerCase()) ||
+        formatPatientDob(p.dateOfBirth).includes(query)
       );
       setSearchResults(results);
       setShowSearchDropdown(true);
@@ -102,7 +89,8 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     }
   };
 
-  const selectPatient = (patientId: number) => {
+  const selectPatient = (patientId: number | undefined) => {
+    if (!patientId) return;
     setGlobalSearch('');
     setShowSearchDropdown(false);
     navigate(`/patients/${patientId}`);
@@ -113,17 +101,6 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     const secs = Math.floor((sessionTime % 60000) / 1000);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
-  const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/patients', icon: Users, label: 'Patients' },
-    { path: '/schedule', icon: Calendar, label: 'Schedule' },
-    { path: '/labs', icon: FlaskConical, label: 'Lab Results' },
-    { path: '/vitals', icon: Activity, label: 'Vitals' },
-    { path: '/medications', icon: Pill, label: 'Medications' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
-  ];
 
   return (
     <>
@@ -149,6 +126,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
                 className="bg-blue-900/50 border border-blue-400 text-white placeholder-blue-300 text-[10px] px-2 py-0.5 w-40 focus:outline-none focus:border-white"
               />
+              <span className="ml-1 text-[9px] text-blue-200 border border-blue-300/60 px-1">Ctrl+K</span>
             </div>
             {showSearchDropdown && searchResults.length > 0 && (
               <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50">
@@ -158,8 +136,8 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
                     onClick={() => selectPatient(patient.id)}
                     className="px-2 py-1.5 hover:bg-blue-100 cursor-pointer text-[11px] text-gray-800 border-b border-gray-200"
                   >
-                    <div className="font-semibold">{patient.name}</div>
-                    <div className="text-gray-500 text-[10px]">{patient.mrn} • DOB: {patient.dob}</div>
+                    <div className="font-semibold">{formatPatientName(patient)}</div>
+                    <div className="text-gray-500 text-[10px]">{patient.mrn} • DOB: {formatPatientDob(patient.dateOfBirth)}</div>
                   </div>
                 ))}
               </div>
@@ -299,6 +277,8 @@ function App() {
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>
+
+        <ClinicalCommandPalette onLogout={handleLogout} />
 
         {/* Status Bar - Windows XP style */}
         <div className="h-5 bg-gradient-to-b from-[#ece9d8] to-[#d4d0c8] border-t border-gray-400 flex items-center justify-between px-2 text-[10px] text-gray-600">

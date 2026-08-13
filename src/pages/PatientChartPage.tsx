@@ -28,6 +28,7 @@ import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { logPatientAccess } from '../services/auditService';
 import { patientService } from '../services/patientService';
+import { defaultPatientSearch } from '../data/defaultPatients';
 
 interface Problem { id: number; name: string; icd10: string; status: string; onset: string; priority: string; }
 interface Medication { id: number; name: string; dose: string; sig: string; status: string; refills: string; }
@@ -93,6 +94,17 @@ export default function PatientChartPage() {
         }
       } catch (error) {
         console.error('Failed to fetch patient:', error);
+        const fallback = defaultPatientSearch.find((candidate) => candidate.id === Number(id));
+        if (fallback) {
+          setPatient({
+            id: fallback.id,
+            mrn: fallback.mrn,
+            firstName: fallback.name.split(', ')[1] ?? fallback.name,
+            lastName: fallback.name.split(', ')[0] ?? fallback.name,
+            dateOfBirth: fallback.dob,
+          });
+          logPatientAccess(String(fallback.id), fallback.mrn, fallback.name);
+        }
       } finally {
         setLoading(false);
       }

@@ -27,27 +27,22 @@ import SettingsPage from './pages/SettingsPage';
 import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
+import { CommandPalette } from './components/ui';
 import { logLogout } from './services/auditService';
+import { defaultPatientSearch } from './data/defaultPatients';
+import { useRecentPatientStore } from './stores/recentPatientStore';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
-
-const defaultPatientSearch = [
-  { id: 1, name: 'Smith, John', mrn: 'MRN001234', dob: '03/15/1965' },
-  { id: 2, name: 'Johnson, Sarah', mrn: 'MRN001235', dob: '07/22/1978' },
-  { id: 3, name: 'Williams, Michael', mrn: 'MRN001236', dob: '11/08/1952' },
-  { id: 4, name: 'Brown, Emily', mrn: 'MRN001237', dob: '04/30/1989' },
-  { id: 5, name: 'Davis, Robert', mrn: 'MRN001238', dob: '08/20/1945' },
-  { id: 6, name: 'Martinez, Maria', mrn: 'MRN001240', dob: '12/05/1970' },
-];
 
 interface NavigationProps {
   onSessionWarning: () => void;
   onSessionExpired: () => void;
   onLogout: () => void;
+  onOpenCommandPalette: () => void;
 }
 
-function Navigation({ onSessionWarning, onSessionExpired, onLogout }: NavigationProps) {
+function Navigation({ onSessionWarning, onSessionExpired, onLogout, onOpenCommandPalette }: NavigationProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -149,6 +144,14 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
                 className="bg-blue-900/50 border border-blue-400 text-white placeholder-blue-300 text-[10px] px-2 py-0.5 w-40 focus:outline-none focus:border-white"
               />
+              <button
+                type="button"
+                className="command-palette-hint"
+                onClick={onOpenCommandPalette}
+                aria-label="Open command palette"
+              >
+                Ctrl+K
+              </button>
             </div>
             {showSearchDropdown && searchResults.length > 0 && (
               <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50">
@@ -260,6 +263,8 @@ function App() {
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSessionExpired, setShowSessionExpired] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const clearRecentPatients = useRecentPatientStore((state) => state.clearRecentPatients);
 
   const handleSessionWarning = useCallback(() => {
     setShowSessionWarning(true);
@@ -274,6 +279,7 @@ function App() {
   }, []);
 
   const performLogout = (reason: 'manual' | 'timeout' = 'manual') => {
+    clearRecentPatients();
     logLogout(reason);
     window.location.reload();
   };
@@ -285,6 +291,12 @@ function App() {
           onSessionWarning={handleSessionWarning}
           onSessionExpired={handleSessionExpired}
           onLogout={handleLogout}
+          onOpenCommandPalette={() => setShowCommandPalette(true)}
+        />
+        <CommandPalette
+          isOpen={showCommandPalette}
+          onOpen={() => setShowCommandPalette(true)}
+          onClose={() => setShowCommandPalette(false)}
         />
         <main className="flex-1 overflow-hidden">
           <Routes>

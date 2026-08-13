@@ -227,6 +227,143 @@ td {
   box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15);
 }
 
+.command-palette-hint {
+  margin-left: 4px;
+  padding: 0 3px;
+  border: 1px solid #9db5cf;
+  background: #e8f0f8;
+  color: #234d7a;
+  font-size: 9px;
+  line-height: 14px;
+  cursor: pointer;
+}
+
+.command-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 11vh;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.command-palette-window {
+  width: min(560px, calc(100vw - 24px));
+  color: #222;
+  background: #d4d0c8;
+  border: 1px solid #555;
+  box-shadow: 2px 2px 0 #222, inset 1px 1px 0 #fff;
+  font-family: Tahoma, sans-serif;
+}
+
+.command-palette-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 5px 3px 8px;
+  color: #fff;
+  font-weight: 600;
+  background: linear-gradient(to bottom, #6699cc 0%, #336699 100%);
+}
+
+.command-palette-titlebar button {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  color: #fff;
+  border: 1px solid #dbe8f6;
+  background: #4b78a8;
+  font-size: 14px;
+  line-height: 12px;
+  cursor: pointer;
+}
+
+.command-palette-search {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 6px;
+  padding: 3px 5px;
+  background: #fff;
+  border: 1px solid #7f9db9;
+  box-shadow: inset 1px 1px 0 #ddd;
+}
+
+.command-palette-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+}
+
+.command-palette-list {
+  max-height: 390px;
+  overflow-y: auto;
+  margin: 0 6px 6px;
+  background: #fff;
+  border: 1px solid #999;
+}
+
+.command-palette-section {
+  padding: 3px 6px;
+  color: #444;
+  font-weight: 600;
+  background: linear-gradient(to bottom, #f8f8f8 0%, #e8e8e8 100%);
+  border-bottom: 1px solid #bbb;
+}
+
+.command-palette-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 4px 7px;
+  color: #222;
+  border: 0;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.command-palette-row-active {
+  color: #fff;
+  background: #316ac5;
+}
+
+.command-palette-detail {
+  color: #666;
+  font-size: 10px;
+}
+
+.command-palette-row-active .command-palette-detail {
+  color: #dbe8f6;
+}
+
+.command-palette-match {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.command-palette-empty {
+  padding: 18px 8px;
+  color: #666;
+  text-align: center;
+}
+
+.command-palette-footer {
+  display: flex;
+  gap: 14px;
+  padding: 3px 8px;
+  color: #444;
+  border-top: 1px solid #fff;
+  font-size: 10px;
+}
+
 .ehr-splitter {
   background: #d4d0c8;
   cursor: col-resize;

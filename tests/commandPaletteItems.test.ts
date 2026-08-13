@@ -19,11 +19,19 @@ describe('buildCommandPaletteSections', () => {
       .toEqual(['Smith, John']);
   });
 
-  it('targets the patient chart for the New Order action', () => {
+  it('targets the most recent patient chart for the New Order action', () => {
+    const sections = buildCommandPaletteSections('new order', [], [defaultPatientSearch[3]]);
+    const action = sections.find((section) => section.section === 'Actions')?.items[0];
+
+    expect(action?.target).toBe(`/patients/${defaultPatientSearch[3].id}`);
+    expect(action?.detail).toContain(defaultPatientSearch[3].name);
+  });
+
+  it('falls back to patient selection for the New Order action without recents', () => {
     const sections = buildCommandPaletteSections('new order', [], []);
     const action = sections.find((section) => section.section === 'Actions')?.items[0];
 
-    expect(action?.target).toBe('/patients/1');
-    expect(action?.detail).toContain('patient chart order workflow');
+    expect(action?.target).toBe('/patients');
+    expect(action?.detail).toContain('Select a patient');
   });
 });

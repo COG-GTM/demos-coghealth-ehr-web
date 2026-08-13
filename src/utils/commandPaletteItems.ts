@@ -31,11 +31,15 @@ const navigationItems = [
   { path: '/settings', label: 'Settings' },
 ];
 
-const actionItems = [
-  { path: '/medications', label: 'New Prescription', detail: 'Open medication workspace' },
-  { path: '/patients/1', label: 'New Order', detail: 'Open the patient chart order workflow' },
-  { path: '/patients', label: 'Print Chart', detail: 'Open patient workspace' },
-];
+function actionItems(activePatient: DefaultPatient | undefined) {
+  return [
+    { path: '/medications', label: 'New Prescription', detail: 'Open medication workspace' },
+    activePatient
+      ? { path: `/patients/${activePatient.id}`, label: 'New Order', detail: `Open order entry for ${activePatient.name}` }
+      : { path: '/patients', label: 'New Order', detail: 'Select a patient to enter orders' },
+    { path: '/patients', label: 'Print Chart', detail: 'Open patient workspace' },
+  ];
+}
 
 function patientCandidate(patient: DefaultPatient, section: 'Recent' | 'Patients', query: string): PaletteCandidate {
   const nameMatch = fuzzyMatch(query, patient.name);
@@ -97,7 +101,7 @@ export function buildCommandPaletteSections(
   });
   sections.push({
     section: 'Actions',
-    items: sortMatches(actionItems.map((item) => ({
+    items: sortMatches(actionItems(recentPatients[0]).map((item) => ({
       id: `action-${item.label}`,
       label: item.label,
       detail: item.detail,

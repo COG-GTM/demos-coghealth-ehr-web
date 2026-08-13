@@ -1,4 +1,5 @@
 import type { Patient } from '../types';
+import { formatPatientDob } from '../data/demoPatients';
 
 export const RECENT_PATIENTS_KEY = 'coghealth_recent_patients';
 const MAX_RECENT_PATIENTS = 5;
@@ -12,6 +13,7 @@ export function patientMatchesQuery(patient: Patient, query: string): boolean {
     patient.lastName,
     patient.mrn ?? '',
     patient.dateOfBirth,
+    formatPatientDob(patient.dateOfBirth),
   ].some(value => value.toLowerCase().includes(normalizedQuery));
 }
 

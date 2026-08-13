@@ -13,6 +13,7 @@ describe('command palette utilities', () => {
     expect(filterPatients(patients, 'smith')).toEqual([patients[0]]);
     expect(filterPatients(patients, 'MRN002')).toEqual([patients[1]]);
     expect(filterPatients(patients, '1978-07')).toEqual([patients[1]]);
+    expect(filterPatients(patients, '07/22/1978')).toEqual([patients[1]]);
   });
 
   it('stores recent patients newest first and deduplicated', () => {

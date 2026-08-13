@@ -18,6 +18,11 @@ type PaletteItem =
   | { kind: 'action'; label: string; icon: LucideIcon; run: () => void };
 type ActionItem = Extract<PaletteItem, { kind: 'action' }>;
 
+interface IndexedItem {
+  item: PaletteItem;
+  index: number;
+}
+
 export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPaletteProps) {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -64,6 +69,15 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
 
   useEffect(() => {
     if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     if (!query.trim()) {
       return;
@@ -106,16 +120,28 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
     { kind: 'action', label: 'Lock session / Logout', icon: LogOut, run: onLogout },
   ], [navigate, onLogout]);
 
-  const items = useMemo<PaletteItem[]>(() => {
-    const patientItems = query.trim() ? patients : recentPatients;
+  const sections = useMemo(() => {
+    const patientItems: PaletteItem[] = (query.trim() ? patients : recentPatients)
+      .map(patient => ({ kind: 'patient' as const, patient }));
     const normalizedQuery = query.trim().toLowerCase();
-    const matchingNavItems = navItems.filter(item => item.label.toLowerCase().includes(normalizedQuery));
-    const matchingActions = actions.filter(action => action.label.toLowerCase().includes(normalizedQuery));
-    return [
-      ...patientItems.map(patient => ({ kind: 'patient' as const, patient })),
-      ...matchingNavItems.map(item => ({ kind: 'navigation' as const, path: item.path, label: item.label, icon: item.icon })),
-      ...matchingActions,
-    ];
+    const navigationItems: PaletteItem[] = navItems
+      .filter(item => item.label.toLowerCase().includes(normalizedQuery))
+      .map(item => ({ kind: 'navigation' as const, path: item.path, label: item.label, icon: item.icon }));
+    const actionItems: PaletteItem[] = actions.filter(action => action.label.toLowerCase().includes(normalizedQuery));
+    const groups = {
+      patients: patientItems,
+      navigation: navigationItems,
+      actions: actionItems,
+    };
+    const items: PaletteItem[] = [...groups.patients, ...groups.navigation, ...groups.actions];
+    let index = 0;
+    const indexed = (itemsToIndex: PaletteItem[]): IndexedItem[] => itemsToIndex.map(item => ({ item, index: index++ }));
+    return {
+      patients: indexed(groups.patients),
+      navigation: indexed(groups.navigation),
+      actions: indexed(groups.actions),
+      items,
+    };
   }, [actions, patients, query, recentPatients]);
 
   useEffect(() => {
@@ -141,24 +167,19 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
-      if (items.length > 0) {
+      if (sections.items.length > 0) {
         setHighlightedIndex(index => event.key === 'ArrowDown'
-          ? (index + 1) % items.length
-          : (index - 1 + items.length) % items.length);
+          ? (index + 1) % sections.items.length
+          : (index - 1 + sections.items.length) % sections.items.length);
       }
     } else if (event.key === 'Enter') {
       event.preventDefault();
-      const item = items[highlightedIndex];
+      const item = sections.items[highlightedIndex];
       if (item) activate(item);
     }
   };
 
   if (!isOpen) return null;
-  const patientItems = query.trim() ? patients : recentPatients;
-  const normalizedQuery = query.trim().toLowerCase();
-  const matchingNavItems = navItems.filter(item => item.label.toLowerCase().includes(normalizedQuery));
-  const matchingActions = actions.filter(action => action.label.toLowerCase().includes(normalizedQuery));
-
   return (
     <div className="fixed inset-0 z-[60] flex items-start justify-center pt-16" onClick={close}>
       <div className="absolute inset-0 bg-black/40" />
@@ -175,35 +196,93 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
           </div>
         </div>
         <div ref={listRef} className="max-h-[360px] overflow-y-auto bg-white p-1">
-          {patientItems.length > 0 && (
+          {sections.patients.length > 0 && (
             <section>
-              <div className="px-2 py-1 text-[10px] font-semibold text-gray-600 bg-[#ece9d8] border-y border-gray-300">{query.trim() ? 'Patients' : 'Recent patients'}</div>
-              {patientItems.map(patient => {
-                const index = items.findIndex(item => item.kind === 'patient' && item.patient.id === patient.id);
+              <div className="px-2 py-1 text-[10px] font-semibold text-gray-600 bg-[#ece9d8] border-y border-gray-300">
+                {query.trim() ? 'Patients' : 'Recent patients'}
+              </div>
+              {sections.patients.map(({ item, index }) => {
+                if (item.kind !== 'patient') return null;
                 const highlighted = index === highlightedIndex;
-                return <button key={patient.id} data-highlighted={highlighted} onMouseEnter={() => setHighlightedIndex(index)} onClick={() => activate({ kind: 'patient', patient })} className={`w-full text-left px-2 py-1.5 flex items-center space-x-2 border-b border-gray-100 ${highlighted ? 'bg-[#316ac5] text-white' : 'hover:bg-[#e0e8f0] text-gray-800'}`}><UserRound className="w-4 h-4" /><span><span className="block font-semibold text-[11px]">{formatPatientName(patient)}</span><span className={`block text-[10px] ${highlighted ? 'text-blue-100' : 'text-gray-500'}`}>{patient.mrn ?? 'No MRN'} • DOB: {formatPatientDob(patient.dateOfBirth)}</span></span></button>;
+                return (
+                  <button
+                    key={item.patient.id}
+                    data-highlighted={highlighted}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                    onClick={() => activate(item)}
+                    className={`w-full text-left px-2 py-1.5 flex items-center space-x-2 border-b border-gray-100 ${
+                      highlighted ? 'bg-[#316ac5] text-white' : 'hover:bg-[#e0e8f0] text-gray-800'
+                    }`}
+                  >
+                    <UserRound className="w-4 h-4" />
+                    <span>
+                      <span className="block font-semibold text-[11px]">
+                        {formatPatientName(item.patient)}
+                      </span>
+                      <span className={`block text-[10px] ${highlighted ? 'text-blue-100' : 'text-gray-500'}`}>
+                        {item.patient.mrn ?? 'No MRN'} • DOB: {formatPatientDob(item.patient.dateOfBirth)}
+                      </span>
+                    </span>
+                  </button>
+                );
               })}
             </section>
           )}
-          {query.trim() && !isSearching && patientItems.length === 0 && <div className="px-2 py-2 text-[11px] text-gray-500">No matches</div>}
-          <section>
-            <div className="px-2 py-1 text-[10px] font-semibold text-gray-600 bg-[#ece9d8] border-y border-gray-300">Go to</div>
-            {matchingNavItems.map(item => {
-              const index = items.findIndex(result => result.kind === 'navigation' && result.path === item.path);
-              const highlighted = index === highlightedIndex;
-              const Icon = item.icon;
-              return <button key={item.path} data-highlighted={highlighted} onMouseEnter={() => setHighlightedIndex(index)} onClick={() => activate({ kind: 'navigation', path: item.path, label: item.label, icon: item.icon })} className={`w-full text-left px-2 py-1.5 flex items-center space-x-2 ${highlighted ? 'bg-[#316ac5] text-white' : 'hover:bg-[#e0e8f0] text-gray-800'}`}><Icon className="w-4 h-4" /><span>{item.label}</span></button>;
-            })}
-          </section>
-          <section>
-            <div className="px-2 py-1 text-[10px] font-semibold text-gray-600 bg-[#ece9d8] border-y border-gray-300">Actions</div>
-            {matchingActions.map(action => {
-              const index = items.findIndex(result => result.kind === 'action' && result.label === action.label);
-              const highlighted = index === highlightedIndex;
-              const Icon = action.icon;
-              return <button key={action.label} data-highlighted={highlighted} onMouseEnter={() => setHighlightedIndex(index)} onClick={() => activate(action)} className={`w-full text-left px-2 py-1.5 flex items-center space-x-2 ${highlighted ? 'bg-[#316ac5] text-white' : 'hover:bg-[#e0e8f0] text-gray-800'}`}><Icon className="w-4 h-4" /><span>{action.label}</span></button>;
-            })}
-          </section>
+          {sections.navigation.length > 0 && (
+            <section>
+              <div className="px-2 py-1 text-[10px] font-semibold text-gray-600 bg-[#ece9d8] border-y border-gray-300">
+                Go to
+              </div>
+              {sections.navigation.map(({ item, index }) => {
+                if (item.kind !== 'navigation') return null;
+                const highlighted = index === highlightedIndex;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.path}
+                    data-highlighted={highlighted}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                    onClick={() => activate(item)}
+                    className={`w-full text-left px-2 py-1.5 flex items-center space-x-2 ${
+                      highlighted ? 'bg-[#316ac5] text-white' : 'hover:bg-[#e0e8f0] text-gray-800'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </section>
+          )}
+          {sections.actions.length > 0 && (
+            <section>
+              <div className="px-2 py-1 text-[10px] font-semibold text-gray-600 bg-[#ece9d8] border-y border-gray-300">
+                Actions
+              </div>
+              {sections.actions.map(({ item, index }) => {
+                if (item.kind !== 'action') return null;
+                const highlighted = index === highlightedIndex;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.label}
+                    data-highlighted={highlighted}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                    onClick={() => activate(item)}
+                    className={`w-full text-left px-2 py-1.5 flex items-center space-x-2 ${
+                      highlighted ? 'bg-[#316ac5] text-white' : 'hover:bg-[#e0e8f0] text-gray-800'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </section>
+          )}
+          {query.trim() && !isSearching && sections.items.length === 0 && (
+            <div className="px-2 py-2 text-[11px] text-gray-500">No matches</div>
+          )}
         </div>
         <div className="ehr-status-bar flex justify-between"><span>↑↓ navigate • Enter open • Esc close</span><span>Clinical quick-switcher</span></div>
       </div>

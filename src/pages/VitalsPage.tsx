@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import type { VitalReading } from '../types';
+import { calculateNews2Trend, scoreNews2, type News2RiskBand } from '../utils/earlyWarningScore';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -27,12 +28,66 @@ const defaultVitals: VitalReading[] = [
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
 
+function Sparkline({ data, vitalKey }: { data: (number | undefined)[]; vitalKey: string }) {
+  const values = data.filter((v): v is number => v !== undefined);
+  if (values.length < 2) return null;
+  
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const height = 20;
+  const width = 60;
+  
+  const points = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * width;
+    const y = height - ((v - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
+
+  const vital = vitalSigns.find(v => v.key === vitalKey);
+  const lastValue = values[0];
+  const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
+
+  return (
+    <svg width={width} height={height} className="inline-block ml-1">
+      <polyline
+        points={points}
+        fill="none"
+        stroke={isAbnormal ? '#dc2626' : '#2563eb'}
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
 export default function VitalsPage() {
   const [vitals] = useState<VitalReading[]>(defaultVitals);
   const [selectedReading, setSelectedReading] = useState<VitalReading | null>(null);
   const [showAddVitals, setShowAddVitals] = useState(false);
   const [dateRange, setDateRange] = useState<'24h' | '48h' | '7d' | '30d'>('48h');
   const [selectedPatient] = useState(patientInfo);
+  const currentScore = scoreNews2(vitals[0]);
+  const scoreTrend = calculateNews2Trend(vitals[0], vitals[1]);
+
+  const getRiskBandStyle = (riskBand: News2RiskBand) => {
+    switch (riskBand) {
+      case 'high': return { background: '#ffcccc', color: '#990000', borderColor: '#cc0000' };
+      case 'medium': return { background: '#ffe0b2', color: '#8a3b00', borderColor: '#d97706' };
+      case 'low-medium': return { background: '#fff3cd', color: '#664d00', borderColor: '#d6a700' };
+      default: return { background: '#d9f2d9', color: '#176b17', borderColor: '#5a9e5a' };
+    }
+  };
+
+  const scoreLabel = (riskBand: News2RiskBand) => riskBand.replace('-', '–').toUpperCase();
+
+  const parameterLabels: Record<string, string> = {
+    respiratoryRate: 'Respiratory rate',
+    spo2: 'SpO₂',
+    temperature: 'Temperature',
+    systolic: 'Systolic BP',
+    heartRate: 'Heart rate',
+    consciousness: 'Consciousness',
+  };
 
   const getValueStatus = (key: string, value: number | undefined) => {
     if (value === undefined) return 'normal';
@@ -81,38 +136,6 @@ export default function VitalsPage() {
       return <TrendingDown className={`w-3 h-3 ${color} inline ml-0.5`} />;
     }
     return null;
-  };
-
-  const Sparkline = ({ data, vitalKey }: { data: (number | undefined)[]; vitalKey: string }) => {
-    const values = data.filter((v): v is number => v !== undefined);
-    if (values.length < 2) return null;
-    
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
-    const height = 20;
-    const width = 60;
-    
-    const points = values.map((v, i) => {
-      const x = (i / (values.length - 1)) * width;
-      const y = height - ((v - min) / range) * height;
-      return `${x},${y}`;
-    }).join(' ');
-
-    const vital = vitalSigns.find(v => v.key === vitalKey);
-    const lastValue = values[0];
-    const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
-
-    return (
-      <svg width={width} height={height} className="inline-block ml-1">
-        <polyline
-          points={points}
-          fill="none"
-          stroke={isAbnormal ? '#dc2626' : '#2563eb'}
-          strokeWidth="1.5"
-        />
-      </svg>
-    );
   };
 
   return (
@@ -218,6 +241,29 @@ export default function VitalsPage() {
                   })}
                 </tr>
               ))}
+              <tr className="bg-[#eef2f7]">
+                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-[#eef2f7] z-10">
+                  <div>NEWS2 Score</div>
+                  <div className="text-[9px] text-gray-500 font-normal">Scale 1 / aggregate</div>
+                </td>
+                <td className="px-2 py-1 border border-gray-300 text-center">
+                  <Sparkline data={vitals.map(reading => scoreNews2(reading).totalScore)} vitalKey="news2" />
+                </td>
+                {vitals.map((reading) => {
+                  const score = scoreNews2(reading);
+                  return (
+                    <td
+                      key={reading.id}
+                      className="px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0]"
+                      style={getRiskBandStyle(score.riskBand)}
+                      onClick={() => setSelectedReading(reading)}
+                    >
+                      <span className="font-bold">{score.totalScore}</span>
+                      <span className="block text-[9px]">{scoreLabel(score.riskBand)}</span>
+                    </td>
+                  );
+                })}
+              </tr>
               <tr className="bg-gray-100">
                 <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Recorded By</td>
                 <td className="px-2 py-1 border border-gray-300"></td>
@@ -243,6 +289,29 @@ export default function VitalsPage() {
         <div className="ehr-status-bar flex items-center justify-between">
           <span>{vitals.length} readings displayed</span>
           <span>Last updated: {new Date().toLocaleTimeString()}</span>
+        </div>
+      </div>
+
+      <div className="ehr-panel mt-1">
+        <div className="ehr-header flex items-center">
+          <Activity className="w-4 h-4 mr-2" />
+          <span>Current NEWS2 Early Warning Score</span>
+          <span className="ml-2 text-[10px] text-blue-200">{vitals[0].timestamp}</span>
+        </div>
+        <div className="bg-white p-2">
+          <div className="flex items-stretch gap-2">
+            <div className="border-2 px-4 py-2 text-center min-w-[92px]" style={getRiskBandStyle(currentScore.riskBand)}>
+              <div className="text-[10px] font-semibold">NEWS2</div>
+              <div className="text-3xl leading-8 font-bold">{currentScore.totalScore}</div>
+              <div className="text-[10px] font-bold">{scoreLabel(currentScore.riskBand)} RISK</div>
+            </div>
+            <div className="flex-1 grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
+              <div><span className="text-gray-500">Driving parameters:</span> <span className="font-semibold">{currentScore.drivingParameters.length > 0 ? currentScore.drivingParameters.map(parameter => parameterLabels[parameter]).join(', ') : 'None'}</span></div>
+              <div><span className="text-gray-500">Score trend:</span> <span className={`font-semibold ${scoreTrend.delta > 0 ? 'text-red-700' : scoreTrend.delta < 0 ? 'text-green-700' : 'text-gray-600'}`}>{scoreTrend.delta > 0 ? '↑' : scoreTrend.delta < 0 ? '↓' : '→'} {scoreTrend.delta > 0 ? '+' : ''}{scoreTrend.delta} vs previous ({scoreTrend.previousScore})</span></div>
+              <div><span className="text-gray-500">Monitoring:</span> <span className="font-semibold">{currentScore.monitoringFrequency}</span></div>
+              <div><span className="text-gray-500">Response:</span> <span className="font-semibold">{currentScore.clinicalResponse}</span></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -283,6 +352,29 @@ export default function VitalsPage() {
                   );
                 })}
               </div>
+            </fieldset>
+            <fieldset className="ehr-fieldset">
+              <legend>NEWS2 Breakdown</legend>
+              {(() => {
+                const score = scoreNews2(selectedReading);
+                return (
+                  <div className="text-[11px]">
+                    <div className="flex items-center justify-between border-b border-gray-200 pb-1 mb-1">
+                      <span className="font-semibold">Aggregate NEWS2</span>
+                      <span className="px-1.5 py-0.5 border font-bold" style={getRiskBandStyle(score.riskBand)}>{score.totalScore} · {scoreLabel(score.riskBand)}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                      {(Object.keys(score.scores) as Array<keyof typeof score.scores>).map(parameter => (
+                        <div key={parameter} className="flex justify-between">
+                          <span className="text-gray-600">{parameterLabels[parameter]}</span>
+                          <span className={`font-mono font-bold ${score.scores[parameter] === 3 ? 'text-red-700' : score.scores[parameter] > 0 ? 'text-amber-700' : 'text-green-700'}`}>{score.scores[parameter]}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2 text-[10px] text-gray-600">{score.monitoringFrequency} · {score.clinicalResponse}</div>
+                  </div>
+                );
+              })()}
             </fieldset>
           </div>
         )}

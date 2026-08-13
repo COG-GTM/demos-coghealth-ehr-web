@@ -24,8 +24,14 @@ import {
   ExternalLink,
   ShieldAlert,
   Radio,
-  ClipboardList
+  ClipboardList,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Activity
 } from 'lucide-react';
+import type { VitalReading } from '../types';
+import { calculateNews2Trend, scoreNews2, type News2RiskBand } from '../utils/earlyWarningScore';
 
 type InboxTab = 'all' | 'results' | 'messages' | 'rxRefills' | 'orders' | 'cosign';
 type WorklistFilter = 'all' | 'inpatient' | 'outpatient' | 'critical';
@@ -57,14 +63,37 @@ interface WorklistPatient {
   attendingProvider: string;
   status: 'waiting' | 'roomed' | 'in-progress' | 'ready-discharge' | 'critical';
   alerts: string[];
-  lastVitals?: {
-    bp: string;
-    hr: number;
-    temp: number;
-    spo2: number;
-    rr: number;
-  };
+  lastVitals?: VitalReading;
+  previousVitals?: VitalReading;
   flags: ('fall-risk' | 'isolation' | 'npo' | 'allergy' | 'code-status' | 'vip')[];
+}
+
+function getSyntheticVitals(index: number): { current: VitalReading; previous: VitalReading } {
+  const profiles = [
+    { systolic: 158, diastolic: 94, heartRate: 98, temperature: 99.1, respiratoryRate: 22, spo2: 93 },
+    { systolic: 120, diastolic: 76, heartRate: 72, temperature: 98.6, respiratoryRate: 16, spo2: 98 },
+    { systolic: 90, diastolic: 58, heartRate: 132, temperature: 101.6, respiratoryRate: 30, spo2: 88 },
+    { systolic: 138, diastolic: 84, heartRate: 86, temperature: 99.8, respiratoryRate: 21, spo2: 95 },
+    { systolic: 108, diastolic: 68, heartRate: 94, temperature: 100.2, respiratoryRate: 20, spo2: 94 },
+    { systolic: 146, diastolic: 90, heartRate: 108, temperature: 99.5, respiratoryRate: 24, spo2: 92 },
+  ];
+  const profile = profiles[index % profiles.length];
+  const previous = {
+    systolic: Math.max(80, profile.systolic - (index % 3 === 2 ? -8 : 8)),
+    diastolic: Math.max(50, profile.diastolic - 4),
+    heartRate: Math.max(40, profile.heartRate - (index % 3 === 2 ? 12 : 5)),
+    temperature: profile.temperature - (index % 3 === 2 ? 1.2 : 0.3),
+    respiratoryRate: Math.max(8, profile.respiratoryRate - (index % 3 === 2 ? 5 : 2)),
+    spo2: Math.min(100, profile.spo2 + (index % 3 === 2 ? 3 : 1)),
+  };
+  const base = {
+    recordedBy: 'RN Worklist',
+    location: 'Clinical Cockpit',
+  };
+  return {
+    current: { id: index * 2 + 1, timestamp: '2024-01-18 08:00', ...profile, ...base },
+    previous: { id: index * 2 + 2, timestamp: '2024-01-17 20:00', ...previous, ...base },
+  };
 }
 
 function mapPatientToWorklist(patient: Patient, index: number): WorklistPatient {
@@ -72,6 +101,7 @@ function mapPatientToWorklist(patient: Patient, index: number): WorklistPatient 
   const statuses: WorklistPatient['status'][] = ['waiting', 'roomed', 'in-progress', 'ready-discharge', 'critical'];
   const locations = ['Clinic 2B', 'Med-Surg 4W', 'CCU', 'Med-Surg 3E'];
   const complaints = ['Follow-up visit', 'Annual exam', 'Lab review', 'Medication management', 'New symptoms'];
+  const syntheticVitals = getSyntheticVitals(index);
   return {
     id: patient.id || index,
     name: `${patient.lastName}, ${patient.firstName}`,
@@ -84,6 +114,8 @@ function mapPatientToWorklist(patient: Patient, index: number): WorklistPatient 
     attendingProvider: 'Dr. Smith',
     status: statuses[index % statuses.length],
     alerts: [],
+    lastVitals: syntheticVitals.current,
+    previousVitals: syntheticVitals.previous,
     flags: [],
   };
 }
@@ -105,6 +137,15 @@ function mapPatientToInbox(patient: Patient, index: number): InboxItem {
   };
 }
 
+const demoPatients: Patient[] = [
+  { id: 101, mrn: 'MRN100101', firstName: 'Elena', lastName: 'Garcia', dateOfBirth: '1968-04-12', gender: 'FEMALE' },
+  { id: 102, mrn: 'MRN100102', firstName: 'Marcus', lastName: 'Lee', dateOfBirth: '1975-09-21', gender: 'MALE' },
+  { id: 103, mrn: 'MRN100103', firstName: 'Priya', lastName: 'Patel', dateOfBirth: '1959-02-03', gender: 'FEMALE' },
+  { id: 104, mrn: 'MRN100104', firstName: 'Thomas', lastName: 'Brown', dateOfBirth: '1982-11-17', gender: 'MALE' },
+  { id: 105, mrn: 'MRN100105', firstName: 'Nora', lastName: 'Wilson', dateOfBirth: '1948-06-29', gender: 'FEMALE' },
+  { id: 106, mrn: 'MRN100106', firstName: 'James', lastName: 'Davis', dateOfBirth: '1970-08-14', gender: 'MALE' },
+];
+
 type InboxPriority = 'all' | 'critical' | 'high' | 'normal';
 type InboxReadFilter = 'all' | 'unread' | 'read';
 type WorklistSort = 'name' | 'location' | 'status' | 'time';
@@ -121,6 +162,7 @@ export default function DashboardPage() {
   const [expandedPanels, setExpandedPanels] = useState<Record<string, boolean>>({
     inbox: true,
     worklist: true,
+    watchlist: true,
     unsigned: true,
     orders: true,
     schedule: true,
@@ -143,7 +185,7 @@ export default function DashboardPage() {
       setLoading(true);
       try {
         const result = await patientService.search('', 0, 20);
-        const patients = result.content;
+        const patients = result.content.length > 0 ? result.content : demoPatients;
         setInboxItems(patients.slice(0, 10).map((p, i) => mapPatientToInbox(p, i)));
         setWorklistPatients(patients.slice(0, 8).map((p, i) => mapPatientToWorklist(p, i)));
         setUnsignedNotes(patients.slice(0, 5).map((p, i) => ({
@@ -169,7 +211,31 @@ export default function DashboardPage() {
           time: `${(i + 1) * 5} min ago`,
         })));
       } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
+        console.warn('Dashboard API unavailable; using deterministic demo data.', error);
+        setInboxItems(demoPatients.slice(0, 10).map((p, i) => mapPatientToInbox(p, i)));
+        setWorklistPatients(demoPatients.map((p, i) => mapPatientToWorklist(p, i)));
+        setUnsignedNotes(demoPatients.slice(0, 5).map((p, i) => ({
+          id: p.id || i,
+          patientName: `${p.lastName}, ${p.firstName}`,
+          type: ['Progress Note', 'H&P', 'Discharge Summary'][i % 3],
+          date: new Date(Date.now() - i * 86400000).toLocaleDateString(),
+          daysOld: i,
+        })));
+        setPendingOrders(demoPatients.slice(0, 4).map((p, i) => ({
+          id: p.id || i,
+          patientName: `${p.lastName}, ${p.firstName}`,
+          order: ['Lab Panel', 'Imaging', 'Medication'][i % 3],
+          type: ['Lab', 'Imaging', 'Medication'][i % 3],
+          status: ['draft', 'pending-approval', 'pending-signature'][i % 3],
+        })));
+        setCriticalAlerts(demoPatients.slice(0, 3).map((p, i) => ({
+          id: p.id || i,
+          type: ['lab', 'vital', 'imaging'][i % 3],
+          patient: `${p.lastName}, ${p.firstName}`,
+          alert: ['Critical lab value', 'Elevated BP', 'Abnormal finding'][i % 3],
+          action: 'Review required',
+          time: `${(i + 1) * 5} min ago`,
+        })));
       } finally {
         setLoading(false);
       }
@@ -244,6 +310,16 @@ export default function DashboardPage() {
     return patients;
   }, [worklistPatients, worklistFilter, worklistSort, worklistSortAsc]);
 
+  const deteriorationWatchlist = useMemo(() => worklistPatients
+    .flatMap(patient => {
+      const { lastVitals } = patient;
+      if (!lastVitals) return [];
+      const score = scoreNews2(lastVitals);
+      const trend = calculateNews2Trend(lastVitals, patient.previousVitals);
+      return [{ patient, score, trend }];
+    })
+    .sort((a, b) => b.score.totalScore - a.score.totalScore), [worklistPatients]);
+
   const getInboxIcon = (type: string) => {
     switch (type) {
       case 'lab': return <FlaskConical className="w-3 h-3" />;
@@ -278,6 +354,27 @@ export default function DashboardPage() {
       case 'vip': return { label: 'VIP', bg: 'bg-gray-100', color: 'text-gray-700' };
       default: return { label: flag, bg: 'bg-gray-100', color: 'text-gray-700' };
     }
+  };
+
+  const getRiskBandStyle = (riskBand: News2RiskBand) => {
+    switch (riskBand) {
+      case 'high': return { background: '#ffcccc', color: '#990000', borderColor: '#cc0000' };
+      case 'medium': return { background: '#ffe0b2', color: '#8a3b00', borderColor: '#d97706' };
+      case 'low-medium': return { background: '#fff3cd', color: '#664d00', borderColor: '#d6a700' };
+      default: return { background: '#d9f2d9', color: '#176b17', borderColor: '#5a9e5a' };
+    }
+  };
+
+  const getScoreDrivers = (score: ReturnType<typeof scoreNews2>) => {
+    const labels: Record<string, string> = {
+      respiratoryRate: 'RR',
+      spo2: 'SpO₂',
+      temperature: 'Temp',
+      systolic: 'SBP',
+      heartRate: 'HR',
+      consciousness: 'LOC',
+    };
+    return score.drivingParameters.map(parameter => `${labels[parameter]} ${score.scores[parameter]}`).join(', ') || 'None';
   };
 
   return (
@@ -543,8 +640,8 @@ export default function DashboardPage() {
                           <td className="px-1 py-0.5 text-[10px]">
                             {patient.lastVitals ? (
                               <>
-                                <div>BP: <span className={parseInt(patient.lastVitals.bp) > 140 ? 'text-red-600 font-semibold' : ''}>{patient.lastVitals.bp}</span></div>
-                                <div>HR: {patient.lastVitals.hr} SpO2: {patient.lastVitals.spo2}%</div>
+                                <div>BP: <span className={patient.lastVitals.systolic && patient.lastVitals.systolic > 140 ? 'text-red-600 font-semibold' : ''}>{patient.lastVitals.systolic}/{patient.lastVitals.diastolic}</span></div>
+                                <div>HR: {patient.lastVitals.heartRate} SpO₂: {patient.lastVitals.spo2}%</div>
                               </>
                             ) : (
                               <span className="text-gray-400">-</span>
@@ -588,6 +685,50 @@ export default function DashboardPage() {
 
         {/* Right Column - Sidebar Panels */}
         <div className="w-64 flex flex-col space-y-1 overflow-auto">
+          {/* Deterioration Watchlist */}
+          <div className="ehr-panel">
+            <div
+              className="ehr-header flex items-center justify-between cursor-pointer"
+              onClick={(e) => { e.stopPropagation(); togglePanel('watchlist'); }}
+            >
+              <div className="flex items-center">
+                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
+                  {expandedPanels.watchlist ? '-' : '+'}
+                </span>
+                <Activity className="w-3 h-3 mr-1" />
+                <span>Deterioration Watchlist</span>
+              </div>
+            </div>
+            {expandedPanels.watchlist && (
+              <div className="bg-white">
+                {deteriorationWatchlist.length > 0 ? deteriorationWatchlist.map(({ patient, score, trend }, index) => (
+                  <div
+                    key={patient.id}
+                    className={`px-2 py-1.5 border-b border-gray-200 cursor-pointer hover:bg-blue-50 ${index % 2 === 1 ? 'bg-gray-50' : ''}`}
+                    onClick={() => navigate(`/patients/${patient.id}`)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-[11px] truncate mr-1">{patient.name}</span>
+                      <span className="px-1 py-0.5 border text-[10px] font-bold" style={getRiskBandStyle(score.riskBand)}>
+                        {score.totalScore}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mt-0.5 text-[9px]">
+                      <span className="px-1 border" style={getRiskBandStyle(score.riskBand)}>{score.riskBand.replace('-', '–')}</span>
+                      <span className={trend.delta > 0 ? 'text-red-700 font-semibold' : trend.delta < 0 ? 'text-green-700' : 'text-gray-500'}>
+                        {trend.direction === 'up' ? <TrendingUp className="w-3 h-3 inline mr-0.5" /> : trend.direction === 'down' ? <TrendingDown className="w-3 h-3 inline mr-0.5" /> : <Minus className="w-3 h-3 inline mr-0.5" />}
+                        {trend.delta > 0 ? '+' : ''}{trend.delta}
+                      </span>
+                    </div>
+                    <div className="text-[9px] text-gray-600 truncate mt-0.5">Drivers: {getScoreDrivers(score)}</div>
+                  </div>
+                )) : (
+                  <div className="p-2 text-[10px] text-gray-500">No patients with recent vital readings.</div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Unsigned Notes */}
           <div className="ehr-panel">
             <div 

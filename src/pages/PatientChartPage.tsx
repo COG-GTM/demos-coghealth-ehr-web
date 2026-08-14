@@ -28,6 +28,7 @@ import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { logPatientAccess } from '../services/auditService';
 import { patientService } from '../services/patientService';
+import { rememberRecentPatient } from '../utils/commandPalette';
 
 interface Problem { id: number; name: string; icd10: string; status: string; onset: string; priority: string; }
 interface Medication { id: number; name: string; dose: string; sig: string; status: string; refills: string; }
@@ -88,6 +89,7 @@ export default function PatientChartPage() {
       try {
         const data = await patientService.getById(parseInt(id));
         setPatient(data);
+        rememberRecentPatient(data);
         if (data.id && data.mrn) {
           logPatientAccess(data.id.toString(), data.mrn, `${data.lastName}, ${data.firstName}`);
         }

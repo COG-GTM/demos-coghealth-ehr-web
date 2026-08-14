@@ -2,45 +2,11 @@ import { useState } from 'react';
 import { Search, User, Calendar } from 'lucide-react';
 import { Input, Button, Card } from '../ui';
 import type { Patient } from '../../types';
+import { demoPatients } from '../../data/demoPatients';
 
 interface PatientSearchProps {
   onSelectPatient: (patient: Patient) => void;
 }
-
-const defaultPatients: Patient[] = [
-  {
-    id: 1,
-    mrn: 'MRN001234',
-    firstName: 'John',
-    lastName: 'Smith',
-    dateOfBirth: '1965-03-15',
-    gender: 'MALE',
-    phoneMobile: '(555) 123-4567',
-    email: 'john.smith@email.com',
-    active: true,
-  },
-  {
-    id: 2,
-    mrn: 'MRN001235',
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    dateOfBirth: '1978-07-22',
-    gender: 'FEMALE',
-    phoneMobile: '(555) 234-5678',
-    email: 'sarah.j@email.com',
-    active: true,
-  },
-  {
-    id: 3,
-    mrn: 'MRN001236',
-    firstName: 'Michael',
-    lastName: 'Williams',
-    dateOfBirth: '1952-11-08',
-    gender: 'MALE',
-    phoneMobile: '(555) 345-6789',
-    active: true,
-  },
-];
 
 export default function PatientSearch({ onSelectPatient }: PatientSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,7 +16,7 @@ export default function PatientSearch({ onSelectPatient }: PatientSearchProps) {
   const handleSearch = () => {
     setIsSearching(true);
     setTimeout(() => {
-      const filtered = defaultPatients.filter(
+      const filtered = demoPatients.filter(
         (p) =>
           p.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           p.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||

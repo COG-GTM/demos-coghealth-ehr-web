@@ -5,7 +5,7 @@ import { navItems } from '../../data/navigation';
 import { demoPatients, formatPatientDob, formatPatientName } from '../../data/demoPatients';
 import { filterPatients, getRecentPatients, rememberRecentPatient } from '../../utils/commandPalette';
 import { patientService } from '../../services/patientService';
-import { logPatientAccess, logPatientSearch, logPrint } from '../../services/auditService';
+import { logPatientSearch, logPrint } from '../../services/auditService';
 import type { Patient } from '../../types';
 
 interface ClinicalCommandPaletteProps {
@@ -29,6 +29,7 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef(0);
+  const keyboardNavigationRef = useRef(false);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -40,6 +41,7 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
 
   const close = useCallback(() => {
     requestIdRef.current += 1;
+    setPendingPrint(false);
     setIsOpen(false);
     setQuery('');
     setPatients([]);
@@ -48,6 +50,7 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
   }, []);
 
   const open = useCallback(() => {
+    setPendingPrint(false);
     setRecentPatients(getRecentPatients());
     setIsOpen(true);
   }, []);
@@ -153,8 +156,10 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
   }, [actions, patients, query, recentPatients]);
 
   useEffect(() => {
+    if (!keyboardNavigationRef.current) return;
     const highlighted = listRef.current?.querySelector<HTMLElement>('[data-highlighted="true"]');
     highlighted?.scrollIntoView({ block: 'nearest' });
+    keyboardNavigationRef.current = false;
   }, [highlightedIndex]);
 
   const activate = (item: PaletteItem) => {
@@ -162,7 +167,6 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
       if (item.patient.id === undefined) return;
       rememberRecentPatient(item.patient);
       setRecentPatients(getRecentPatients());
-      logPatientAccess(String(item.patient.id), item.patient.mrn ?? '', formatPatientName(item.patient));
       close();
       navigate(`/patients/${item.patient.id}`);
       return;
@@ -175,6 +179,7 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
+      keyboardNavigationRef.current = true;
       if (sections.items.length > 0) {
         setHighlightedIndex(index => event.key === 'ArrowDown'
           ? (index + 1) % sections.items.length
@@ -216,7 +221,10 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
                   <button
                     key={item.patient.id}
                     data-highlighted={highlighted}
-                    onMouseEnter={() => setHighlightedIndex(index)}
+                    onMouseEnter={() => {
+                      keyboardNavigationRef.current = false;
+                      setHighlightedIndex(index);
+                    }}
                     onClick={() => activate(item)}
                     className={`w-full text-left px-2 py-1.5 flex items-center space-x-2 border-b border-gray-100 ${
                       highlighted ? 'bg-[#316ac5] text-white' : 'hover:bg-[#e0e8f0] text-gray-800'
@@ -249,7 +257,10 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
                   <button
                     key={item.path}
                     data-highlighted={highlighted}
-                    onMouseEnter={() => setHighlightedIndex(index)}
+                    onMouseEnter={() => {
+                      keyboardNavigationRef.current = false;
+                      setHighlightedIndex(index);
+                    }}
                     onClick={() => activate(item)}
                     className={`w-full text-left px-2 py-1.5 flex items-center space-x-2 ${
                       highlighted ? 'bg-[#316ac5] text-white' : 'hover:bg-[#e0e8f0] text-gray-800'
@@ -275,7 +286,10 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
                   <button
                     key={item.label}
                     data-highlighted={highlighted}
-                    onMouseEnter={() => setHighlightedIndex(index)}
+                    onMouseEnter={() => {
+                      keyboardNavigationRef.current = false;
+                      setHighlightedIndex(index);
+                    }}
                     onClick={() => activate(item)}
                     className={`w-full text-left px-2 py-1.5 flex items-center space-x-2 ${
                       highlighted ? 'bg-[#316ac5] text-white' : 'hover:bg-[#e0e8f0] text-gray-800'

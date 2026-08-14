@@ -6,7 +6,7 @@ import type { Patient } from '../src/types';
 
 const patients: Patient[] = [
   { id: 1, firstName: 'John', lastName: 'Smith', mrn: 'MRN001', dateOfBirth: '1965-03-15' },
-  { id: 2, firstName: 'Sarah', lastName: 'Johnson', mrn: 'MRN002', dateOfBirth: '1978-07-22' },
+  { id: 2, firstName: 'Sarah', lastName: 'Johnson', mrn: 'MRN002', dateOfBirth: '1978-07-22', phoneMobile: '555-0100', email: 'sarah@example.com' },
 ];
 
 describe('command palette utilities', () => {
@@ -35,5 +35,9 @@ describe('command palette utilities', () => {
     rememberRecentPatient(patients[1], testStorage);
     rememberRecentPatient(patients[0], testStorage);
     expect(getRecentPatients(testStorage).map(patient => patient.id)).toEqual([1, 2]);
+    expect(storage.get('coghealth_recent_patients')).not.toContain('sarah@example.com');
+    expect(storage.get('coghealth_recent_patients')).not.toContain('555-0100');
+    storage.set('coghealth_recent_patients', JSON.stringify([{ id: 3, name: 'Legacy, Patient', mrn: 'MRN003', dob: '01/01/1990' }]));
+    expect(getRecentPatients(testStorage)).toEqual([]);
   });
 });

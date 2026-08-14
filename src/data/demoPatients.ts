@@ -9,7 +9,7 @@ export const demoPatients: Patient[] = [
   { id: 6, mrn: 'MRN001240', firstName: 'Maria', lastName: 'Martinez', dateOfBirth: '1970-12-05', gender: 'FEMALE', active: true },
 ];
 
-export function formatPatientName(patient: Patient): string {
+export function formatPatientName(patient: Pick<Patient, 'firstName' | 'lastName'>): string {
   return `${patient.lastName}, ${patient.firstName}`;
 }
 

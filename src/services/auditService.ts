@@ -138,11 +138,12 @@ export function logPHIView(patientId: string, resourceType: string, resourceId: 
   });
 }
 
-export function logPrint(patientId?: string, documentType?: string): void {
+export function logPrint(patientId?: string, documentType?: string, details?: string): void {
   logAuditEvent('PHI_PRINT', {
     patientId,
     resourceType: documentType,
     action: 'Print initiated',
+    details,
   });
 }
 

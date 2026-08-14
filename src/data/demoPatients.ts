@@ -14,6 +14,7 @@ export function formatPatientName(patient: Patient): string {
 }
 
 export function formatPatientDob(dateOfBirth: string): string {
-  const [year, month, day] = dateOfBirth.split('-');
+  const [datePart] = dateOfBirth.split('T');
+  const [year, month, day] = datePart.split('-');
   return year && month && day ? `${month}/${day}/${year}` : dateOfBirth;
 }

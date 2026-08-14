@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 
 import { filterPatients, getRecentPatients, rememberRecentPatient } from '../src/utils/commandPalette';
+import { formatPatientDob } from '../src/data/demoPatients';
 import type { Patient } from '../src/types';
 
 const patients: Patient[] = [
@@ -14,6 +15,10 @@ describe('command palette utilities', () => {
     expect(filterPatients(patients, 'MRN002')).toEqual([patients[1]]);
     expect(filterPatients(patients, '1978-07')).toEqual([patients[1]]);
     expect(filterPatients(patients, '07/22/1978')).toEqual([patients[1]]);
+  });
+
+  it('formats API datetime values using only the date portion', () => {
+    expect(formatPatientDob('1965-03-15T00:00:00')).toBe('03/15/1965');
   });
 
   it('stores recent patients newest first and deduplicated', () => {

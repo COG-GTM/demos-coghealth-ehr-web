@@ -21,7 +21,7 @@ export function filterPatients(patients: Patient[], query: string): Patient[] {
   return patients.filter(patient => patientMatchesQuery(patient, query));
 }
 
-export function getRecentPatients(storage: Storage = localStorage): Patient[] {
+export function getRecentPatients(storage: Storage = sessionStorage): Patient[] {
   try {
     const value = storage.getItem(RECENT_PATIENTS_KEY);
     if (!value) return [];
@@ -37,8 +37,12 @@ export function getRecentPatients(storage: Storage = localStorage): Patient[] {
   }
 }
 
-export function rememberRecentPatient(patient: Patient, storage: Storage = localStorage): Patient[] {
+export function rememberRecentPatient(patient: Patient, storage: Storage = sessionStorage): Patient[] {
   const recent = [patient, ...getRecentPatients(storage).filter(item => item.id !== patient.id)].slice(0, MAX_RECENT_PATIENTS);
   storage.setItem(RECENT_PATIENTS_KEY, JSON.stringify(recent));
   return recent;
+}
+
+export function clearRecentPatients(storage: Storage = sessionStorage): void {
+  storage.removeItem(RECENT_PATIENTS_KEY);
 }

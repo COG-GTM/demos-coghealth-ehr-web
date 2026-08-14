@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, Printer, Search, Shield, UserRound, X, type LucideIcon } from 'lucide-react';
 import { navItems } from '../../data/navigation';
 import { demoPatients, formatPatientDob, formatPatientName } from '../../data/demoPatients';
 import { filterPatients, getRecentPatients, rememberRecentPatient } from '../../utils/commandPalette';
 import { patientService } from '../../services/patientService';
-import { logPatientAccess, logPatientSearch } from '../../services/auditService';
+import { logPatientAccess, logPatientSearch, logPrint } from '../../services/auditService';
 import type { Patient } from '../../types';
 
 interface ClinicalCommandPaletteProps {
@@ -24,20 +24,22 @@ interface IndexedItem {
 }
 
 export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPaletteProps) {
+  const location = useLocation();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const requestIdRef = useRef(0);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const auditTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [patients, setPatients] = useState<Patient[]>([]);
   const [recentPatients, setRecentPatients] = useState<Patient[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [isSearching, setIsSearching] = useState(false);
+  const [pendingPrint, setPendingPrint] = useState(false);
 
   const close = useCallback(() => {
+    requestIdRef.current += 1;
     setIsOpen(false);
     setQuery('');
     setPatients([]);
@@ -80,6 +82,7 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
     if (!isOpen) return;
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     if (!query.trim()) {
+      requestIdRef.current += 1;
       return;
     }
     const requestId = ++requestIdRef.current;
@@ -87,11 +90,16 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
       patientService.search(query).then(response => {
         if (requestId !== requestIdRef.current) return;
         const apiPatients = response.content ?? [];
-        setPatients(apiPatients.length > 0 ? apiPatients : filterPatients(demoPatients, query));
+        setHighlightedIndex(0);
+        setPatients(apiPatients);
+        logPatientSearch(query.trim(), apiPatients.length);
         setIsSearching(false);
       }).catch(() => {
         if (requestId !== requestIdRef.current) return;
-        setPatients(filterPatients(demoPatients, query));
+        const fallbackPatients = filterPatients(demoPatients, query);
+        setHighlightedIndex(0);
+        setPatients(fallbackPatients);
+        logPatientSearch(query.trim(), fallbackPatients.length);
         setIsSearching(false);
       });
     }, 250);
@@ -100,23 +108,23 @@ export default function ClinicalCommandPalette({ onLogout }: ClinicalCommandPale
     };
   }, [isOpen, query]);
 
-  useEffect(() => {
-    if (!isOpen || !query.trim()) return;
-    if (auditTimerRef.current) clearTimeout(auditTimerRef.current);
-    auditTimerRef.current = setTimeout(() => logPatientSearch(query.trim(), patients.length), 350);
-    return () => {
-      if (auditTimerRef.current) clearTimeout(auditTimerRef.current);
-    };
-  }, [isOpen, patients.length, query]);
-
   useEffect(() => () => {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    if (auditTimerRef.current) clearTimeout(auditTimerRef.current);
   }, []);
+
+  useEffect(() => {
+    if (!pendingPrint || isOpen) return;
+    const timer = setTimeout(() => {
+      logPrint(undefined, 'Clinical Command Palette', `Route: ${location.pathname}${location.search}`);
+      window.print();
+      setPendingPrint(false);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [isOpen, location.pathname, location.search, pendingPrint]);
 
   const actions = useMemo<ActionItem[]>(() => [
     { kind: 'action', label: 'View Audit Log', icon: Shield, run: () => navigate('/settings') },
-    { kind: 'action', label: 'Print current view', icon: Printer, run: () => window.print() },
+    { kind: 'action', label: 'Print current view', icon: Printer, run: () => setPendingPrint(true) },
     { kind: 'action', label: 'Lock session / Logout', icon: LogOut, run: onLogout },
   ], [navigate, onLogout]);
 

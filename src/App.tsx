@@ -23,6 +23,7 @@ import ClinicalCommandPalette from './components/ui/ClinicalCommandPalette';
 import { logLogout } from './services/auditService';
 import { demoPatients, formatPatientDob, formatPatientName } from './data/demoPatients';
 import { navItems } from './data/navigation';
+import { clearRecentPatients } from './utils/commandPalette';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
@@ -252,6 +253,7 @@ function App() {
   }, []);
 
   const performLogout = (reason: 'manual' | 'timeout' = 'manual') => {
+    clearRecentPatients();
     logLogout(reason);
     window.location.reload();
   };

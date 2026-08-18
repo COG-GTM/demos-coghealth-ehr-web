@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import type { VitalReading } from '../types';
+import { computeMews, riskLevel } from '../utils/mews';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -33,6 +34,8 @@ export default function VitalsPage() {
   const [showAddVitals, setShowAddVitals] = useState(false);
   const [dateRange, setDateRange] = useState<'24h' | '48h' | '7d' | '30d'>('48h');
   const [selectedPatient] = useState(patientInfo);
+  const mewsReadings = vitals.map(computeMews);
+  const latestMews = mewsReadings[0];
 
   const getValueStatus = (key: string, value: number | undefined) => {
     if (value === undefined) return 'normal';
@@ -91,7 +94,7 @@ export default function VitalsPage() {
     const max = Math.max(...values);
     const range = max - min || 1;
     const height = 20;
-    const width = 60;
+    const width = 80;
     
     const points = values.map((v, i) => {
       const x = (i / (values.length - 1)) * width;
@@ -100,11 +103,11 @@ export default function VitalsPage() {
     }).join(' ');
 
     const vital = vitalSigns.find(v => v.key === vitalKey);
-    const lastValue = values[0];
+    const lastValue = values[values.length - 1];
     const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
 
     return (
-      <svg width={width} height={height} className="inline-block ml-1">
+      <svg width={width} height={height} className="inline-block ml-1 align-middle" aria-label={`${vital?.name ?? vitalKey} trend`}>
         <polyline
           points={points}
           fill="none"
@@ -165,12 +168,18 @@ export default function VitalsPage() {
           </div>
         </div>
 
+        {latestMews && riskLevel(latestMews.score) !== 'low' && (
+          <div className={`mx-1 my-1 flex items-center gap-1 px-2 py-1 font-semibold ${riskLevel(latestMews.score) === 'high' ? 'ehr-alert-critical' : 'ehr-alert-warning'}`}>
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>EARLY WARNING: MEWS {latestMews.score} ({riskLevel(latestMews.score).toUpperCase()}) — consider rapid response evaluation</span>
+          </div>
+        )}
+
         <div className="flex-1 overflow-auto bg-white border border-gray-400">
           <table className="w-full text-[11px]">
             <thead className="sticky top-0">
               <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
                 <th className="text-left px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
-                <th className="text-center px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] min-w-[50px]">Trend</th>
                 {vitals.map((reading) => (
                   <th key={reading.id} className="text-center px-2 py-1 border border-gray-400 min-w-[80px]">
                     <div className="text-[10px] font-normal text-gray-600">{reading.timestamp.split(' ')[0]}</div>
@@ -183,14 +192,14 @@ export default function VitalsPage() {
               {vitalSigns.map((vital, vitalIdx) => (
                 <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}>
                   <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">
-                    <div>{vital.name}</div>
+                    <div className="flex items-center">
+                      <span>{vital.name}</span>
+                      <Sparkline
+                        data={vitals.slice().reverse().map(r => r[vital.key] as number | undefined)}
+                        vitalKey={vital.key}
+                      />
+                    </div>
                     <div className="text-[9px] text-gray-500 font-normal">{vital.unit} ({vital.normalRange.min}-{vital.normalRange.max})</div>
-                  </td>
-                  <td className="px-2 py-1 border border-gray-300 text-center">
-                    <Sparkline 
-                      data={vitals.map(r => r[vital.key] as number | undefined)} 
-                      vitalKey={vital.key}
-                    />
                   </td>
                   {vitals.map((reading, readingIdx) => {
                     const value = reading[vital.key] as number | undefined;
@@ -218,9 +227,25 @@ export default function VitalsPage() {
                   })}
                 </tr>
               ))}
+              <tr className="bg-[#eef3f8]">
+                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-[#eef3f8] z-10">MEWS</td>
+                {mewsReadings.map((mews, readingIdx) => {
+                  const level = riskLevel(mews.score);
+                  const componentTitle = `Systolic BP: ${mews.components.systolic}; Heart rate: ${mews.components.heartRate}; Resp rate: ${mews.components.respiratoryRate}; Temperature: ${mews.components.temperature}`;
+                  return (
+                    <td
+                      key={vitals[readingIdx].id}
+                      className="px-2 py-1 border border-gray-300 text-center font-semibold cursor-help"
+                      style={getStatusStyle(level === 'high' ? 'critical' : level === 'medium' ? 'abnormal' : 'normal')}
+                      title={componentTitle}
+                    >
+                      {mews.score} <span className="text-[9px] font-normal">({level.toUpperCase()})</span>
+                    </td>
+                  );
+                })}
+              </tr>
               <tr className="bg-gray-100">
                 <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Recorded By</td>
-                <td className="px-2 py-1 border border-gray-300"></td>
                 {vitals.map((reading) => (
                   <td key={reading.id} className="px-2 py-1 border border-gray-300 text-center text-[10px] text-gray-600">
                     {reading.recordedBy}
@@ -229,7 +254,6 @@ export default function VitalsPage() {
               </tr>
               <tr className="bg-gray-100">
                 <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Location</td>
-                <td className="px-2 py-1 border border-gray-300"></td>
                 {vitals.map((reading) => (
                   <td key={reading.id} className="px-2 py-1 border border-gray-300 text-center text-[10px] text-gray-600">
                     {reading.location}

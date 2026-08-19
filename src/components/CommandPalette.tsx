@@ -87,6 +87,7 @@ export function CommandPalette({
   const [recentItems, setRecentItems] = useState<StoredRecentItem[]>(readRecentItems);
   const [requestedActiveIndex, setRequestedActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const activeRowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -109,24 +110,22 @@ export function CommandPalette({
 
   const sections = useMemo<PaletteSection[]>(() => {
     if (!normalizedQuery) {
-      const patientRows: PaletteRow[] = recentItems.flatMap(item => {
-        if (item.type !== 'patient') return [];
-        const patient = demoPatients.find(candidate => String(candidate.id) === item.id);
-        return patient
-          ? [{
-              key: `patient-${patient.id}`,
-              type: 'patient',
-              id: String(patient.id),
-              title: patient.name,
-              subtitle: `${patient.mrn} • DOB: ${patient.dob}`,
-              icon: User,
-              patient,
-              path: `/patients/${patient.id}`,
-            }]
-          : [];
-      });
-      const destinationRows: PaletteRow[] = recentItems.flatMap(item => {
-        if (item.type !== 'destination') return [];
+      const recentRows: PaletteRow[] = recentItems.flatMap((item): PaletteRow[] => {
+        if (item.type === 'patient') {
+          const patient = demoPatients.find(candidate => String(candidate.id) === item.id);
+          return patient
+            ? [{
+                key: `patient-${patient.id}`,
+                type: 'patient',
+                id: String(patient.id),
+                title: patient.name,
+                subtitle: `${patient.mrn} • DOB: ${patient.dob}`,
+                icon: User,
+                patient,
+                path: `/patients/${patient.id}`,
+              }]
+            : [];
+        }
         const destination = navigationItems.find(candidate => candidate.path === item.path);
         return [{
           key: `destination-${item.id}-${item.path}`,
@@ -139,7 +138,7 @@ export function CommandPalette({
           path: item.path,
         }];
       });
-      return [{ title: 'Recent', rows: [...patientRows, ...destinationRows] }];
+      return [{ title: 'Recent', rows: recentRows }];
     }
 
     const patientRows: PaletteRow[] = demoPatients
@@ -158,7 +157,10 @@ export function CommandPalette({
         path: `/patients/${patient.id}`,
       }));
     const destinationRows: PaletteRow[] = navigationItems
-      .filter(item => item.label.toLowerCase().includes(normalizedQuery))
+      .filter(item =>
+        item.label.toLowerCase().includes(normalizedQuery) ||
+        item.path.toLowerCase().includes(normalizedQuery)
+      )
       .map(item => ({
         key: `destination-${item.path}`,
         type: 'destination',
@@ -194,6 +196,10 @@ export function CommandPalette({
 
   const rows = sections.flatMap(section => section.rows);
   const activeIndex = rows.length > 0 ? Math.min(requestedActiveIndex, rows.length - 1) : 0;
+
+  useEffect(() => {
+    activeRowRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [activeIndex]);
 
   const rememberItem = (item: StoredRecentItem) => {
     setRecentItems(writeRecentItem(item));
@@ -308,6 +314,7 @@ export function CommandPalette({
                       <div
                         key={row.key}
                         id={`palette-row-${row.key}`}
+                        ref={isActive ? activeRowRef : undefined}
                         role="option"
                         aria-selected={isActive}
                         onMouseEnter={() => setRequestedActiveIndex(rowIndex)}

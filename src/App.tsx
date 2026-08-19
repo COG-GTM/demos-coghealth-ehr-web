@@ -1,11 +1,5 @@
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  Users, 
-  Calendar, 
-  Pill, 
-  FileText, 
-  Settings,
-  LayoutDashboard,
   Menu,
   X,
   User,
@@ -13,10 +7,8 @@ import {
   Search,
   Lock,
   Shield,
-  FlaskConical,
-  Activity
 } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
 import PatientChartPage from './pages/PatientChartPage';
 import DashboardPage from './pages/DashboardPage';
@@ -27,19 +19,14 @@ import SettingsPage from './pages/SettingsPage';
 import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
-import { logLogout } from './services/auditService';
+import { CommandPalette } from './components/CommandPalette';
+import type { PaletteAction } from './data/commandPalette';
+import { demoPatients, type DemoPatient } from './data/patients';
+import { navigationItems, type NavigationItem } from './navigation';
+import { logLogout, logPatientAccess, logPatientSearch } from './services/auditService';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
-
-const defaultPatientSearch = [
-  { id: 1, name: 'Smith, John', mrn: 'MRN001234', dob: '03/15/1965' },
-  { id: 2, name: 'Johnson, Sarah', mrn: 'MRN001235', dob: '07/22/1978' },
-  { id: 3, name: 'Williams, Michael', mrn: 'MRN001236', dob: '11/08/1952' },
-  { id: 4, name: 'Brown, Emily', mrn: 'MRN001237', dob: '04/30/1989' },
-  { id: 5, name: 'Davis, Robert', mrn: 'MRN001238', dob: '08/20/1945' },
-  { id: 6, name: 'Martinez, Maria', mrn: 'MRN001240', dob: '12/05/1970' },
-];
 
 interface NavigationProps {
   onSessionWarning: () => void;
@@ -52,9 +39,11 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
-  const [searchResults, setSearchResults] = useState<typeof defaultPatientSearch>([]);
+  const [searchResults, setSearchResults] = useState<DemoPatient[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [sessionTime, setSessionTime] = useState(SESSION_TIMEOUT_MS);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -87,10 +76,33 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     };
   }, [resetSession]);
 
+  const closeCommandPalette = useCallback(() => {
+    setShowCommandPalette(false);
+    requestAnimationFrame(() => previousFocusRef.current?.focus());
+  }, []);
+
+  const openCommandPalette = useCallback(() => {
+    if (showCommandPalette) return;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    setShowCommandPalette(true);
+  }, [showCommandPalette]);
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() !== 'k' || (!event.ctrlKey && !event.metaKey)) return;
+      event.preventDefault();
+      if (!showCommandPalette) openCommandPalette();
+    };
+    document.addEventListener('keydown', handleShortcut);
+    return () => document.removeEventListener('keydown', handleShortcut);
+  }, [openCommandPalette, showCommandPalette]);
+
   const handleSearch = (query: string) => {
     setGlobalSearch(query);
     if (query.length >= 2) {
-      const results = defaultPatientSearch.filter(p =>
+      const results = demoPatients.filter(p =>
         p.name.toLowerCase().includes(query.toLowerCase()) ||
         p.mrn.toLowerCase().includes(query.toLowerCase())
       );
@@ -108,22 +120,32 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     navigate(`/patients/${patientId}`);
   };
 
+  const selectPalettePatient = (patient: DemoPatient, query: string, resultCount: number) => {
+    closeCommandPalette();
+    logPatientAccess(String(patient.id), patient.mrn, patient.name);
+    logPatientSearch(query, resultCount);
+    navigate(`/patients/${patient.id}`);
+  };
+
+  const selectPaletteDestination = (destination: NavigationItem) => {
+    closeCommandPalette();
+    navigate(destination.path);
+  };
+
+  const selectPaletteAction = (action: PaletteAction) => {
+    closeCommandPalette();
+    if (action.path) {
+      navigate(action.path);
+    } else if (action.id === 'logout') {
+      onLogout();
+    }
+  };
+
   const formatSessionTime = () => {
     const mins = Math.floor(sessionTime / 60000);
     const secs = Math.floor((sessionTime % 60000) / 1000);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
-  const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/patients', icon: Users, label: 'Patients' },
-    { path: '/schedule', icon: Calendar, label: 'Schedule' },
-    { path: '/labs', icon: FlaskConical, label: 'Lab Results' },
-    { path: '/vitals', icon: Activity, label: 'Vitals' },
-    { path: '/medications', icon: Pill, label: 'Medications' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
-  ];
 
   return (
     <>
@@ -149,6 +171,14 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
                 className="bg-blue-900/50 border border-blue-400 text-white placeholder-blue-300 text-[10px] px-2 py-0.5 w-40 focus:outline-none focus:border-white"
               />
+              <button
+                type="button"
+                onClick={openCommandPalette}
+                className="ml-1 border border-blue-300 bg-blue-800/40 px-1 py-0.5 text-[9px] text-blue-100 hover:bg-blue-700"
+                aria-label="Open command palette"
+              >
+                Ctrl+K
+              </button>
             </div>
             {showSearchDropdown && searchResults.length > 0 && (
               <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50">
@@ -195,7 +225,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
       {/* Navigation Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-0.5">
-          {navItems.map((item) => {
+          {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path || 
               (item.path === '/patients' && location.pathname.startsWith('/patients/'));
@@ -230,7 +260,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-gray-300 bg-white">
           <div className="px-2 py-1 space-y-0.5">
-            {navItems.map((item) => {
+            {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               return (
@@ -251,6 +281,15 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
             })}
           </div>
         </div>
+      )}
+      {showCommandPalette && (
+        <CommandPalette
+          isOpen={showCommandPalette}
+          onClose={closeCommandPalette}
+          onSelectPatient={selectPalettePatient}
+          onSelectDestination={selectPaletteDestination}
+          onSelectAction={selectPaletteAction}
+        />
       )}
     </>
   );

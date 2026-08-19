@@ -211,17 +211,6 @@ export function CommandPalette({
       onSelectPatient(row.patient, query, rows.filter(candidate => candidate.type === 'patient').length);
       return;
     }
-    if (row.type === 'destination' && row.destination) {
-      rememberItem({
-        type: 'destination',
-        id: row.id,
-        label: row.title,
-        subtitle: row.subtitle,
-        path: row.path,
-      });
-      onSelectDestination(row.destination);
-      return;
-    }
     if (row.type === 'destination') {
       rememberItem({
         type: 'destination',
@@ -230,7 +219,7 @@ export function CommandPalette({
         subtitle: row.subtitle,
         path: row.path,
       });
-      const destination = navigationItems.find(item => item.path === row.path);
+      const destination = row.destination ?? navigationItems.find(item => item.path === row.path);
       if (destination) onSelectDestination(destination);
       return;
     }
@@ -255,12 +244,6 @@ export function CommandPalette({
     } else if (event.key === 'ArrowUp' && rows.length > 0) {
       event.preventDefault();
       setRequestedActiveIndex(() => (activeIndex - 1 + rows.length) % rows.length);
-    } else if (event.key === 'Home' && rows.length > 0) {
-      event.preventDefault();
-      setRequestedActiveIndex(0);
-    } else if (event.key === 'End' && rows.length > 0) {
-      event.preventDefault();
-      setRequestedActiveIndex(rows.length - 1);
     } else if (event.key === 'Enter' && rows[activeIndex]) {
       event.preventDefault();
       activateRow(rows[activeIndex]);

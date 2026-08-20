@@ -14,7 +14,8 @@ import {
   Lock,
   Shield,
   FlaskConical,
-  Activity
+  Activity,
+  type LucideIcon
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
@@ -26,19 +27,29 @@ import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
+import { CommandPalette } from './components/ui';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
 import { logLogout } from './services/auditService';
+import { defaultPatientSearch } from './data/patients';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
 
-const defaultPatientSearch = [
-  { id: 1, name: 'Smith, John', mrn: 'MRN001234', dob: '03/15/1965' },
-  { id: 2, name: 'Johnson, Sarah', mrn: 'MRN001235', dob: '07/22/1978' },
-  { id: 3, name: 'Williams, Michael', mrn: 'MRN001236', dob: '11/08/1952' },
-  { id: 4, name: 'Brown, Emily', mrn: 'MRN001237', dob: '04/30/1989' },
-  { id: 5, name: 'Davis, Robert', mrn: 'MRN001238', dob: '08/20/1945' },
-  { id: 6, name: 'Martinez, Maria', mrn: 'MRN001240', dob: '12/05/1970' },
+export interface NavigationItem {
+  path: string;
+  icon: LucideIcon;
+  label: string;
+}
+
+const navigationItems: NavigationItem[] = [
+  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/patients', icon: Users, label: 'Patients' },
+  { path: '/schedule', icon: Calendar, label: 'Schedule' },
+  { path: '/labs', icon: FlaskConical, label: 'Lab Results' },
+  { path: '/vitals', icon: Activity, label: 'Vitals' },
+  { path: '/medications', icon: Pill, label: 'Medications' },
+  { path: '/reports', icon: FileText, label: 'Reports' },
+  { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 interface NavigationProps {
@@ -54,6 +65,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   const [globalSearch, setGlobalSearch] = useState('');
   const [searchResults, setSearchResults] = useState<typeof defaultPatientSearch>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [sessionTime, setSessionTime] = useState(SESSION_TIMEOUT_MS);
 
   useEffect(() => {
@@ -114,17 +126,6 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/patients', icon: Users, label: 'Patients' },
-    { path: '/schedule', icon: Calendar, label: 'Schedule' },
-    { path: '/labs', icon: FlaskConical, label: 'Lab Results' },
-    { path: '/vitals', icon: Activity, label: 'Vitals' },
-    { path: '/medications', icon: Pill, label: 'Medications' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
-  ];
-
   return (
     <>
       {/* Application Header */}
@@ -170,6 +171,14 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
               </div>
             )}
           </div>
+          <button
+            type="button"
+            onClick={() => setShowCommandPalette(true)}
+            className="ehr-button px-1.5 py-0 text-[10px] text-blue-900"
+            title="Open command palette"
+          >
+            Ctrl+K
+          </button>
         </div>
         <div className="flex items-center space-x-3 text-[10px]">
           <span className="text-blue-100">Springfield Medical Center</span>
@@ -195,7 +204,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
       {/* Navigation Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-0.5">
-          {navItems.map((item) => {
+          {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path || 
               (item.path === '/patients' && location.pathname.startsWith('/patients/'));
@@ -230,7 +239,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-gray-300 bg-white">
           <div className="px-2 py-1 space-y-0.5">
-            {navItems.map((item) => {
+            {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               return (
@@ -252,6 +261,16 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
           </div>
         </div>
       )}
+
+      <CommandPalette
+        key={showCommandPalette ? 'open' : 'closed'}
+        isOpen={showCommandPalette}
+        onOpen={() => setShowCommandPalette(true)}
+        onClose={() => setShowCommandPalette(false)}
+        navigationItems={navigationItems}
+        patients={defaultPatientSearch}
+        onLogout={onLogout}
+      />
     </>
   );
 }

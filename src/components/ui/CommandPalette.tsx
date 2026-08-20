@@ -240,6 +240,7 @@ export default function CommandPalette({
                       <button
                         type="button"
                         key={item.id}
+                        ref={isHighlighted ? (el) => el?.scrollIntoView({ block: 'nearest' }) : undefined}
                         onClick={item.execute}
                         onMouseEnter={() => setHighlightedIndex(itemIndex)}
                         className={`flex w-full items-center border-b border-gray-200 px-2 py-1.5 text-left text-[11px] ${

@@ -1,7 +1,15 @@
-import { useState } from 'react';
-import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar, ShieldAlert } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import type { VitalReading } from '../types';
+import { calculateMews, compareMews, detectDeterioration, type MewsResult, type MewsTier } from '../utils/mews';
+
+const mewsTierStyle: Record<MewsTier, { background: string; color: string; border: string }> = {
+  low: { background: '#e6f4ea', color: '#1b5e20', border: '#7cb342' },
+  moderate: { background: '#fff3cd', color: '#664d00', border: '#e0a800' },
+  high: { background: '#ffe0b2', color: '#8a3b00', border: '#e07000' },
+  critical: { background: '#ffcccc', color: '#990000', border: '#cc0000' },
+};
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -27,12 +35,55 @@ const defaultVitals: VitalReading[] = [
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
 
+function Sparkline({ data, vitalKey }: { data: (number | undefined)[]; vitalKey: string }) {
+  const values = data.filter((v): v is number => v !== undefined);
+  if (values.length < 2) return null;
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const height = 20;
+  const width = 60;
+
+  const points = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * width;
+    const y = height - ((v - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
+
+  const vital = vitalSigns.find(v => v.key === vitalKey);
+  const lastValue = values[0];
+  const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
+
+  return (
+    <svg width={width} height={height} className="inline-block ml-1">
+      <polyline
+        points={points}
+        fill="none"
+        stroke={isAbnormal ? '#dc2626' : '#2563eb'}
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
 export default function VitalsPage() {
   const [vitals] = useState<VitalReading[]>(defaultVitals);
   const [selectedReading, setSelectedReading] = useState<VitalReading | null>(null);
   const [showAddVitals, setShowAddVitals] = useState(false);
   const [dateRange, setDateRange] = useState<'24h' | '48h' | '7d' | '30d'>('48h');
   const [selectedPatient] = useState(patientInfo);
+
+  const mewsByReading = useMemo(
+    () => new Map(vitals.map(reading => [reading.id, calculateMews(reading)])),
+    [vitals]
+  );
+  const deterioration = useMemo(() => detectDeterioration(vitals), [vitals]);
+  const latestMews = vitals.length > 0 ? mewsByReading.get(vitals[0].id) : undefined;
+  const latestTrend =
+    vitals.length > 1 && latestMews
+      ? compareMews(latestMews, calculateMews(vitals[1]))
+      : null;
 
   const getValueStatus = (key: string, value: number | undefined) => {
     if (value === undefined) return 'normal';
@@ -83,38 +134,6 @@ export default function VitalsPage() {
     return null;
   };
 
-  const Sparkline = ({ data, vitalKey }: { data: (number | undefined)[]; vitalKey: string }) => {
-    const values = data.filter((v): v is number => v !== undefined);
-    if (values.length < 2) return null;
-    
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
-    const height = 20;
-    const width = 60;
-    
-    const points = values.map((v, i) => {
-      const x = (i / (values.length - 1)) * width;
-      const y = height - ((v - min) / range) * height;
-      return `${x},${y}`;
-    }).join(' ');
-
-    const vital = vitalSigns.find(v => v.key === vitalKey);
-    const lastValue = values[0];
-    const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
-
-    return (
-      <svg width={width} height={height} className="inline-block ml-1">
-        <polyline
-          points={points}
-          fill="none"
-          stroke={isAbnormal ? '#dc2626' : '#2563eb'}
-          strokeWidth="1.5"
-        />
-      </svg>
-    );
-  };
-
   return (
     <div className="h-full flex flex-col overflow-hidden p-2">
       <div className="ehr-panel flex-1 flex flex-col overflow-hidden">
@@ -140,6 +159,51 @@ export default function VitalsPage() {
             </button>
           </div>
         </div>
+
+        {latestMews && (
+          <div
+            className="flex items-center justify-between px-2 py-1 border-b"
+            style={{
+              background: mewsTierStyle[latestMews.tier].background,
+              borderBottomColor: mewsTierStyle[latestMews.tier].border,
+              color: mewsTierStyle[latestMews.tier].color,
+            }}
+          >
+            <div className="flex items-center space-x-2 text-[11px]">
+              <ShieldAlert className="w-4 h-4" />
+              <span className="font-bold">MEWS {latestMews.total}</span>
+              <span className="font-semibold">{latestMews.tierLabel}</span>
+              {latestTrend && (
+                <span className="flex items-center">
+                  {latestTrend.direction === 'rising' && <TrendingUp className="w-3 h-3 mr-0.5" />}
+                  {latestTrend.direction === 'falling' && <TrendingDown className="w-3 h-3 mr-0.5" />}
+                  {latestTrend.direction === 'stable' && <Minus className="w-3 h-3 mr-0.5" />}
+                  {latestTrend.delta > 0 ? `+${latestTrend.delta}` : latestTrend.delta} vs prior
+                </span>
+              )}
+              <span className="opacity-70">|</span>
+              <span>{latestMews.recommendation}</span>
+              <span className="opacity-70">|</span>
+              <span>Monitoring: {latestMews.monitoringFrequency}</span>
+            </div>
+            <button
+              className="ehr-button text-[10px]"
+              onClick={() => setSelectedReading(vitals[0])}
+            >
+              View Breakdown
+            </button>
+          </div>
+        )}
+
+        {deterioration && (
+          <div className="flex items-center space-x-2 px-2 py-1 border-b border-[#cc0000] bg-[#ffe8e8] text-[11px] text-[#990000]">
+            <AlertTriangle className="w-4 h-4" />
+            <span className="font-bold">Deterioration Alert:</span>
+            <span>{deterioration.reason}</span>
+            <span className="opacity-70">|</span>
+            <span className="font-semibold">{deterioration.current.recommendation}</span>
+          </div>
+        )}
 
         <div className="ehr-toolbar flex items-center justify-between py-1">
           <div className="flex items-center space-x-3">
@@ -218,6 +282,33 @@ export default function VitalsPage() {
                   })}
                 </tr>
               ))}
+              <tr>
+                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-white z-10">
+                  <div>MEWS</div>
+                  <div className="text-[9px] text-gray-500 font-normal">early warning score</div>
+                </td>
+                <td className="px-2 py-1 border border-gray-300 text-center">
+                  <Sparkline
+                    data={vitals.map(reading => mewsByReading.get(reading.id)?.total)}
+                    vitalKey="mews"
+                  />
+                </td>
+                {vitals.map(reading => {
+                  const mews = mewsByReading.get(reading.id) as MewsResult;
+                  const style = mewsTierStyle[mews.tier];
+                  return (
+                    <td
+                      key={reading.id}
+                      className="px-2 py-1 border border-gray-300 text-center cursor-pointer"
+                      style={{ background: style.background, color: style.color, fontWeight: 'bold' }}
+                      title={`${mews.tierLabel} - ${mews.recommendation}`}
+                      onClick={() => setSelectedReading(reading)}
+                    >
+                      <span className="font-mono">{mews.total}</span>
+                    </td>
+                  );
+                })}
+              </tr>
               <tr className="bg-gray-100">
                 <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Recorded By</td>
                 <td className="px-2 py-1 border border-gray-300"></td>
@@ -267,6 +358,53 @@ export default function VitalsPage() {
                 <div><span className="text-gray-500">Location:</span> <span className="ml-1">{selectedReading.location}</span></div>
               </div>
             </fieldset>
+            {(() => {
+              const mews = mewsByReading.get(selectedReading.id) as MewsResult;
+              const style = mewsTierStyle[mews.tier];
+              return (
+                <fieldset className="ehr-fieldset">
+                  <legend>Early Warning Score (MEWS)</legend>
+                  <div
+                    className="flex items-center justify-between px-2 py-1 mb-2 border text-[11px]"
+                    style={{ background: style.background, color: style.color, borderColor: style.border }}
+                  >
+                    <span className="font-bold">Total MEWS: {mews.total}</span>
+                    <span className="font-semibold">{mews.tierLabel}</span>
+                    <span>Monitoring: {mews.monitoringFrequency}</span>
+                  </div>
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr className="bg-[#f0f0f0]">
+                        <th className="text-left px-2 py-0.5 border border-gray-300">Parameter</th>
+                        <th className="text-right px-2 py-0.5 border border-gray-300">Value</th>
+                        <th className="text-center px-2 py-0.5 border border-gray-300">Band</th>
+                        <th className="text-center px-2 py-0.5 border border-gray-300">Points</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {mews.components.map(component => (
+                        <tr key={component.key}>
+                          <td className="px-2 py-0.5 border border-gray-300">{component.label}</td>
+                          <td className="px-2 py-0.5 border border-gray-300 text-right font-mono">
+                            {component.value !== undefined
+                              ? `${component.key === 'temperature' ? component.value.toFixed(1) : component.value} ${component.unit}`
+                              : '-'}
+                          </td>
+                          <td className="px-2 py-0.5 border border-gray-300 text-center text-gray-600">{component.band}</td>
+                          <td className="px-2 py-0.5 border border-gray-300 text-center font-mono font-semibold">{component.score}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="mt-2 text-[11px] font-semibold">{mews.recommendation}</div>
+                  {mews.missing.length > 0 && (
+                    <div className="mt-1 text-[10px] text-gray-600">
+                      Not recorded (scored as 0): {mews.missing.join(', ')}
+                    </div>
+                  )}
+                </fieldset>
+              );
+            })()}
             <fieldset className="ehr-fieldset">
               <legend>Vital Signs</legend>
               <div className="grid grid-cols-2 gap-2 text-[11px]">

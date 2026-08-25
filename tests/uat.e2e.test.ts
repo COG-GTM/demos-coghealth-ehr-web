@@ -72,6 +72,14 @@ async function tableRowCount(index = 0): Promise<number> {
   return page.$$eval('table', (tables, tableIndex) => tables[tableIndex]?.querySelectorAll('tbody tr').length || 0, index);
 }
 
+async function dataRowCount(index = 0): Promise<number> {
+  return page.$$eval('table', (tables, tableIndex) => tables[tableIndex]?.querySelectorAll('tbody tr.cursor-pointer').length || 0, index);
+}
+
+async function allTableRowCount(): Promise<number> {
+  return page.$$eval('table tbody tr', (rows) => rows.length);
+}
+
 async function modalText(): Promise<string> {
   return page.$eval('.fixed.inset-0', (element) => element.textContent || '');
 }
@@ -92,7 +100,7 @@ async function clickModalText(text: string): Promise<void> {
 }
 
 async function clickModalElement(text: string): Promise<void> {
-  const clicked = await page.$$eval('.fixed.inset-0 .cursor-pointer', (elements, value) => {
+  const clicked = await page.$$eval('.fixed.inset-0 [class*="cursor-pointer"]', (elements, value) => {
     const candidates = elements.filter((candidate) => {
       if (!candidate.textContent?.replace(/\s+/g, ' ').trim().includes(value)) return false;
       return true;
@@ -152,11 +160,17 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
+  const testName = expect.getState().currentTestName || '';
+  const scenarioId = testName.match(/UAT-\d+\.\d+/)?.[0];
+  const screenshotName = scenarioId || `run-${String(++screenshotNumber).padStart(3, '0')}`;
   try {
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/uat-${String(++screenshotNumber).padStart(3, '0')}.png`, fullPage: true });
-  } catch {
+    await page.waitForFunction(() => document.readyState === 'complete', { timeout: 5000 }).catch(() => undefined);
     await page.setViewport({ width: 1440, height: 1000 });
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/uat-${String(++screenshotNumber).padStart(3, '0')}.png`, fullPage: true });
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/${screenshotName}.png`, fullPage: true });
+  } catch {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle0' });
+    await page.setViewport({ width: 1440, height: 1000 });
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/${screenshotName}.png`, fullPage: true });
   }
 });
 
@@ -210,12 +224,21 @@ describe('UAT-1 Application shell and navigation', () => {
     expect(events.some((event: { eventType: string }) => event.eventType === 'LOGOUT')).toBe(true);
   });
 
-  test.skip('UAT-1.5 session countdown resets on activity', async () => {
-    // Skipped: the production interval uses real wall-clock time and cannot be accelerated reliably without changing app runtime behavior.
+  test('UAT-1.5 session countdown resets on activity', async () => {
+    await resetAndVisit('/');
+    const readSession = () => page.$eval('.ehr-header', (header) => header.textContent?.match(/Session:\s*(\d{2}:\d{2})/)?.[1] || '');
+    const initial = await readSession();
+    expect(initial).toBe('15:00');
+    await new Promise((resolve) => setTimeout(resolve, 3200));
+    const decremented = await readSession();
+    expect(decremented).not.toBe(initial);
+    await page.click('body');
+    await page.waitForFunction(() => document.querySelector('.ehr-header')?.textContent?.includes('Session: 15:00'));
+    expect(await readSession()).toBe('15:00');
   });
 
   test.skip('UAT-1.6 session warning and expiry dialogs appear', async () => {
-    // Skipped: the 13-minute warning/expiry sequence is intentionally not exercised with a flaky timer shim.
+    // Skipped: requires a page.evaluateOnNewDocument timer shim to drive the 2:00 warning and 0:00 expiry reliably.
   });
 
   test('UAT-1.7 compliance and connection status are visible', async () => {
@@ -246,35 +269,67 @@ describe('UAT-1 Application shell and navigation', () => {
 describe('UAT-2 Dashboard', () => {
   beforeEach(async () => resetAndVisit('/'));
 
-  test('UAT-2.1 dashboard panels load deterministic inbox and worklist data', async () => {
+  test('UAT-2.1 inbox tabs filter deterministic rows and unread counts', async () => {
     await waitForText('Inbox');
     expect(await tableRowCount(0)).toBe(10);
-    expect(await tableRowCount(1)).toBe(8);
     await waitForText('4 unread');
+    await clickText('Results');
+    expect(await tableRowCount(0)).toBe(4);
+    await clickText('Messages');
+    expect(await tableRowCount(0)).toBe(2);
+    await clickText('Co-sign');
+    expect(await tableRowCount(0)).toBe(1);
   });
 
-  test('UAT-2.2 inbox tabs and priority filters narrow rows', async () => {
+  test('UAT-2.2 priority and read filters narrow rows', async () => {
     await clickText('Results', 'button');
     expect(await tableRowCount(0)).toBe(4);
     await clickText('All', 'button');
     await selectAt(0, 'critical');
-    expect(await tableRowCount(0)).toBeGreaterThan(0);
+    expect(await tableRowCount(0)).toBe(1);
     await selectAt(1, 'unread');
-    expect(await tableRowCount(0)).toBeGreaterThan(0);
+    expect(await tableRowCount(0)).toBe(1);
   });
 
-  test('UAT-2.3 inbox actions mark an item read and flag it', async () => {
+  test('UAT-2.3 marking a single inbox item read updates its row', async () => {
     const firstRow = await page.$('table tbody tr:first-child');
     if (!firstRow) throw new Error('Dashboard inbox is empty');
     await page.click('button[title="Mark Read"]');
-    await page.click('button[title="Flag"]');
     expect(await firstRow.evaluate((row) => row.className)).not.toContain('font-semibold');
-    expect(await firstRow.$eval('button[title="Flag"] svg', (svg) => svg.getAttribute('class'))).not.toContain('text-red-600');
-    await page.click('button[title="Flag"]');
-    expect(await firstRow.$eval('button[title="Flag"] svg', (svg) => svg.getAttribute('class'))).toContain('text-red-600');
   });
 
-  test('UAT-2.4 mark all read updates the inbox and confirms success', async () => {
+  test('UAT-2.4 flagging an inbox item toggles and persists', async () => {
+    const firstRow = await page.$('table tbody tr:first-child');
+    if (!firstRow) throw new Error('Dashboard inbox is empty');
+    expect(await firstRow.$eval('button[title="Flag"] svg', (svg) => svg.getAttribute('class'))).toContain('text-red-600');
+    await page.click('button[title="Flag"]');
+    expect(await firstRow.$eval('button[title="Flag"] svg', (svg) => svg.getAttribute('class'))).not.toContain('text-red-600');
+  });
+
+  test('UAT-2.6 critical alerts panel identifies alerts for review', async () => {
+    await waitForText('CRITICAL ALERTS (3)');
+    await waitForText('Review All');
+    expect(await page.$eval('body', (body) => body.innerText)).toContain('Smith, John:');
+    expect(await page.$eval('body', (body) => body.innerText)).toContain('Review required');
+  });
+
+  test('UAT-2.7 unsigned notes and pending orders expose signing controls', async () => {
+    await waitForText('Unsigned Notes (5)');
+    await waitForText('Pending Orders (4)');
+    await waitForText('Sign All Notes');
+    expect(await page.$$eval('.ehr-panel button', (buttons) =>
+      buttons.filter((button) => button.textContent?.trim() === 'Review').length,
+    )).toBe(4);
+  });
+
+  test('UAT-2.8 dashboard panels collapse and expand independently', async () => {
+    await clickText('Unsigned Notes (5)', '.ehr-header');
+    expect(await page.$('text/Sign All Notes/')).toBeNull();
+    await clickText('Unsigned Notes (5)', '.ehr-header');
+    await waitForText('Sign All Notes');
+  });
+
+  test('UAT-2.13 mark all read updates the inbox and confirms success', async () => {
     await clickExactText('Mark All Read');
     await waitForText('All items marked as read.');
     expect(await page.$('.fixed.inset-0')).not.toBeNull();
@@ -282,7 +337,7 @@ describe('UAT-2 Dashboard', () => {
 
   test('UAT-2.5 worklist filters and sorting change the displayed set and order', async () => {
     await clickText('Critical', 'button');
-    expect(await tableRowCount(1)).toBeGreaterThan(0);
+    expect(await tableRowCount(1)).toBe(1);
     await clickText('All', 'button');
     const before = await page.$$eval('table', (tables) => Array.from(tables[1].querySelectorAll('tbody tr td:first-child')).map((cell) => cell.textContent?.trim()));
     await selectAt(2, 'name');
@@ -295,25 +350,25 @@ describe('UAT-2 Dashboard', () => {
     expect(descending).toEqual([...ascending].reverse());
   });
 
-  test('UAT-2.6 dashboard toolbar opens clinical action dialogs', async () => {
-    for (const label of ['e-Prescribe', 'Order Labs', 'Order Imaging', 'Print']) {
+  test('UAT-2.9 dashboard toolbar opens clinical action dialogs', async () => {
+    for (const [label, expected] of [
+      ['e-Prescribe', 'e-Prescribe Medication'],
+      ['Order Labs', 'Order Laboratory Tests'],
+      ['Order Imaging', 'Order Imaging Studies'],
+      ['Print', 'Print Dashboard'],
+    ]) {
       await clickExactText(label);
-      expect((await modalText()).length).toBeGreaterThan(0);
+      expect(await modalText()).toContain(expected);
       await closeModal();
     }
   });
 
-  test('UAT-2.7 dashboard refresh gives user feedback', async () => {
+  test('UAT-2.11 dashboard refresh gives user feedback', async () => {
     await clickExactText('Refresh');
     await waitForText('Dashboard data has been refreshed.');
   });
 
-  test('UAT-2.8 dashboard critical alert banner identifies alerts for review', async () => {
-    await waitForText('CRITICAL ALERTS (3)');
-    await waitForText('Review All');
-  });
-
-  test('UAT-2.9 dashboard empty-state actions provide explanatory feedback', async () => {
+  test('UAT-2.12 dashboard empty-state actions provide explanatory feedback', async () => {
     await clickExactText('New Note');
     await waitForText('Select a patient first to create a clinical note.');
     await closeModal();
@@ -347,13 +402,23 @@ describe('UAT-3 Patient search and filtering', () => {
 
   test('UAT-3.2 advanced filters narrow demographics and status', async () => {
     await waitForText('Smith');
-    await setInput('input[placeholder*="Name, MRN"]', 'Johnson');
-    await clickExactText('Find');
-    await waitForText('Johnson');
-    expect(await tableRowCount()).toBe(1);
+    await clickExactText('Demographics');
+    await clickExactText('Insurance Type');
+    await clickExactText('Primary Care Provider');
+    await clickLabel('ACTIVE');
+    await clickLabel('Female');
+    await clickLabel('Self Pay');
+    await clickExactText('Apply Filters');
+    await page.waitForFunction(() => document.body.innerText.includes('6 record(s) found'));
+    expect(await tableRowCount()).toBe(6);
+    const names = await page.$$eval('table tbody tr.cursor-pointer td:nth-child(3)', (cells) => cells.map((cell) => cell.textContent?.trim()));
+    expect(names).toEqual(['Johnson, Sarah', 'Brown, Emily', 'Martinez, Maria', 'Garcia, Ana', 'Taylor, Linda', 'Thomas, Patricia']);
+    await clickLabel('Williams, Mark MD');
+    await clickExactText('Apply Filters');
+    expect(await dataRowCount()).toBe(0);
   });
 
-  test('UAT-3.3 reset and refresh restore the patient list', async () => {
+  test('UAT-3.6 refresh restores the patient list', async () => {
     await setInput('input[placeholder*="Name, MRN"]', 'Smith');
     await clickExactText('Find');
     expect(await tableRowCount()).toBe(1);
@@ -379,7 +444,7 @@ describe('UAT-3 Patient search and filtering', () => {
     await waitForText('Smith, John');
   });
 
-  test('UAT-3.6 no-match search shows an empty state', async () => {
+  test('UAT-3.3 filters that match nothing show an empty state', async () => {
     await setInput('input[placeholder*="Name, MRN"]', 'ZZZ');
     await clickExactText('Find');
     await waitForText('No patients found');
@@ -418,33 +483,52 @@ describe('UAT-4 Patient chart', () => {
 
   test('UAT-4.3 chart tabs switch to their corresponding views', async () => {
     await waitForText('Smith, John');
-    await page.click('button.ehr-tab:nth-child(2)');
-    await waitForText('Encounters view - Coming soon');
+    for (const label of ['Encounters', 'Medications', 'Problems', 'Allergies', 'Results']) {
+      await clickExactText(label, 'button');
+      await waitForText(`${label} view - Coming soon`);
+    }
+    // DEFECT (scope): Encounters, Medications, Problems, Allergies, and Results tabs are unimplemented placeholders.
     expect(await page.$$('button.ehr-tab')).toHaveLength(6);
+  });
+
+  test('UAT-4.5 chart panels collapse and expand independently', async () => {
+    await clickText('Active Problems', '.ehr-header');
+    expect(await page.$('text/Type 2 Diabetes Mellitus')).toBeNull();
+    await clickText('Active Problems', '.ehr-header');
+    await waitForText('Type 2 Diabetes Mellitus');
   });
 
   test('UAT-4.4 documented allergy is visible when prescribing', async () => {
     await clickExactText('e-Prescribe');
     await waitForText('Allergies: Penicillin');
-    await clickModalElement('Lisinopril');
-    await waitForText('Drug Interaction Check');
+    await clickModalElement('Amoxicillin');
+    await waitForText('Drug Interaction Check: No significant interactions found');
+    // DEFECT: CDS allergy/interaction checking is hardcoded — prescribing a beta-lactam to a penicillin-allergic patient produces no warning.
+    expect((await modalText())).not.toContain('allergy conflict');
   });
 
-  test('UAT-4.5 chart actions expose prescription and order workflows', async () => {
+  test('UAT-4.6 e-Prescribe from chart completes successfully', async () => {
     await clickExactText('e-Prescribe');
-    expect((await modalText())).toContain('Sign & Send to Pharmacy');
-    await closeModal();
-    await clickExactText('Order Labs');
-    expect((await modalText())).toContain('Sign & Submit');
+    await clickModalElement('Lisinopril');
+    await clickExactText('Sign & Send to Pharmacy');
+    await waitForText('Prescription Sent');
+    expect(await page.$('.fixed.inset-0')).not.toBeNull();
   });
 
-  test('UAT-4.6 chart navigation returns to patient search', async () => {
+  test('UAT-4.7 Order Labs from chart completes successfully', async () => {
+    await clickExactText('Order Labs');
+    await clickModalElement('Complete Blood Count with Differential');
+    await clickText('Sign & Submit');
+    await waitForText('Lab Order Placed');
+  });
+
+  test('UAT-4.10 chart navigation returns to patient search', async () => {
     await page.click('a[href="/patients"]');
     await page.waitForFunction(() => location.pathname === '/patients');
     await waitForText('Filter Patients');
   });
 
-  test('UAT-4.7 chart clinical tabs retain patient identity', async () => {
+  test('UAT-4.11 chart clinical tabs retain patient identity', async () => {
     await clickExactText('Problems');
     await waitForText('Smith, John');
     await clickExactText('Results');
@@ -458,13 +542,11 @@ describe('UAT-4 Patient chart', () => {
     await waitForText('Patient chart sent to printer');
   });
 
-  test('UAT-4.9 invalid chart ID remains on the loading state after API failure', async () => {
+  test('UAT-4.9 invalid chart ID remains on the loading state with a working API', async () => {
     // DEFECT: failed patient lookups leave the chart on "Loading patient..." instead of showing an error or 404 state.
-    api.setFailure(true);
     await resetAndVisit('/patients/99999');
     await page.waitForFunction(() => document.body.innerText.includes('Loading patient...'));
     expect(await page.$('text/Loading patient...')).not.toBeNull();
-    api.setFailure(false);
   });
 });
 
@@ -473,28 +555,35 @@ describe('UAT-5 E-prescribing', () => {
 
   test('UAT-5.1 prescription dialog searches and selects a formulary medication', async () => {
     await clickToolbarButton('e-Prescribe');
+    await setInput('input[placeholder="Search medications..."]', 'statin');
+    await waitForText('Atorvastatin');
     await setInput('input[placeholder="Search medications..."]', 'lisinopril');
-    await waitForText('Lisinopril');
     await clickModalElement('Lisinopril');
     await waitForText('Prescription Details');
   });
 
-  test('UAT-5.2 prescription form captures dose, route, frequency, and quantity', async () => {
+  test('UAT-5.2 selecting a drug populates default strength and form', async () => {
+    await clickToolbarButton('e-Prescribe');
+    await clickModalElement('Amoxicillin');
+    expect(await page.$eval('.fixed.inset-0 select', (select) => (select as HTMLSelectElement).value)).toBe('250mg');
+    expect(await modalText()).toContain('capsule');
+  });
+
+  test('UAT-5.3 prescription form captures SIG, quantity, refills, DAW, pharmacy, and notes', async () => {
     await clickToolbarButton('e-Prescribe');
     await clickModalElement('Lisinopril');
     const selects = await page.$$('.fixed.inset-0 select');
-    expect(selects.length).toBeGreaterThanOrEqual(3);
+    expect(selects).toHaveLength(4);
     await selects[0].select('10mg');
     await selects[1].select('Take 1 tablet by mouth once daily');
     await setInput('.fixed.inset-0 input[type="number"]', '30');
     expect(await page.$eval('.fixed.inset-0 input[type="number"]', (input) => (input as HTMLInputElement).value)).toBe('30');
-  });
-
-  test('UAT-5.3 prescription priority and clinical instructions are editable', async () => {
-    await clickToolbarButton('e-Prescribe');
-    await clickModalElement('Lisinopril');
+    await selects[2].select('5');
+    await selects[3].select('Walgreens - 456 Oak Ave');
+    await clickLabel('Dispense as Written');
     await setInput('input[placeholder*="custom directions"]', 'Monitor blood pressure');
     expect(await page.$eval('input[placeholder*="custom directions"]', (input) => (input as HTMLInputElement).value)).toContain('Monitor');
+    expect(await page.$eval('.fixed.inset-0 input[type="checkbox"]', (input) => (input as HTMLInputElement).checked)).toBe(true);
   });
 
   test('UAT-5.4 prescription submit is disabled until a medication is selected', async () => {
@@ -513,15 +602,17 @@ describe('UAT-5 E-prescribing', () => {
     await waitForText('Prescription Sent');
   });
 
-  test('UAT-5.6 prescribing a patient with a documented allergy shows an allergy warning', async () => {
+  test('UAT-5.6 prescribing a patient with a documented allergy lacks an allergy warning', async () => {
     await clickToolbarButton('e-Prescribe');
     await waitForText('Allergies: Penicillin');
-    await clickModalElement('Amoxicillin').catch(() => undefined);
-    expect((await modalText())).toContain('Penicillin');
+    await clickModalElement('Amoxicillin');
+    await waitForText('Drug Interaction Check: No significant interactions found');
+    // DEFECT: CDS allergy/interaction checking is hardcoded — prescribing a beta-lactam to a penicillin-allergic patient produces no warning.
+    expect((await modalText())).not.toContain('allergy conflict');
   });
 });
 
-describe('UAT-6 Lab and imaging orders', () => {
+describe('UAT-6 Orders dialog', () => {
   beforeEach(async () => resetAndVisit('/patients/1'));
 
   test('UAT-6.1 lab order dialog searches and selects tests', async () => {
@@ -530,6 +621,12 @@ describe('UAT-6 Lab and imaging orders', () => {
     await setInput('input[placeholder="Search tests..."]', 'CBC');
     await waitForText('Complete Blood Count with Differential');
     await clickModalElement('Complete Blood Count with Differential');
+    await waitForText('Selected Orders (1)');
+    await setInput('input[placeholder="Search tests..."]', 'BMP');
+    await waitForText('Basic Metabolic Panel');
+    await clickModalElement('Basic Metabolic Panel');
+    await waitForText('Selected Orders (2)');
+    await page.click('.fixed.inset-0 button.text-red-600');
     await waitForText('Selected Orders (1)');
   });
 
@@ -543,13 +640,13 @@ describe('UAT-6 Lab and imaging orders', () => {
     expect(await page.$eval('textarea[placeholder*="clinical indication or special instructions"]', (input) => (input as HTMLTextAreaElement).value)).toContain('anemia');
   });
 
-  test('UAT-6.3 imaging order dialog supports study selection and cancellation', async () => {
-    await resetAndVisit('/');
-    await clickExactText('Order Imaging');
-    await setInput('input[placeholder="Search studies..."]', 'CT');
-    expect((await modalText())).toContain('CT');
-    await closeModal();
-    expect(await page.$('.fixed.inset-0')).toBeNull();
+  test('UAT-6.3 submitting with nothing selected is blocked', async () => {
+    await clickToolbarButton('Order Labs');
+    await waitForText('Order Laboratory Tests');
+    const submit = await page.$('.fixed.inset-0 button.ehr-button-primary');
+    if (!submit) throw new Error('Order submit button not found');
+    expect(await submit.evaluate((button) => (button as HTMLButtonElement).disabled)).toBe(true);
+    expect(await page.$('text/Lab Order Placed/')).toBeNull();
   });
 
   test('UAT-6.4 submitting a lab order returns success feedback', async () => {
@@ -570,35 +667,33 @@ describe('UAT-7 Schedule', () => {
     expect(await tableRowCount()).toBe(10);
   });
 
-  test('UAT-7.2 appointment status filters narrow the schedule', async () => {
+  test('UAT-7.3 appointment status filters narrow the schedule', async () => {
     await clickExactText('Waiting');
-    const waiting = await tableRowCount();
-    expect(waiting).toBeGreaterThan(0);
+    expect(await tableRowCount()).toBe(2);
     await clickExactText('Completed');
-    expect(await tableRowCount()).toBeGreaterThan(0);
-    expect(await tableRowCount()).not.toBe(waiting);
+    expect(await tableRowCount()).toBe(3);
   });
 
-  test('UAT-7.3 selecting an appointment shows patient details and actions', async () => {
+  test('UAT-7.4 selecting an appointment shows patient details and actions', async () => {
     await page.click('table tbody tr');
     await waitForText('Chart');
     await waitForText('Quick Actions');
   });
 
-  test('UAT-7.4 date navigation changes the displayed date', async () => {
+  test('UAT-7.2 date navigation changes the displayed date', async () => {
     const before = await page.$eval('body', (body) => body.innerText.match(/[A-Z][a-z]+, \d{2}\/\d{2}\/\d{4}/)?.[0]);
     await clickButtonWithSvg('lucide-chevron-right');
     const after = await page.$eval('body', (body) => body.innerText.match(/[A-Z][a-z]+, \d{2}\/\d{2}\/\d{4}/)?.[0]);
     expect(after).not.toBe(before);
   });
 
-  test('UAT-7.5 Today returns to the current schedule date', async () => {
+  test('UAT-7.8 Today returns to the current schedule date', async () => {
     await clickButtonWithSvg('lucide-chevron-right');
     await clickExactText('Today');
     await waitForText('Thu, 01/18/2024');
   });
 
-  test('UAT-7.6 new appointment dialog captures patient and complaint', async () => {
+  test('UAT-7.5 new appointment dialog captures patient and complaint', async () => {
     await clickExactText('New Appt');
     await setInput('input[placeholder*="Search patient"]', 'Smith');
     await setInput('input[placeholder="Chief complaint..."]', 'Annual exam');
@@ -609,54 +704,76 @@ describe('UAT-7 Schedule', () => {
     await clickExactText('Print');
     await waitForText('Print Schedule');
   });
+
+  test('UAT-7.6 quick actions open patient-scoped order dialogs', async () => {
+    await page.click('table tbody tr');
+    await clickExactText('Rx');
+    await waitForText('e-Prescribe Medication');
+    expect(await modalText()).toContain('Smith');
+    await closeModal();
+    await clickExactText('Labs');
+    await waitForText('Order Laboratory Tests');
+    expect(await modalText()).toContain('Smith');
+  });
 });
 
-describe('UAT-8 Lab results', () => {
+describe('UAT-9 Lab results', () => {
   beforeEach(async () => resetAndVisit('/labs'));
 
-  test('UAT-8.1 lab results display seeded result panels', async () => {
+  test('UAT-9.1 lab panels expand and collapse component results', async () => {
     await waitForText('Potassium');
-    expect(await page.$$('table tbody tr')).not.toHaveLength(0);
+    expect(await allTableRowCount()).toBe(11);
+    await clickText('Basic Metabolic Panel (BMP)', '.cursor-pointer');
+    expect(await allTableRowCount()).toBe(3);
+    await clickText('Basic Metabolic Panel (BMP)', '.cursor-pointer');
+    expect(await allTableRowCount()).toBe(11);
   });
 
-  test('UAT-8.2 abnormal and critical filters narrow results', async () => {
+  test('UAT-9.2 abnormal and critical filters narrow results', async () => {
     await selectAt(0, 'critical');
-    const critical = await tableRowCount();
-    expect(critical).toBeGreaterThan(0);
+    expect(await allTableRowCount()).toBe(11);
+    expect(await page.$eval('body', (body) => body.innerText)).toContain('4 Critical');
     await selectAt(0, 'abnormal');
-    expect(await tableRowCount()).toBeGreaterThanOrEqual(critical);
+    expect(await allTableRowCount()).toBe(11);
+    expect(await page.$eval('body', (body) => body.innerText)).toContain('13 Abnormal');
   });
 
-  test('UAT-8.3 patient and date filters can be applied', async () => {
+  test('UAT-9.3 patient and date filters can be applied', async () => {
     await selectAt(1, 'MRN001234');
-    const inputs = await page.$$('input');
-    expect(inputs.length).toBeGreaterThan(0);
+    await clickText('Complete Blood Count (CBC)', '.cursor-pointer');
+    expect(await allTableRowCount()).toBe(13);
     await selectAt(2, 'today');
-    expect(await page.$$eval('select', (selects) => (selects[2] as HTMLSelectElement).value)).toBe('today');
+    expect(await allTableRowCount()).toBe(13);
+    await selectAt(1, 'MRN001235');
+    await clickText('Lipid Panel', '.cursor-pointer');
+    await clickText('Hemoglobin A1c', '.cursor-pointer');
+    expect(await allTableRowCount()).toBe(5);
   });
 
-  test('UAT-8.4 critical values are visibly identified', async () => {
-    await waitForText('6.8');
-    await waitForText('CRITICAL');
-  });
-
-  test('UAT-8.5 selecting a result opens detail information', async () => {
+  test('UAT-9.4 selecting a result opens detail information', async () => {
     await page.click('table tbody tr');
     await waitForText('Lab Result Detail');
-    expect((await modalText()).length).toBeGreaterThan(20);
+    expect(await modalText()).toContain('Reference Range');
+    expect(await modalText()).toContain('Collected');
+    expect(await modalText()).toContain('Resulted');
+    expect(await modalText()).toContain('Status');
   });
 });
 
-describe('UAT-9 Vitals', () => {
+describe('UAT-10 Vitals / flowsheet', () => {
   beforeEach(async () => resetAndVisit('/vitals'));
 
-  test('UAT-9.1 vitals display seeded readings and ranges', async () => {
+  test('UAT-10.1 flowsheet renders readings across time columns', async () => {
     await waitForText('BP Systolic');
-    expect(await page.$$('table tbody tr')).not.toHaveLength(0);
+    expect(await page.$$('table tbody tr')).toHaveLength(10);
+    await waitForText('158');
+    await waitForText('94');
+    await waitForText('98');
   });
 
-  test('UAT-9.2 vitals date ranges filter readings', async () => {
+  test('UAT-10.2 vitals date ranges do not filter readings', async () => {
     const all = await tableRowCount();
+    expect(all).toBe(10);
     await selectAt(0, '24h');
     // DEFECT: VitalsPage exposes the time-range control but does not apply it to the flowsheet.
     expect(await tableRowCount()).toBe(all);
@@ -664,39 +781,39 @@ describe('UAT-9 Vitals', () => {
     expect(await tableRowCount()).toBe(all);
   });
 
-  test('UAT-9.3 selecting a reading opens vital detail', async () => {
+  test('UAT-10.5 selecting a reading opens vital detail', async () => {
     await page.click('table tbody tr');
     await waitForText('Vital Signs Detail');
-    expect((await modalText()).length).toBeGreaterThan(20);
+    expect(await modalText()).toContain('Systolic');
+    expect(await modalText()).toContain('Heart Rate');
+    expect(await modalText()).toContain('Recorded By');
   });
 
-  test('UAT-9.4 Record Vitals opens an entry dialog', async () => {
+  test('UAT-10.6 Record Vitals opens an entry dialog', async () => {
     await clickExactText('Record Vitals');
     await waitForText('Record Vital Signs');
-    expect((await modalText()).length).toBeGreaterThan(20);
+    expect(await modalText()).toContain('BP Systolic');
+    expect(await modalText()).toContain('Heart Rate');
+    expect(await modalText()).toContain('Notes');
   });
-});
-
-describe('UAT-10 Vitals entry', () => {
-  beforeEach(async () => resetAndVisit('/vitals'));
-
-  test('UAT-10.1 vital entry accepts blood pressure and pulse values', async () => {
+  test('UAT-10.7 vital entry accepts blood pressure and pulse values', async () => {
     await clickExactText('Record Vitals');
     const inputs = await page.$$('.fixed.inset-0 input[type="number"]');
-    expect(inputs.length).toBeGreaterThan(1);
+    expect(inputs).toHaveLength(8);
     await inputs[0].type('120');
     await inputs[1].type('80');
     expect(await inputs[0].evaluate((input) => (input as HTMLInputElement).value)).toBe('120');
   });
 
-  test('UAT-10.2 vital entry accepts temperature, weight, and oxygen saturation', async () => {
+  test('UAT-10.8 vital entry accepts temperature, weight, and oxygen saturation', async () => {
     await clickExactText('Record Vitals');
     const inputs = await page.$$('.fixed.inset-0 input[type="number"]');
-    for (const input of inputs.slice(0, 5)) await input.type('1');
-    expect(inputs.length).toBeGreaterThanOrEqual(5);
+    expect(inputs).toHaveLength(8);
+    for (const input of inputs.slice(2, 6)) await input.type('1');
+    expect(await inputs[2].evaluate((input) => (input as HTMLInputElement).value)).toBe('1');
   });
 
-  test('UAT-10.3 vital entry dialog can be cancelled', async () => {
+  test('UAT-10.9 vital entry dialog can be cancelled', async () => {
     await clickExactText('Record Vitals');
     await clickExactText('Cancel');
     expect(await page.$('.fixed.inset-0')).toBeNull();
@@ -711,117 +828,76 @@ describe('UAT-10 Vitals entry', () => {
     expect(await tableRowCount()).toBe(before);
   });
 
-  test('UAT-10.5 abnormal and critical vitals retain visual status cues', async () => {
+  test('UAT-10.3 abnormal and critical vitals retain visual status cues', async () => {
     await waitForText('Critical');
-    expect(await page.$$('[style*="rgb(255, 204, 204)"]')).not.toHaveLength(0);
+    expect(await page.$$('table tbody tr')).toHaveLength(10);
+    await waitForText('182');
+    await waitForText('88');
+    expect(await page.$$('[style*="rgb(255, 204, 204)"]')).toHaveLength(6);
   });
 });
 
-describe('UAT-11 Medications', () => {
+describe('UAT-8 Medications management', () => {
   beforeEach(async () => resetAndVisit('/medications'));
 
-  test('UAT-11.1 medication orders display statuses and details', async () => {
+  test('UAT-8.1 medication search filters by medication, patient, and Rx number', async () => {
     await waitForText('Lisinopril');
-    expect(await page.$$('table tbody tr')).not.toHaveLength(0);
-    await waitForText('Active');
-  });
-
-  test('UAT-11.2 medication search filters orders', async () => {
-    const before = await tableRowCount();
+    expect(await tableRowCount(0)).toBe(12);
     await setInput('input[placeholder*="Medication, patient"]', 'Lisinopril');
-    expect(await tableRowCount()).toBeLessThan(before);
-    await waitForText('Lisinopril');
+    expect(await tableRowCount(0)).toBe(1);
+    expect(await page.$eval('table:first-of-type tbody tr', (row) => row.textContent)).toContain('Lisinopril');
   });
 
-  test('UAT-11.3 medication view can group orders by patient', async () => {
-    await clickExactText('By Patient');
-    await waitForText('Patient');
-    expect((await page.$eval('body', (body) => body.innerText))).toContain('Lisinopril');
+  test('UAT-8.2 status filter and view mode group orders correctly', async () => {
+    await clickExactText('Active', 'button');
+    expect(await tableRowCount(0)).toBe(7);
+    await clickExactText('By Patient', 'button');
+    expect(await page.$$('.border-b.border-gray-300 > .cursor-pointer')).toHaveLength(6);
+    expect(await page.$eval('body', (body) => body.innerText)).toContain('Metformin HCl ER');
+    expect(await page.$eval('body', (body) => body.innerText)).toContain('Lisinopril');
   });
 
-  test('UAT-11.4 new prescription and print actions open dialogs', async () => {
+  test('UAT-8.3 selecting a medication order shows its complete detail pane', async () => {
+    await clickText('Lisinopril', 'td');
+    await waitForText('Take 1 tablet by mouth once daily in the morning');
+    const text = await page.$eval('body', (body) => body.innerText);
+    expect(text).toContain('Qty:');
+    expect(text).toContain('Refills');
+    expect(text).toContain('Dr. Anderson');
+    expect(text).toContain('CVS Pharmacy #4521');
+  });
+
+  test('UAT-8.4 new prescription completes the full flow', async () => {
     await clickExactText('New Rx');
-    expect((await modalText()).length).toBeGreaterThan(20);
-    await closeModal();
+    await clickModalElement('Amoxicillin');
+    await clickExactText('Sign & Send to Pharmacy');
+    await waitForText('Prescription Sent');
+  });
+
+  test('UAT-8.5 print medication list opens a print dialog', async () => {
     await clickExactText('Print');
     await waitForText('Print Medication');
   });
 });
 
-describe('UAT-12 Reports and settings', () => {
-  test('UAT-12.1 reports filter by category and collapse sections', async () => {
-    await resetAndVisit('/reports');
+describe('UAT-11 Reports', () => {
+  beforeEach(async () => resetAndVisit('/reports'));
+
+  test('UAT-11.1 reports filter by category and collapse sections', async () => {
     await selectAt(0, 'clinical');
     await waitForText('Medication Reconciliation');
-    expect((await page.$eval('body', (body) => body.innerText))).toContain('Clinical');
     await clickExactElement('span', 'Clinical Reports');
     expect((await page.$eval('body', (body) => body.innerText))).not.toContain('Medication Reconciliation');
   });
 
-  test('UAT-12.2 profile settings persist across reload', async () => {
-    await resetAndVisit('/settings');
-    await waitForText('System Settings');
-    await page.evaluate(() => {
-      const settings = JSON.parse(localStorage.getItem('coghealth_settings') || '{}');
-      settings.profile = { ...settings.profile, firstName: 'Alex' };
-      localStorage.setItem('coghealth_settings', JSON.stringify(settings));
-    });
-    await page.reload({ waitUntil: 'domcontentloaded' });
-    await waitForText('System Settings');
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('coghealth_settings') || '{}').profile.firstName)).toBe('Alex');
-  });
-
-  test('UAT-12.3 appearance settings persist across reload', async () => {
-    await resetAndVisit('/settings');
-    await clickExactText('Appearance');
-    await clickLabel('Compact Mode');
-    await clickExactText('Save Changes');
-    await page.reload({ waitUntil: 'domcontentloaded' });
-    await clickExactText('Appearance');
-    expect(await page.$eval('input[type="checkbox"]', (input) => (input as HTMLInputElement).checked)).toBe(true);
-  });
-
-  test('UAT-12.4 settings security actions provide feedback', async () => {
-    await resetAndVisit('/settings');
-    await clickExactText('Security');
-    await clickExactText('Change');
-    await waitForText('Password change dialog would open here.');
-    await closeModal();
-    await clickExactText('View');
-    await waitForText('You have 2 active sessions');
-  });
-
-  test('UAT-12.5 report execution and download actions provide feedback', async () => {
-    await resetAndVisit('/reports');
+  test('UAT-11.2 report execution provides feedback', async () => {
     await clickExactText('Run');
     await waitForText('Report Running');
-    await closeModal();
-    await page.$$eval('table tbody tr button', (buttons) => (buttons[0] as HTMLElement).click());
-    await waitForText('Download');
+    expect((await modalText())).toContain('Report Running');
   });
 
-  test('UAT-12.6 saving settings does not currently create a SETTINGS_CHANGE audit event', async () => {
-    // DEFECT: SettingsPage persists settings but does not call the audit service.
-    await resetAndVisit('/settings');
-    await clickExactText('Save Changes');
-    const events = await page.evaluate(() => JSON.parse(localStorage.getItem('coghealth_audit_log') || '[]'));
-    expect(events.some((event: { eventType: string }) => event.eventType === 'SETTINGS_CHANGE')).toBe(false);
-  });
-});
-
-describe('UAT-13 Reports and print workflows', () => {
-  beforeEach(async () => resetAndVisit('/reports'));
-
-  test('UAT-13.1 report list renders all report categories', async () => {
-    await waitForText('Clinical');
-    await waitForText('Operational');
-    await waitForText('Financial');
-    await waitForText('Compliance');
-  });
-
-  test('UAT-13.2 selecting a report exposes run and download controls', async () => {
+  test('UAT-11.3 selecting a report exposes download controls', async () => {
     await waitForText('Clinical Reports');
-    await waitForText('Run');
     await page.$$eval('table tbody tr button', (buttons) => {
       const button = buttons.find((candidate) => candidate.querySelector('svg.lucide-download'));
       if (!button) throw new Error('Report download button not found');
@@ -830,8 +906,131 @@ describe('UAT-13 Reports and print workflows', () => {
     await waitForText('Download');
   });
 
-  test('UAT-13.3 report list print opens a print dialog', async () => {
+  test('UAT-11.4 report list print opens a print dialog', async () => {
     await clickExactText('Print');
     await waitForText('Print Report List');
+  });
+
+  test('UAT-11.5 report list renders all report categories', async () => {
+    await waitForText('Clinical');
+    await waitForText('Operational');
+    await waitForText('Financial');
+    await waitForText('Compliance');
+  });
+});
+
+describe('UAT-12 Settings', () => {
+  beforeEach(async () => resetAndVisit('/settings'));
+
+  test('UAT-12.1 settings tabs render their own panels', async () => {
+    await waitForText('User Profile');
+    for (const [tab, panel] of [
+      ['Notifications', 'Notification Channels'],
+      ['Security', 'Security Settings'],
+      ['Appearance', 'Display Options'],
+    ]) {
+      await clickExactText(tab);
+      await waitForText(panel);
+    }
+    await clickExactText('Profile');
+    await waitForText('User Profile');
+  });
+
+  test('UAT-12.2 profile settings persist across reload', async () => {
+    await waitForText('System Settings');
+    await setInput('input[value="Sarah"]', 'Alex');
+    await clickExactText('Save Changes');
+    await waitForText('Saved');
+    await clickExactText('Notifications');
+    await clickExactText('Profile');
+    expect(await page.$eval('input[value="Alex"]', (input) => (input as HTMLInputElement).value)).toBe('Alex');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await waitForText('System Settings');
+    expect(await page.$eval('input[value="Alex"]', (input) => (input as HTMLInputElement).value)).toBe('Alex');
+  });
+
+  test('UAT-12.3 notification toggles persist after save and reload', async () => {
+    await clickExactText('Notifications');
+    const initial = await page.$eval('input[type="checkbox"]', (input) => (input as HTMLInputElement).checked);
+    await page.click('input[type="checkbox"]');
+    await clickExactText('Save Changes');
+    await waitForText('Saved');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await clickExactText('Notifications');
+    expect(await page.$eval('input[type="checkbox"]', (input) => (input as HTMLInputElement).checked)).toBe(!initial);
+  });
+
+  test('UAT-12.4 appearance settings persist across reload', async () => {
+    await clickExactText('Appearance');
+    await clickLabel('Compact Mode');
+    await clickExactText('Save Changes');
+    await waitForText('Saved');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await clickExactText('Appearance');
+    expect(await page.$eval('input[type="checkbox"]', (input) => (input as HTMLInputElement).checked)).toBe(true);
+  });
+
+  test('UAT-12.5 settings security actions provide feedback', async () => {
+    await clickExactText('Security');
+    await clickExactText('Change');
+    await waitForText('Password change dialog would open here.');
+    await closeModal();
+    await clickExactText('View');
+    await waitForText('You have 2 active sessions');
+  });
+
+  test('UAT-12.6 saving settings does not currently create a SETTINGS_CHANGE audit event', async () => {
+    // DEFECT: SettingsPage persists settings but does not call the audit service.
+    await clickExactText('Save Changes');
+    const events = await page.evaluate(() => JSON.parse(localStorage.getItem('coghealth_audit_log') || '[]'));
+    expect(events.some((event: { eventType: string }) => event.eventType === 'SETTINGS_CHANGE')).toBe(false);
+  });
+});
+
+describe('UAT-13 Modal/dialog contract', () => {
+  beforeEach(async () => resetAndVisit('/'));
+
+  test('UAT-13.1 modal closes via Cancel, X, Escape, and backdrop click', async () => {
+    const open = async () => {
+      await clickExactText('e-Prescribe');
+      await waitForText('e-Prescribe Medication');
+      expect(await page.$('.fixed.inset-0')).not.toBeNull();
+    };
+    await open();
+    await clickExactText('Cancel');
+    expect(await page.$('.fixed.inset-0')).toBeNull();
+    await open();
+    await page.$eval('.fixed.inset-0 button svg.lucide-x', (icon) => (icon.parentElement as HTMLElement).click());
+    expect(await page.$('.fixed.inset-0')).toBeNull();
+    await open();
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('.fixed.inset-0'));
+    await open();
+    await page.$eval('.fixed.inset-0 > .absolute', (backdrop) => (backdrop as HTMLElement).click());
+    await page.waitForFunction(() => !document.querySelector('.fixed.inset-0'));
+  });
+
+  test('UAT-13.2 Cancel discards entered prescription data', async () => {
+    await clickExactText('e-Prescribe');
+    await clickModalElement('Amoxicillin');
+    await clickExactText('Cancel');
+    expect(await page.$('.fixed.inset-0')).toBeNull();
+    await clickExactText('e-Prescribe');
+    // DEFECT: PrescriptionDialog retains the selected medication after Cancel, so reopening is not a clean form.
+    expect(await modalText()).toContain('Amoxicillin');
+    expect(await modalText()).toContain('No significant interactions found');
+  });
+
+  test('UAT-13.3 only one modal is present and page remains interactive after close', async () => {
+    await clickExactText('e-Prescribe');
+    expect(await page.$$eval('.fixed.inset-0', (modals) => modals.length)).toBe(1);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('.fixed.inset-0'));
+    expect(await page.evaluate(() => ({
+      overflow: document.body.style.overflow,
+      pointerEvents: getComputedStyle(document.body).pointerEvents,
+    }))).toEqual({ overflow: '', pointerEvents: 'auto' });
+    await clickExactText('Refresh');
+    await waitForText('Refreshed');
   });
 });

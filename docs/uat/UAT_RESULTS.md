@@ -125,15 +125,25 @@ deterministic fixtures, for example:
 - exact row counts and row contents after filtering (12 patients → the 6 active female self-pay patients,
   by name, via the advanced filter panel — `UAT-3.2`)
 - sort direction actually reversing, asserted as `descending === [...ascending].reverse()` (`UAT-2.5`)
-- lab summary counts of `13 Abnormal` / `4 Critical`; expanding a panel adds its component rows to the page
-  (BMP: 11 rows → 3 → back to 11), and filtering to MRN001234 with CBC expanded renders 13 rows against 5 for
-  another patient's Lipid Panel + A1c (`UAT-9.2`, `UAT-9.3`)
+- lab summary counts of `13 Abnormal` / `4 Critical`; collapsing the BMP panel removes its 8 component rows
+  (11 rendered rows → 3) and re-expanding restores them, and patient filtering changes the rendered set
+  (MRN001234 with CBC expanded → 13 rows; MRN001235 with Lipid Panel + A1c → 5) (`UAT-9.1`–`UAT-9.3`)
 - audit-log contents in `localStorage.coghealth_audit_log`: `LOGOUT` on confirmed logout, `PATIENT_ACCESS`
   with the patient id on chart open (`UAT-1.4`, `UAT-4.2`)
 - settings surviving a full page reload, driven through the UI rather than seeded storage (`UAT-12.2`–`UAT-12.4`)
 - the modal contract on all four close paths including backdrop click, plus no scroll-lock or overlay leak
   after close (`UAT-13.1`, `UAT-13.3`)
 - the API-down paths, exercised by flipping the mock to 500 mid-suite (`UAT-2.10`, `UAT-3.8`)
+
+## Manual walkthrough (video proof run)
+
+The suite was re-driven by hand in a maximized headful Chrome session against the same network-level mock,
+to produce the recorded walkthrough. Every defect above was reproduced live in the UI except **D4**
+(the mock stayed healthy for the whole run) and **D7** (a `localStorage.coghealth_audit_log` assertion with
+no UI surface). No behaviour was observed that contradicts the defect list. 21 functional checks passed,
+including the dashboard inbox preconditions (`4 unread`; `All (4) Results (2) Messages (1) Rx Refills (1)`;
+`CRITICAL ALERTS (3)`), the search narrowing to 6 patients, the STAT lab order confirming
+"2 test(s) ordered for Smith, John.", and Settings surviving a full reload.
 
 ## Recommendations
 

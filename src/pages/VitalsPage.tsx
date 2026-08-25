@@ -36,6 +36,27 @@ const news2BandStyles = {
   high: { background: '#ffcccc', color: '#990000' },
 };
 
+function News2Sparkline({ data }: { data: number[] }) {
+  if (data.length < 2) return null;
+
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const height = 20;
+  const width = 60;
+  const points = data.map((value, index) => {
+    const x = (index / (data.length - 1)) * width;
+    const y = height - ((value - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
+
+  return (
+    <svg width={width} height={height} className="inline-block ml-1" aria-label="NEWS2 score trend">
+      <polyline points={points} fill="none" stroke="#2563eb" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
 export default function VitalsPage() {
   const [vitals] = useState<VitalReading[]>(defaultVitals);
   const [selectedReading, setSelectedReading] = useState<VitalReading | null>(null);
@@ -243,7 +264,9 @@ export default function VitalsPage() {
                 ))}
                 <tr className="bg-[#eef2f6]">
                   <td className="px-2 py-1 border border-gray-400 font-bold sticky left-0 bg-[#eef2f6] z-10">NEWS2</td>
-                  <td className="px-2 py-1 border border-gray-400 text-center text-[10px] text-gray-600">Score</td>
+                  <td className="px-2 py-1 border border-gray-400 text-center">
+                    <News2Sparkline data={news2Results.map((result) => result.total)} />
+                  </td>
                   {news2Results.map((result, readingIdx) => (
                     <td
                       key={vitals[readingIdx].id}

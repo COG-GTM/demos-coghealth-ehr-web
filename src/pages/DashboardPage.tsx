@@ -69,6 +69,14 @@ interface WorklistPatient {
   flags: ('fall-risk' | 'isolation' | 'npo' | 'allergy' | 'code-status' | 'vip')[];
 }
 
+const worklistVitals = [
+  { bp: '120/76', hr: 72, temp: 98.6, spo2: 98, rr: 16 },
+  { bp: '100/64', hr: 102, temp: 99.5, spo2: 94, rr: 22 },
+  { bp: '88/54', hr: 124, temp: 101.6, spo2: 90, rr: 26 },
+  { bp: '128/82', hr: 90, temp: 98.4, spo2: 96, rr: 18 },
+  { bp: '110/70', hr: 112, temp: 100.8, spo2: 92, rr: 24 },
+];
+
 function mapPatientToWorklist(patient: Patient, index: number): WorklistPatient {
   const age = Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
   const statuses: WorklistPatient['status'][] = ['waiting', 'roomed', 'in-progress', 'ready-discharge', 'critical'];
@@ -86,6 +94,7 @@ function mapPatientToWorklist(patient: Patient, index: number): WorklistPatient 
     attendingProvider: 'Dr. Smith',
     status: statuses[index % statuses.length],
     alerts: [],
+    lastVitals: worklistVitals[index % worklistVitals.length],
     flags: [],
   };
 }

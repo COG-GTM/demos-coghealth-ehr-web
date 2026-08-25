@@ -13,7 +13,6 @@ import {
   setApiError,
   startHarness,
   stopHarness,
-  untested,
 } from './support/harness';
 
 jest.setTimeout(60000);
@@ -127,8 +126,15 @@ describe('CogHealth approved UAT scope', () => {
       const before = await page().evaluate(() => Array.from(document.querySelectorAll('span'))
         .find((el) => el.parentElement?.innerText?.startsWith('Session:'))?.parentElement?.innerText || '');
       expect(before).toMatch(/Session: \d+:\d\d/);
-      await untested(6, 'global-shell', 'session timer counts down and warning styling is exercised',
-        'The warning threshold requires 13 minutes of accelerated timer execution; the in-browser timer is rendered and its initial countdown was verified.');
+      await page().waitForFunction((initial) => {
+        const current = Array.from(document.querySelectorAll('span'))
+          .find((el) => el.parentElement?.innerText?.startsWith('Session:'))?.parentElement?.innerText || '';
+        return current !== initial;
+      }, {}, before);
+      await expectAlert('Session Timeout Warning');
+      expect(await count('.text-yellow-300')).toBeGreaterThan(0);
+      await clickButton('Continue Session');
+      await page().waitForFunction(() => !document.body.innerText.includes('Session Timeout Warning'));
     }));
 
   test('UAT-7: inbox populates with unread priority rows and critical styling', async () =>
@@ -155,15 +161,27 @@ describe('CogHealth approved UAT scope', () => {
   test('UAT-9: priority and read filters combine with inbox tab', async () =>
     area('dashboard', 9, 'priority and read filters combine with inbox tab', async () => {
       await open('/');
-      const all = await count('table tbody tr');
+      const inboxRows = () => page().$eval('.ehr-panel table tbody', (tbody) => tbody.querySelectorAll('tr').length);
+      const all = await inboxRows();
       await selectValue(0, 'critical');
-      const critical = await count('table tbody tr');
+      const critical = await inboxRows();
       expect(critical).toBeGreaterThan(0);
       expect(critical).toBeLessThan(all);
       await selectValue(1, 'unread');
-      expect(await count('table tbody tr')).toBeLessThanOrEqual(critical);
-      await clickText('Results');
-      expect(await count('table tbody tr')).toBeGreaterThanOrEqual(0);
+      const criticalUnread = await inboxRows();
+      expect(criticalUnread).toBeGreaterThan(0);
+      expect(criticalUnread).toBeLessThanOrEqual(critical);
+      await page().evaluate(() => {
+        const tab = Array.from(document.querySelectorAll('button.ehr-tab'))
+          .find((element) => element.textContent?.trim().startsWith('Results'));
+        if (!tab) throw new Error('Could not find Results inbox tab');
+        (tab as HTMLElement).click();
+      });
+      const results = await inboxRows();
+      expect(results).toBeGreaterThan(0);
+      expect(results).toBeLessThanOrEqual(criticalUnread);
+      expect(await page().$eval('.ehr-panel table tbody', (tbody) =>
+        Array.from(tbody.querySelectorAll('tr')).every((row) => row.classList.contains('ehr-alert-critical')))).toBe(true);
     }));
 
   test('UAT-10: mark read clears unread dot and flag toggles', async () =>
@@ -761,14 +779,11 @@ describe('CogHealth approved UAT scope', () => {
       await open('/');
       const sessionId = 'uat-session';
       await page().evaluate((id) => sessionStorage.setItem('coghealth_session_id', id), sessionId);
-      await clickButton('Logout');
-      await clickButton('Logout', 1);
-      await page().waitForFunction(() => location.pathname === '/');
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      await expectAlert('Session Expired');
+      await clickButton('OK');
+      await page().waitForFunction(() => !document.body.innerText.includes('Session Expired'));
       const events = await auditLog();
-      expect(events[0]).toMatchObject({ eventType: 'LOGOUT', sessionId });
-      await untested(60, 'hipaa-audit', 'logout and timeout audit events carry stable session id',
-        'Manual LOGOUT and stable session id were verified; SESSION_TIMEOUT requires the out-of-scope real-time expiration path.');
+      expect(events[0]).toMatchObject({ eventType: 'SESSION_TIMEOUT', sessionId });
     }));
 
   test('UAT-61: audit log is capped at 1000 newest first', async () =>
@@ -782,15 +797,17 @@ describe('CogHealth approved UAT scope', () => {
         }));
         localStorage.setItem('coghealth_audit_log', JSON.stringify(entries));
       });
-      await page().evaluate(() => {
-        const log = JSON.parse(localStorage.getItem('coghealth_audit_log') || '[]');
-        const event = { id: 'newest', timestamp: new Date().toISOString(), eventType: 'LOGOUT', userId: 'USR001', userName: 'Dr. Sarah Anderson', userRole: 'Physician', ipAddress: '192.168.1.100', sessionId: 'seed', success: true };
-        log.unshift(event);
-        localStorage.setItem('coghealth_audit_log', JSON.stringify(log.slice(0, 1000)));
-      });
+      await open('/patients/2');
       const events = await auditLog();
       expect(events).toHaveLength(1000);
-      expect(events[0].id).toBe('newest');
-      expect(events[999].id).toBe('seed-998');
+      expect(events[0]).toMatchObject({
+        eventType: 'PATIENT_ACCESS',
+        patientId: '2',
+        patientMrn: 'MRN001235',
+        patientName: 'Johnson, Sarah',
+      });
+      expect(events[0].id).not.toMatch(/^seed-/);
+      expect(events.some((event) => event.id === 'seed-999')).toBe(false);
+      expect(events[999].id).not.toBe('seed-999');
     }));
 });

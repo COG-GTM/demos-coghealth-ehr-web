@@ -33,6 +33,11 @@ export async function startHarness(): Promise<Page> {
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   page = await browser.newPage();
+  await page.evaluateOnNewDocument(() => {
+    const nativeSetInterval = window.setInterval.bind(window);
+    window.setInterval = ((handler: TimerHandler, timeout?: number, ...args: unknown[]) =>
+      nativeSetInterval(handler, timeout === 1000 ? 10 : timeout, ...args)) as typeof window.setInterval;
+  });
   await page.setRequestInterception(true);
   page.on('request', (request) => {
     const url = new URL(request.url());

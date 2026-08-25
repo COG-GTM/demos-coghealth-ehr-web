@@ -125,8 +125,9 @@ deterministic fixtures, for example:
 - exact row counts and row contents after filtering (12 patients → the 6 active female self-pay patients,
   by name, via the advanced filter panel — `UAT-3.2`)
 - sort direction actually reversing, asserted as `descending === [...ascending].reverse()` (`UAT-2.5`)
-- lab summary counts of `13 Abnormal` / `4 Critical`, and 13 component rows for the CBC panel narrowing to 5
-  across a different patient's Lipid Panel and A1c (`UAT-9.2`, `UAT-9.3`)
+- lab summary counts of `13 Abnormal` / `4 Critical`; expanding a panel adds its component rows to the page
+  (BMP: 11 rows → 3 → back to 11), and filtering to MRN001234 with CBC expanded renders 13 rows against 5 for
+  another patient's Lipid Panel + A1c (`UAT-9.2`, `UAT-9.3`)
 - audit-log contents in `localStorage.coghealth_audit_log`: `LOGOUT` on confirmed logout, `PATIENT_ACCESS`
   with the patient id on chart open (`UAT-1.4`, `UAT-4.2`)
 - settings surviving a full page reload, driven through the UI rather than seeded storage (`UAT-12.2`–`UAT-12.4`)

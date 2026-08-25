@@ -7,6 +7,8 @@ import { OrderDialog } from '../components/ui/OrderDialog';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { patientService } from '../services/patientService';
 import type { Patient } from '../types';
+import { calculateNews2 } from '../utils/news2';
+import type { News2Result } from '../utils/news2';
 import { 
   FileText,
   Pill,
@@ -67,6 +69,14 @@ interface WorklistPatient {
   flags: ('fall-risk' | 'isolation' | 'npo' | 'allergy' | 'code-status' | 'vip')[];
 }
 
+const worklistVitals = [
+  { bp: '120/76', hr: 72, temp: 98.6, spo2: 98, rr: 16 },
+  { bp: '100/64', hr: 102, temp: 99.5, spo2: 94, rr: 22 },
+  { bp: '88/54', hr: 124, temp: 101.6, spo2: 90, rr: 26 },
+  { bp: '128/82', hr: 90, temp: 98.4, spo2: 96, rr: 18 },
+  { bp: '110/70', hr: 112, temp: 100.8, spo2: 92, rr: 24 },
+];
+
 function mapPatientToWorklist(patient: Patient, index: number): WorklistPatient {
   const age = Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
   const statuses: WorklistPatient['status'][] = ['waiting', 'roomed', 'in-progress', 'ready-discharge', 'critical'];
@@ -84,6 +94,7 @@ function mapPatientToWorklist(patient: Patient, index: number): WorklistPatient 
     attendingProvider: 'Dr. Smith',
     status: statuses[index % statuses.length],
     alerts: [],
+    lastVitals: worklistVitals[index % worklistVitals.length],
     flags: [],
   };
 }
@@ -107,7 +118,21 @@ function mapPatientToInbox(patient: Patient, index: number): InboxItem {
 
 type InboxPriority = 'all' | 'critical' | 'high' | 'normal';
 type InboxReadFilter = 'all' | 'unread' | 'read';
-type WorklistSort = 'name' | 'location' | 'status' | 'time';
+type WorklistSort = 'name' | 'location' | 'status' | 'time' | 'news2';
+
+function calculateWorklistNews2(patient: WorklistPatient): News2Result | null {
+  if (!patient.lastVitals) return null;
+  const systolic = Number.parseInt(patient.lastVitals.bp.split('/')[0], 10);
+  return calculateNews2({
+    systolic: Number.isNaN(systolic) ? undefined : systolic,
+    heartRate: patient.lastVitals.hr,
+    temperature: patient.lastVitals.temp,
+    spo2: patient.lastVitals.spo2,
+    respiratoryRate: patient.lastVitals.rr,
+    oxygenDelivery: 'air',
+    consciousness: 'A',
+  });
+}
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -137,6 +162,10 @@ export default function DashboardPage() {
   const [pendingOrders, setPendingOrders] = useState<{id: number; patientName: string; order: string; type: string; status: string}[]>([]);
   const [criticalAlerts, setCriticalAlerts] = useState<{id: number; type: string; patient: string; alert: string; action: string; time: string}[]>([]);
   const [loading, setLoading] = useState(true);
+  const news2ByPatient = useMemo(
+    () => new Map(worklistPatients.map((patient) => [patient.id, calculateWorklistNews2(patient)])),
+    [worklistPatients],
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -238,11 +267,26 @@ export default function DashboardPage() {
       else if (worklistSort === 'status') {
         const order = { critical: 0, 'in-progress': 1, roomed: 2, waiting: 3, 'ready-discharge': 4 };
         cmp = (order[a.status] || 5) - (order[b.status] || 5);
+      } else if (worklistSort === 'news2') {
+        const aScore = news2ByPatient.get(a.id)?.total;
+        const bScore = news2ByPatient.get(b.id)?.total;
+        if (aScore === undefined && bScore !== undefined) return 1;
+        if (aScore !== undefined && bScore === undefined) return -1;
+        cmp = (aScore ?? 0) - (bScore ?? 0);
       }
       return worklistSortAsc ? cmp : -cmp;
     });
     return patients;
-  }, [worklistPatients, worklistFilter, worklistSort, worklistSortAsc]);
+  }, [worklistPatients, worklistFilter, worklistSort, worklistSortAsc, news2ByPatient]);
+
+  const handleWorklistSort = (sort: WorklistSort) => {
+    if (worklistSort === sort) {
+      setWorklistSortAsc((ascending) => !ascending);
+    } else {
+      setWorklistSort(sort);
+      setWorklistSortAsc(true);
+    }
+  };
 
   const getInboxIcon = (type: string) => {
     switch (type) {
@@ -480,12 +524,13 @@ export default function DashboardPage() {
                   <span className="text-[10px] text-gray-600">Sort:</span>
                   <select 
                     value={worklistSort} 
-                    onChange={(e) => setWorklistSort(e.target.value as WorklistSort)}
+                    onChange={(e) => handleWorklistSort(e.target.value as WorklistSort)}
                     className="ehr-input text-[10px] py-0"
                   >
                     <option value="status">Status</option>
                     <option value="name">Name</option>
                     <option value="location">Location</option>
+                    <option value="news2">NEWS2</option>
                   </select>
                   <button 
                     className="ehr-toolbar-button p-0.5 text-[10px]" 
@@ -506,6 +551,11 @@ export default function DashboardPage() {
                         <th className="px-1 py-1 text-left">Location</th>
                         <th className="px-1 py-1 text-left">Chief Complaint</th>
                         <th className="px-1 py-1 text-left">Vitals</th>
+                        <th className="px-1 py-1 text-left">
+                          <button className="font-semibold hover:underline" onClick={(e) => { e.stopPropagation(); handleWorklistSort('news2'); }}>
+                            NEWS2
+                          </button>
+                        </th>
                         <th className="px-1 py-1 text-left">Alerts</th>
                         <th className="px-1 py-1 text-left">Status</th>
                         <th className="px-1 py-1 text-center w-16">Actions</th>
@@ -548,6 +598,25 @@ export default function DashboardPage() {
                               </>
                             ) : (
                               <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-1 py-0.5 text-center">
+                            {news2ByPatient.get(patient.id) ? (
+                              <span
+                                className="inline-block min-w-6 border px-1 py-0.5 text-[10px] font-bold"
+                                style={{
+                                  background: news2ByPatient.get(patient.id)?.riskBand === 'high' ? '#ffcccc' :
+                                    news2ByPatient.get(patient.id)?.riskBand === 'medium' ? '#ffe0b2' :
+                                      news2ByPatient.get(patient.id)?.riskBand === 'low-medium' ? '#fff3cd' : '#d4edda',
+                                  color: news2ByPatient.get(patient.id)?.riskBand === 'high' ? '#990000' :
+                                    news2ByPatient.get(patient.id)?.riskBand === 'medium' ? '#7a3e00' :
+                                      news2ByPatient.get(patient.id)?.riskBand === 'low-medium' ? '#664d00' : '#155724',
+                                }}
+                              >
+                                {news2ByPatient.get(patient.id)?.total}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">—</span>
                             )}
                           </td>
                           <td className="px-1 py-0.5">

@@ -9,10 +9,12 @@ import {
   getPage,
   open,
   recordCase,
+  restoreSessionClock,
   selectValue,
   setApiError,
   startHarness,
   stopHarness,
+  useFastSessionClock,
 } from './support/harness';
 
 jest.setTimeout(60000);
@@ -33,6 +35,16 @@ async function expectAlert(title: string): Promise<void> {
 async function openDialog(button: string, title: string): Promise<void> {
   await clickButton(button);
   await expectAlert(title);
+}
+
+function expectAuditEvents(events: Array<Record<string, unknown>>, expected: string[]): void {
+  const observed = [...new Set(events.map((event) => String(event.eventType ?? '')))].sort();
+  const missing = expected.filter((eventType) => !observed.includes(eventType));
+  if (missing.length > 0) {
+    throw new Error(
+      `Expected audit event types [${expected.join(', ')}]; observed event types [${observed.join(', ')}]; missing [${missing.join(', ')}]`,
+    );
+  }
 }
 
 describe('CogHealth approved UAT scope', () => {
@@ -122,19 +134,24 @@ describe('CogHealth approved UAT scope', () => {
 
   test('UAT-6: session timer counts down and warning styling is exercised', async () =>
     area('global-shell', 6, 'session timer counts down and warning styling is exercised', async () => {
-      await open('/');
-      const before = await page().evaluate(() => Array.from(document.querySelectorAll('span'))
-        .find((el) => el.parentElement?.innerText?.startsWith('Session:'))?.parentElement?.innerText || '');
-      expect(before).toMatch(/Session: \d+:\d\d/);
-      await page().waitForFunction((initial) => {
-        const current = Array.from(document.querySelectorAll('span'))
-          .find((el) => el.parentElement?.innerText?.startsWith('Session:'))?.parentElement?.innerText || '';
-        return current !== initial;
-      }, {}, before);
-      await expectAlert('Session Timeout Warning');
-      expect(await count('.text-yellow-300')).toBeGreaterThan(0);
-      await clickButton('Continue Session');
-      await page().waitForFunction(() => !document.body.innerText.includes('Session Timeout Warning'));
+      await useFastSessionClock();
+      try {
+        await open('/');
+        const before = await page().evaluate(() => Array.from(document.querySelectorAll('span'))
+          .find((el) => el.parentElement?.innerText?.startsWith('Session:'))?.parentElement?.innerText || '');
+        expect(before).toMatch(/Session: \d+:\d\d/);
+        await page().waitForFunction((initial) => {
+          const current = Array.from(document.querySelectorAll('span'))
+            .find((el) => el.parentElement?.innerText?.startsWith('Session:'))?.parentElement?.innerText || '';
+          return current !== initial;
+        }, {}, before);
+        await expectAlert('Session Timeout Warning');
+        expect(await count('.text-yellow-300')).toBeGreaterThan(0);
+        await clickButton('Continue Session');
+        await page().waitForFunction(() => !document.body.innerText.includes('Session Timeout Warning'));
+      } finally {
+        await restoreSessionClock();
+      }
     }));
 
   test('UAT-7: inbox populates with unread priority rows and critical styling', async () =>
@@ -745,9 +762,10 @@ describe('CogHealth approved UAT scope', () => {
       await fillInput('Name, MRN, DOB, Phone...', 'Smith');
       await clickButton('Find');
       events = await auditLog();
-      expect(events.some((event) => event.eventType === 'PATIENT_SEARCH'
-        && String(event.details ?? '').includes('Smith')
-        && String(event.details ?? '').includes('1 results'))).toBe(true);
+      expectAuditEvents(events, ['PATIENT_SEARCH']);
+      const searchEvent = events.find((event) => event.eventType === 'PATIENT_SEARCH');
+      expect(String(searchEvent?.details ?? '')).toContain('Smith');
+      expect(String(searchEvent?.details ?? '')).toContain('1 results');
     }));
 
   test('UAT-59: print prescription and order actions emit audit events', async () =>
@@ -769,21 +787,24 @@ describe('CogHealth approved UAT scope', () => {
       await clickButton('Sign & Submit (1)');
       await expectAlert('Lab Order Placed');
       const events = await auditLog();
-      expect(events.some((event) => event.eventType === 'PHI_PRINT')).toBe(true);
-      expect(events.some((event) => event.eventType === 'PRESCRIPTION_CREATE')).toBe(true);
-      expect(events.some((event) => event.eventType === 'ORDER_CREATE')).toBe(true);
+      expectAuditEvents(events, ['PHI_PRINT', 'PRESCRIPTION_CREATE', 'ORDER_CREATE']);
     }));
 
   test('UAT-60: logout and timeout audit events carry stable session id', async () =>
     area('hipaa-audit', 60, 'logout and timeout audit events carry stable session id', async () => {
-      await open('/');
-      const sessionId = 'uat-session';
-      await page().evaluate((id) => sessionStorage.setItem('coghealth_session_id', id), sessionId);
-      await expectAlert('Session Expired');
-      await clickButton('OK');
-      await page().waitForFunction(() => !document.body.innerText.includes('Session Expired'));
-      const events = await auditLog();
-      expect(events[0]).toMatchObject({ eventType: 'SESSION_TIMEOUT', sessionId });
+      await useFastSessionClock();
+      try {
+        await open('/');
+        const sessionId = 'uat-session';
+        await page().evaluate((id) => sessionStorage.setItem('coghealth_session_id', id), sessionId);
+        await expectAlert('Session Expired');
+        await clickButton('OK');
+        await page().waitForFunction(() => !document.body.innerText.includes('Session Expired'));
+        const events = await auditLog();
+        expect(events[0]).toMatchObject({ eventType: 'SESSION_TIMEOUT', sessionId });
+      } finally {
+        await restoreSessionClock();
+      }
     }));
 
   test('UAT-61: audit log is capped at 1000 newest first', async () =>

@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
+import { News2Panel } from '../components/patient';
 import type { VitalReading } from '../types';
+import { calculateNews2, news2Trend } from '../utils/news2';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -27,12 +29,32 @@ const defaultVitals: VitalReading[] = [
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
 
+const news2BandStyles = {
+  low: { background: '#d4edda', color: '#155724' },
+  'low-medium': { background: '#fff3cd', color: '#664d00' },
+  medium: { background: '#ffe0b2', color: '#7a3e00' },
+  high: { background: '#ffcccc', color: '#990000' },
+};
+
 export default function VitalsPage() {
   const [vitals] = useState<VitalReading[]>(defaultVitals);
   const [selectedReading, setSelectedReading] = useState<VitalReading | null>(null);
+  const [selectedNews2Reading, setSelectedNews2Reading] = useState<VitalReading | null>(null);
   const [showAddVitals, setShowAddVitals] = useState(false);
   const [dateRange, setDateRange] = useState<'24h' | '48h' | '7d' | '30d'>('48h');
   const [selectedPatient] = useState(patientInfo);
+  const news2Results = useMemo(
+    () => vitals.map((reading) => calculateNews2({
+      respiratoryRate: reading.respiratoryRate,
+      spo2: reading.spo2,
+      systolic: reading.systolic,
+      heartRate: reading.heartRate,
+      temperature: reading.temperature,
+      oxygenDelivery: 'air',
+      consciousness: 'A',
+    })),
+    [vitals],
+  );
 
   const getValueStatus = (key: string, value: number | undefined) => {
     if (value === undefined) return 'normal';
@@ -165,79 +187,102 @@ export default function VitalsPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto bg-white border border-gray-400">
-          <table className="w-full text-[11px]">
-            <thead className="sticky top-0">
-              <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
-                <th className="text-left px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
-                <th className="text-center px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] min-w-[50px]">Trend</th>
-                {vitals.map((reading) => (
-                  <th key={reading.id} className="text-center px-2 py-1 border border-gray-400 min-w-[80px]">
-                    <div className="text-[10px] font-normal text-gray-600">{reading.timestamp.split(' ')[0]}</div>
-                    <div className="font-semibold">{reading.timestamp.split(' ')[1]}</div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {vitalSigns.map((vital, vitalIdx) => (
-                <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}>
-                  <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">
-                    <div>{vital.name}</div>
-                    <div className="text-[9px] text-gray-500 font-normal">{vital.unit} ({vital.normalRange.min}-{vital.normalRange.max})</div>
-                  </td>
-                  <td className="px-2 py-1 border border-gray-300 text-center">
-                    <Sparkline 
-                      data={vitals.map(r => r[vital.key] as number | undefined)} 
-                      vitalKey={vital.key}
-                    />
-                  </td>
-                  {vitals.map((reading, readingIdx) => {
-                    const value = reading[vital.key] as number | undefined;
-                    const status = getValueStatus(vital.key, value);
-                    const trend = getTrend(vital.key, readingIdx);
-                    
-                    return (
-                      <td
-                        key={reading.id}
-                        className="px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0]"
-                        style={getStatusStyle(status)}
-                        onClick={() => setSelectedReading(reading)}
-                      >
-                        {value !== undefined ? (
-                          <span className="font-mono">
-                            {status === 'critical' && <AlertTriangle className="w-3 h-3 inline mr-0.5" />}
-                            {vital.key === 'temperature' ? value.toFixed(1) : value}
-                            <TrendIcon trend={trend} vital={vital.key} />
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                    );
-                  })}
+        <div className="flex-1 min-h-0 flex overflow-hidden">
+          <div className="flex-1 min-w-0 overflow-auto bg-white border border-gray-400">
+            <table className="w-full text-[11px]">
+              <thead className="sticky top-0">
+                <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
+                  <th className="text-left px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
+                  <th className="text-center px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] min-w-[50px]">Trend</th>
+                  {vitals.map((reading) => (
+                    <th key={reading.id} className="text-center px-2 py-1 border border-gray-400 min-w-[80px]">
+                      <div className="text-[10px] font-normal text-gray-600">{reading.timestamp.split(' ')[0]}</div>
+                      <div className="font-semibold">{reading.timestamp.split(' ')[1]}</div>
+                    </th>
+                  ))}
                 </tr>
-              ))}
-              <tr className="bg-gray-100">
-                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Recorded By</td>
-                <td className="px-2 py-1 border border-gray-300"></td>
-                {vitals.map((reading) => (
-                  <td key={reading.id} className="px-2 py-1 border border-gray-300 text-center text-[10px] text-gray-600">
-                    {reading.recordedBy}
-                  </td>
+              </thead>
+              <tbody>
+                {vitalSigns.map((vital, vitalIdx) => (
+                  <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}>
+                    <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">
+                      <div>{vital.name}</div>
+                      <div className="text-[9px] text-gray-500 font-normal">{vital.unit} ({vital.normalRange.min}-{vital.normalRange.max})</div>
+                    </td>
+                    <td className="px-2 py-1 border border-gray-300 text-center">
+                      <Sparkline
+                        data={vitals.map(r => r[vital.key] as number | undefined)}
+                        vitalKey={vital.key}
+                      />
+                    </td>
+                    {vitals.map((reading, readingIdx) => {
+                      const value = reading[vital.key] as number | undefined;
+                      const status = getValueStatus(vital.key, value);
+                      const trend = getTrend(vital.key, readingIdx);
+
+                      return (
+                        <td
+                          key={reading.id}
+                          className="px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0]"
+                          style={getStatusStyle(status)}
+                          onClick={() => setSelectedReading(reading)}
+                        >
+                          {value !== undefined ? (
+                            <span className="font-mono">
+                              {status === 'critical' && <AlertTriangle className="w-3 h-3 inline mr-0.5" />}
+                              {vital.key === 'temperature' ? value.toFixed(1) : value}
+                              <TrendIcon trend={trend} vital={vital.key} />
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
                 ))}
-              </tr>
-              <tr className="bg-gray-100">
-                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Location</td>
-                <td className="px-2 py-1 border border-gray-300"></td>
-                {vitals.map((reading) => (
-                  <td key={reading.id} className="px-2 py-1 border border-gray-300 text-center text-[10px] text-gray-600">
-                    {reading.location}
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+                <tr className="bg-[#eef2f6]">
+                  <td className="px-2 py-1 border border-gray-400 font-bold sticky left-0 bg-[#eef2f6] z-10">NEWS2</td>
+                  <td className="px-2 py-1 border border-gray-400 text-center text-[10px] text-gray-600">Score</td>
+                  {news2Results.map((result, readingIdx) => (
+                    <td
+                      key={vitals[readingIdx].id}
+                      className="px-2 py-1 border border-gray-400 text-center cursor-pointer font-bold hover:brightness-95"
+                      style={{ background: news2BandStyles[result.riskBand].background, color: news2BandStyles[result.riskBand].color }}
+                      onClick={() => setSelectedNews2Reading(vitals[readingIdx])}
+                    >
+                      {result.total}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="bg-gray-100">
+                  <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Recorded By</td>
+                  <td className="px-2 py-1 border border-gray-300"></td>
+                  {vitals.map((reading) => (
+                    <td key={reading.id} className="px-2 py-1 border border-gray-300 text-center text-[10px] text-gray-600">
+                      {reading.recordedBy}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="bg-gray-100">
+                  <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Location</td>
+                  <td className="px-2 py-1 border border-gray-300"></td>
+                  {vitals.map((reading) => (
+                    <td key={reading.id} className="px-2 py-1 border border-gray-300 text-center text-[10px] text-gray-600">
+                      {reading.location}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="w-[310px] shrink-0 overflow-auto border-y border-r border-gray-400 bg-[#ece9d8] p-1">
+            <News2Panel
+              result={news2Results[0]}
+              trend={news2Trend(news2Results[0].total, news2Results[1]?.total)}
+              timestamp={vitals[0].timestamp}
+            />
+          </div>
         </div>
 
         <div className="ehr-status-bar flex items-center justify-between">
@@ -285,6 +330,29 @@ export default function VitalsPage() {
               </div>
             </fieldset>
           </div>
+        )}
+      </Modal>
+
+      <Modal
+        isOpen={selectedNews2Reading !== null}
+        onClose={() => setSelectedNews2Reading(null)}
+        title="NEWS2 Observation Detail"
+        width="md"
+        footer={
+          <button className="ehr-button ehr-button-primary" onClick={() => setSelectedNews2Reading(null)}>
+            Close
+          </button>
+        }
+      >
+        {selectedNews2Reading && (
+          <News2Panel
+            result={news2Results[vitals.findIndex((reading) => reading.id === selectedNews2Reading.id)]}
+            trend={news2Trend(
+              news2Results[vitals.findIndex((reading) => reading.id === selectedNews2Reading.id)].total,
+              news2Results[vitals.findIndex((reading) => reading.id === selectedNews2Reading.id) + 1]?.total,
+            )}
+            timestamp={selectedNews2Reading.timestamp}
+          />
         )}
       </Modal>
 

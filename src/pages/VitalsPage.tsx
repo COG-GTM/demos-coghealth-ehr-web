@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
-import { Modal } from '../components/ui/Modal';
+import { AlertDialog, Modal } from '../components/ui/Modal';
+import { SepsisAdvisoryDialog } from '../components/ui/SepsisAdvisoryDialog';
+import { assessSepsisRisk } from '../services/sepsisService';
+import { logAdvisoryAccepted, logAdvisoryDeclined, logAdvisoryTriggered, logOrder } from '../services/auditService';
+import type { SepsisAssessment, SepsisBundleOrder } from '../types/sepsis';
 import type { VitalReading } from '../types';
 
 const vitalSigns = [
@@ -15,24 +19,42 @@ const vitalSigns = [
 ];
 
 const defaultVitals: VitalReading[] = [
-  { id: 1, timestamp: '2024-01-18 14:00', systolic: 158, diastolic: 94, heartRate: 98, temperature: 98.6, respiratoryRate: 20, spo2: 94, weight: 82.5, painLevel: 4, recordedBy: 'RN Smith', location: 'Med-Surg 4W' },
-  { id: 2, timestamp: '2024-01-18 10:00', systolic: 162, diastolic: 96, heartRate: 102, temperature: 99.1, respiratoryRate: 22, spo2: 93, weight: 82.5, painLevel: 5, recordedBy: 'RN Johnson', location: 'Med-Surg 4W' },
-  { id: 3, timestamp: '2024-01-18 06:00', systolic: 168, diastolic: 98, heartRate: 108, temperature: 99.8, respiratoryRate: 24, spo2: 92, weight: 82.8, painLevel: 6, recordedBy: 'RN Williams', location: 'Med-Surg 4W' },
-  { id: 4, timestamp: '2024-01-17 22:00', systolic: 172, diastolic: 100, heartRate: 112, temperature: 100.2, respiratoryRate: 26, spo2: 91, weight: 83.0, painLevel: 7, recordedBy: 'RN Davis', location: 'Med-Surg 4W' },
-  { id: 5, timestamp: '2024-01-17 18:00', systolic: 178, diastolic: 102, heartRate: 118, temperature: 100.8, respiratoryRate: 28, spo2: 90, weight: 83.2, painLevel: 8, recordedBy: 'RN Brown', location: 'ED' },
-  { id: 6, timestamp: '2024-01-17 14:00', systolic: 182, diastolic: 108, heartRate: 124, temperature: 101.4, respiratoryRate: 30, spo2: 88, weight: 83.5, painLevel: 9, recordedBy: 'RN Miller', location: 'ED' },
-  { id: 7, timestamp: '2024-01-17 10:00', systolic: 145, diastolic: 88, heartRate: 88, temperature: 98.4, respiratoryRate: 18, spo2: 96, weight: 82.0, painLevel: 2, recordedBy: 'RN Wilson', location: 'Clinic' },
-  { id: 8, timestamp: '2024-01-16 14:00', systolic: 138, diastolic: 84, heartRate: 76, temperature: 98.2, respiratoryRate: 16, spo2: 98, weight: 82.0, painLevel: 0, recordedBy: 'RN Taylor', location: 'Clinic' },
+  { id: 1, timestamp: '2024-01-18 14:00', systolic: 96, diastolic: 58, heartRate: 122, temperature: 101.8, respiratoryRate: 28, spo2: 90, weight: 82.5, painLevel: 6, recordedBy: 'RN Smith', location: 'Med-Surg 4W' },
+  { id: 2, timestamp: '2024-01-18 10:00', systolic: 108, diastolic: 64, heartRate: 114, temperature: 101.0, respiratoryRate: 26, spo2: 91, weight: 82.5, painLevel: 5, recordedBy: 'RN Johnson', location: 'Med-Surg 4W' },
+  { id: 3, timestamp: '2024-01-18 06:00', systolic: 118, diastolic: 70, heartRate: 104, temperature: 100.4, respiratoryRate: 22, spo2: 93, weight: 82.8, painLevel: 4, recordedBy: 'RN Williams', location: 'Med-Surg 4W' },
+  { id: 4, timestamp: '2024-01-17 22:00', systolic: 126, diastolic: 76, heartRate: 96, temperature: 99.8, respiratoryRate: 20, spo2: 94, weight: 83.0, painLevel: 3, recordedBy: 'RN Davis', location: 'Med-Surg 4W' },
+  { id: 5, timestamp: '2024-01-17 18:00', systolic: 132, diastolic: 80, heartRate: 88, temperature: 99.2, respiratoryRate: 18, spo2: 96, weight: 83.2, painLevel: 2, recordedBy: 'RN Brown', location: 'Med-Surg 4W' },
+  { id: 6, timestamp: '2024-01-17 14:00', systolic: 134, diastolic: 82, heartRate: 84, temperature: 98.8, respiratoryRate: 16, spo2: 97, weight: 83.5, painLevel: 2, recordedBy: 'RN Miller', location: 'ED' },
+  { id: 7, timestamp: '2024-01-17 10:00', systolic: 138, diastolic: 84, heartRate: 78, temperature: 98.4, respiratoryRate: 16, spo2: 98, weight: 82.0, painLevel: 1, recordedBy: 'RN Wilson', location: 'Clinic' },
+  { id: 8, timestamp: '2024-01-16 14:00', systolic: 136, diastolic: 82, heartRate: 74, temperature: 98.2, respiratoryRate: 14, spo2: 98, weight: 82.0, painLevel: 0, recordedBy: 'RN Taylor', location: 'Clinic' },
 ];
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
+const sepsisAdvisoryTriggered = new Set<string>();
 
 export default function VitalsPage() {
   const [vitals] = useState<VitalReading[]>(defaultVitals);
   const [selectedReading, setSelectedReading] = useState<VitalReading | null>(null);
   const [showAddVitals, setShowAddVitals] = useState(false);
+  const [advisoryReading, setAdvisoryReading] = useState<VitalReading | null>(null);
+  const [advisoryInstance, setAdvisoryInstance] = useState(0);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
   const [dateRange, setDateRange] = useState<'24h' | '48h' | '7d' | '30d'>('48h');
   const [selectedPatient] = useState(patientInfo);
+  const sepsisSummary = useMemo(() => assessSepsisRisk(vitals), [vitals]);
+  const assessmentsByReading = useMemo(() => new Map(
+    sepsisSummary?.history.map(assessment => [assessment.readingId, assessment]) ?? [],
+  ), [sepsisSummary]);
+
+  useEffect(() => {
+    const current = sepsisSummary?.current;
+    const triggerKey = current ? `${selectedPatient.mrn}:${current.readingId}` : '';
+    if (current && (current.riskLevel === 'moderate' || current.riskLevel === 'high') && !bannerDismissed && !sepsisAdvisoryTriggered.has(triggerKey)) {
+      logAdvisoryTriggered(selectedPatient.mrn, current.riskLevel, current.readingId);
+      sepsisAdvisoryTriggered.add(triggerKey);
+    }
+  }, [bannerDismissed, sepsisSummary, selectedPatient.mrn]);
 
   const getValueStatus = (key: string, value: number | undefined) => {
     if (value === undefined) return 'normal';
@@ -115,6 +137,31 @@ export default function VitalsPage() {
     );
   };
 
+  const sepsisCellStyle = (assessment: SepsisAssessment) => {
+    if (assessment.riskLevel === 'high') return { background: '#ffcccc', color: '#990000', fontWeight: 'bold' };
+    if (assessment.riskLevel === 'moderate') return { background: '#fff3cd', color: '#664d00' };
+    return {};
+  };
+
+  const openAdvisory = (reading: VitalReading) => {
+    setAdvisoryInstance(current => current + 1);
+    setAdvisoryReading(reading);
+  };
+  const handleAcceptOrders = (orders: SepsisBundleOrder[]) => {
+    orders.forEach(order => logOrder(selectedPatient.mrn, order.category, `${order.name}: ${order.detail}`));
+    logAdvisoryAccepted(selectedPatient.mrn, orders.map(order => order.id));
+    setAdvisoryReading(null);
+    setShowAlert({
+      title: 'Orders Accepted',
+      message: `${orders.length} sepsis bundle order${orders.length === 1 ? '' : 's'} queued for ${selectedPatient.name}.`,
+      type: 'success',
+    });
+  };
+  const handleDeclineAdvisory = (reason: string) => {
+    logAdvisoryDeclined(selectedPatient.mrn, reason);
+    setAdvisoryReading(null);
+  };
+
   return (
     <div className="h-full flex flex-col overflow-hidden p-2">
       <div className="ehr-panel flex-1 flex flex-col overflow-hidden">
@@ -164,6 +211,24 @@ export default function VitalsPage() {
             <span className="flex items-center"><span className="w-2 h-2 bg-red-500 inline-block mr-1"></span>Critical</span>
           </div>
         </div>
+
+        {sepsisSummary && (sepsisSummary.current.riskLevel === 'moderate' || sepsisSummary.current.riskLevel === 'high') && !bannerDismissed && (
+          <div className="mx-1 mb-1 px-2 py-1 border border-red-400 flex items-center justify-between text-[11px]" style={{ background: sepsisSummary.current.riskLevel === 'high' ? '#ffcccc' : '#fff3cd', color: sepsisSummary.current.riskLevel === 'high' ? '#990000' : '#664d00' }}>
+            <div className="flex items-center min-w-0">
+              <AlertTriangle className="w-4 h-4 mr-1 shrink-0" />
+              <div className="min-w-0">
+                <div className="font-bold">
+                  Best Practice Advisory: {sepsisSummary.current.riskLevel === 'high' ? 'Possible Sepsis' : 'Sepsis Watch'}
+                </div>
+                <div className="truncate">{sepsisSummary.recommendation}</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-1 ml-2 shrink-0">
+              <button className="ehr-button ehr-button-primary text-[10px] py-0.5" onClick={() => openAdvisory(vitals[0])}>Review Advisory</button>
+              <button className="ehr-button text-[10px] py-0.5" onClick={() => setBannerDismissed(true)}>Dismiss</button>
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 overflow-auto bg-white border border-gray-400">
           <table className="w-full text-[11px]">
@@ -218,6 +283,36 @@ export default function VitalsPage() {
                   })}
                 </tr>
               ))}
+              {sepsisSummary && (
+                <>
+                  {([
+                    ['MEWS Score', (assessment: SepsisAssessment) => assessment.mewsScore],
+                    ['SIRS Criteria', (assessment: SepsisAssessment) => `${assessment.sirsCount}/4`],
+                    ['qSOFA Score', (assessment: SepsisAssessment) => `${assessment.qsofaScore}/3`],
+                  ] as const).map(([label, getScore], scoreIdx) => (
+                    <tr key={label} className={scoreIdx % 2 === 0 ? 'bg-[#eef4fb]' : 'bg-[#f8f8f8]'}>
+                      <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">{label}</td>
+                      <td className="px-2 py-1 border border-gray-300 text-center text-[10px] text-gray-500">
+                        {label === 'MEWS Score' ? <span>Trend</span> : null}
+                      </td>
+                      {vitals.map(reading => {
+                        const assessment = assessmentsByReading.get(reading.id);
+                        if (!assessment) return <td key={reading.id} className="px-2 py-1 border border-gray-300 text-center">-</td>;
+                        return (
+                          <td
+                            key={reading.id}
+                            className="px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0]"
+                            style={sepsisCellStyle(assessment)}
+                            onClick={() => openAdvisory(reading)}
+                          >
+                            {getScore(assessment)}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </>
+              )}
               <tr className="bg-gray-100">
                 <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Recorded By</td>
                 <td className="px-2 py-1 border border-gray-300"></td>
@@ -288,6 +383,19 @@ export default function VitalsPage() {
         )}
       </Modal>
 
+      {sepsisSummary && advisoryReading && (
+        <SepsisAdvisoryDialog
+          key={`${advisoryReading.id}-${advisoryInstance}`}
+          isOpen={advisoryReading !== null}
+          onClose={() => setAdvisoryReading(null)}
+          summary={sepsisSummary}
+          assessment={assessmentsByReading.get(advisoryReading.id) ?? sepsisSummary.current}
+          patient={selectedPatient}
+          onAcceptOrders={handleAcceptOrders}
+          onDecline={handleDeclineAdvisory}
+        />
+      )}
+
       <Modal
         isOpen={showAddVitals}
         onClose={() => setShowAddVitals(false)}
@@ -325,6 +433,14 @@ export default function VitalsPage() {
           </fieldset>
         </div>
       </Modal>
+
+      <AlertDialog
+        isOpen={showAlert !== null}
+        onClose={() => setShowAlert(null)}
+        title={showAlert?.title ?? ''}
+        message={showAlert?.message ?? ''}
+        type={showAlert?.type ?? 'info'}
+      />
     </div>
   );
 }

@@ -13,7 +13,10 @@ export type AuditEventType =
   | 'NOTE_SIGN'
   | 'PRESCRIPTION_CREATE'
   | 'SETTINGS_CHANGE'
-  | 'FAILED_LOGIN';
+  | 'FAILED_LOGIN'
+  | 'ADVISORY_TRIGGERED'
+  | 'ADVISORY_ACCEPT'
+  | 'ADVISORY_DECLINE';
 
 export interface AuditEvent {
   id: string;
@@ -160,6 +163,34 @@ export function logOrder(patientId: string, orderType: string, orderDetails: str
     resourceType: orderType,
     action: 'Order created',
     details: orderDetails,
+  });
+}
+
+export function logAdvisoryTriggered(patientId: string, riskLevel: string, readingId: number): void {
+  logAuditEvent('ADVISORY_TRIGGERED', {
+    patientId,
+    resourceType: 'Sepsis Advisory',
+    resourceId: String(readingId),
+    action: 'Sepsis advisory triggered',
+    details: `Risk level: ${riskLevel}`,
+  });
+}
+
+export function logAdvisoryAccepted(patientId: string, orderIds: string[]): void {
+  logAuditEvent('ADVISORY_ACCEPT', {
+    patientId,
+    resourceType: 'Sepsis Advisory',
+    action: 'Sepsis advisory accepted',
+    details: `Orders accepted: ${orderIds.join(', ')}`,
+  });
+}
+
+export function logAdvisoryDeclined(patientId: string, reason: string): void {
+  logAuditEvent('ADVISORY_DECLINE', {
+    patientId,
+    resourceType: 'Sepsis Advisory',
+    action: 'Sepsis advisory declined',
+    details: `Reason: ${reason}`,
   });
 }
 

@@ -4,11 +4,11 @@ import { Modal } from './Modal';
 import { SEPSIS_BUNDLE_ORDERS } from '../../services/sepsisService';
 import type {
   SepsisAssessment,
+  SepsisBundleOrder,
   SepsisCriterion,
   SepsisCriterionSet,
   SepsisRiskSummary,
 } from '../../types/sepsis';
-import type { SepsisBundleOrder } from '../../types/sepsis';
 
 interface SepsisPatient {
   name: string;
@@ -89,7 +89,9 @@ export function SepsisAdvisoryDialog({
   onAcceptOrders,
   onDecline,
 }: SepsisAdvisoryDialogProps) {
-  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>(
+    SEPSIS_BUNDLE_ORDERS.filter(order => order.defaultSelected).map(order => order.id),
+  );
   const [declineReason, setDeclineReason] = useState('');
 
   const criteriaBySet = useMemo(() => {

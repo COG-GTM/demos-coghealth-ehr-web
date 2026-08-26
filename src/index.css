@@ -209,6 +209,18 @@ td {
   padding: 2px 4px;
 }
 
+.ehr-early-warning-panel {
+  max-height: 300px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+@media (max-height: 600px) {
+  .ehr-early-warning-panel {
+    max-height: 100px;
+  }
+}
+
 .ehr-toolbar-button {
   background: transparent;
   border: 1px solid transparent;

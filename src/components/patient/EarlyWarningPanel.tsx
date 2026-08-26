@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import type { Consciousness } from '../../utils/news2';
+import type { Consciousness, RiskBand } from '../../utils/news2';
 import { calculateNews2, news2Trend } from '../../utils/news2';
 import type { VitalReading } from '../../types';
 
@@ -16,7 +16,12 @@ const bandStyles: Record<string, CSSProperties> = {
   high: { background: '#ffcccc', color: '#990000' },
 };
 
-const scoreBarColors = ['#66aa66', '#d6b656', '#d9822b', '#cc3333'];
+const bandChartColors: Record<RiskBand, string> = {
+  low: '#66aa66',
+  'low-medium': '#c79e2b',
+  medium: '#d9822b',
+  high: '#cc3333',
+};
 
 export default function EarlyWarningPanel({
   readings,
@@ -38,7 +43,7 @@ export default function EarlyWarningPanel({
 
   if (!currentResult) {
     return (
-      <div className="ehr-panel m-2 p-2 text-[11px]">
+      <div className="ehr-panel ehr-early-warning-panel m-2 p-2 text-[11px]">
         <div className="ehr-header -m-2 mb-2">Deterioration Watch</div>
         <div className="text-gray-600">No vital sign readings available.</div>
       </div>
@@ -46,7 +51,7 @@ export default function EarlyWarningPanel({
   }
 
   return (
-    <div className="ehr-panel m-2 p-2 text-[11px]">
+    <div className="ehr-panel ehr-early-warning-panel m-2 p-2 text-[11px]">
       <div className="ehr-header -mx-2 -mt-2 mb-2 flex items-center justify-between">
         <span>Deterioration Watch</span>
         <span className="text-[10px] font-normal">NEWS2 clinical early-warning score</span>
@@ -92,7 +97,7 @@ export default function EarlyWarningPanel({
                     y={48 - height}
                     width={barWidth}
                     height={height}
-                    fill={scoreBarColors[Math.min(result.total > 0 ? Math.ceil(result.total / 5) : 0, scoreBarColors.length - 1)]}
+                    fill={bandChartColors[result.band]}
                   />
                   <text x={x + barWidth / 2} y="57" textAnchor="middle" fontSize="8" fill="#555">
                     {displayReadings[index].timestamp.split(' ')[1]}

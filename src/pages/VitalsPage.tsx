@@ -219,16 +219,17 @@ export default function VitalsPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto bg-white border border-gray-400">
-          {showEarlyWarning && (
-            <EarlyWarningPanel
-              readings={vitals}
-              consciousness={consciousness}
-              onSupplementalOxygen={onSupplementalOxygen}
-            />
-          )}
+        {showEarlyWarning && (
+          <EarlyWarningPanel
+            readings={vitals}
+            consciousness={consciousness}
+            onSupplementalOxygen={onSupplementalOxygen}
+          />
+        )}
+
+        <div className="min-h-0 flex-1 overflow-auto border border-gray-400 bg-white">
           <table className="w-full text-[11px]">
-            <thead className="sticky top-0">
+            <thead className="sticky top-0 z-30">
               <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
                 <th className="text-left px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
                 <th className="text-center px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] min-w-[50px]">Trend</th>
@@ -241,12 +242,12 @@ export default function VitalsPage() {
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr className="sticky top-[41px] z-20 bg-[#f5f5f5]">
                 <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-[#f5f5f5] z-10">
                   <div>NEWS2 Score</div>
                   <div className="text-[9px] text-gray-500 font-normal">Early-warning total</div>
                 </td>
-                <td className="px-2 py-1 border border-gray-300 text-center">
+                <td className="bg-[#f5f5f5] px-2 py-1 text-center">
                   <Sparkline data={news2Results.map(result => result.total)} vitalKey="news2" />
                 </td>
                 {news2Results.map((result, readingIdx) => (

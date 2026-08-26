@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import type { VitalReading } from '../types';
+import { EarlyWarningPanel } from '../components/patient';
+import { calculateNews2, type Consciousness, type News2Result, type RiskBand } from '../utils/news2';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -27,12 +29,47 @@ const defaultVitals: VitalReading[] = [
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
 
+const Sparkline = ({ data, vitalKey }: { data: (number | undefined)[]; vitalKey: string }) => {
+  const values = data.filter((v): v is number => v !== undefined);
+  if (values.length < 2) return null;
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const height = 20;
+  const width = 60;
+
+  const points = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * width;
+    const y = height - ((v - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
+
+  const vital = vitalSigns.find(v => v.key === vitalKey);
+  const lastValue = values[0];
+  const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
+
+  return (
+    <svg width={width} height={height} className="inline-block ml-1">
+      <polyline
+        points={points}
+        fill="none"
+        stroke={isAbnormal ? '#dc2626' : '#2563eb'}
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+};
+
 export default function VitalsPage() {
   const [vitals] = useState<VitalReading[]>(defaultVitals);
   const [selectedReading, setSelectedReading] = useState<VitalReading | null>(null);
   const [showAddVitals, setShowAddVitals] = useState(false);
   const [dateRange, setDateRange] = useState<'24h' | '48h' | '7d' | '30d'>('48h');
   const [selectedPatient] = useState(patientInfo);
+  const [showEarlyWarning, setShowEarlyWarning] = useState(true);
+  const [consciousness, setConsciousness] = useState<Consciousness>('A');
+  const [onSupplementalOxygen, setOnSupplementalOxygen] = useState(false);
 
   const getValueStatus = (key: string, value: number | undefined) => {
     if (value === undefined) return 'normal';
@@ -50,6 +87,19 @@ export default function VitalsPage() {
       case 'critical': return { background: '#ffcccc', color: '#990000', fontWeight: 'bold' };
       case 'abnormal': return { background: '#fff3cd', color: '#664d00' };
       default: return {};
+    }
+  };
+
+  const getNews2BandStyle = (band: RiskBand) => {
+    switch (band) {
+      case 'low':
+        return { background: '#dfffdf', color: '#006600' };
+      case 'low-medium':
+        return { background: '#fff3cd', color: '#664d00' };
+      case 'medium':
+        return { background: '#ffe0b2', color: '#8a4b00' };
+      default:
+        return { background: '#ffcccc', color: '#990000' };
     }
   };
 
@@ -83,37 +133,13 @@ export default function VitalsPage() {
     return null;
   };
 
-  const Sparkline = ({ data, vitalKey }: { data: (number | undefined)[]; vitalKey: string }) => {
-    const values = data.filter((v): v is number => v !== undefined);
-    if (values.length < 2) return null;
-    
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
-    const height = 20;
-    const width = 60;
-    
-    const points = values.map((v, i) => {
-      const x = (i / (values.length - 1)) * width;
-      const y = height - ((v - min) / range) * height;
-      return `${x},${y}`;
-    }).join(' ');
-
-    const vital = vitalSigns.find(v => v.key === vitalKey);
-    const lastValue = values[0];
-    const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
-
-    return (
-      <svg width={width} height={height} className="inline-block ml-1">
-        <polyline
-          points={points}
-          fill="none"
-          stroke={isAbnormal ? '#dc2626' : '#2563eb'}
-          strokeWidth="1.5"
-        />
-      </svg>
-    );
-  };
+  const news2Results: News2Result[] = vitals.map(reading => calculateNews2(reading, {
+    consciousness,
+    onSupplementalOxygen,
+  }));
+  const selectedNews2Result = selectedReading
+    ? calculateNews2(selectedReading, { consciousness, onSupplementalOxygen })
+    : null;
 
   return (
     <div className="h-full flex flex-col overflow-hidden p-2">
@@ -157,8 +183,36 @@ export default function VitalsPage() {
               <option value="7d">Last 7 Days</option>
               <option value="30d">Last 30 Days</option>
             </select>
+            <button
+              className={`ehr-button ${showEarlyWarning ? 'ehr-button-primary' : ''}`}
+              onClick={() => setShowEarlyWarning(value => !value)}
+              aria-expanded={showEarlyWarning}
+            >
+              Deterioration Watch
+            </button>
           </div>
           <div className="flex items-center space-x-2 text-[10px]">
+            <label className="flex items-center space-x-1">
+              <span>Consciousness:</span>
+              <select
+                value={consciousness}
+                onChange={event => setConsciousness(event.target.value as Consciousness)}
+                className="ehr-input py-0.5"
+                aria-label="Consciousness"
+              >
+                <option value="A">Alert</option>
+                <option value="CVPU">CVPU</option>
+              </select>
+            </label>
+            <label className="flex items-center space-x-1">
+              <input
+                type="checkbox"
+                checked={onSupplementalOxygen}
+                onChange={event => setOnSupplementalOxygen(event.target.checked)}
+                className="ehr-checkbox"
+              />
+              <span>On supplemental O2</span>
+            </label>
             <span className="flex items-center"><span className="w-2 h-2 bg-green-500 inline-block mr-1"></span>Normal</span>
             <span className="flex items-center"><span className="w-2 h-2 bg-yellow-400 inline-block mr-1"></span>Abnormal</span>
             <span className="flex items-center"><span className="w-2 h-2 bg-red-500 inline-block mr-1"></span>Critical</span>
@@ -166,6 +220,13 @@ export default function VitalsPage() {
         </div>
 
         <div className="flex-1 overflow-auto bg-white border border-gray-400">
+          {showEarlyWarning && (
+            <EarlyWarningPanel
+              readings={vitals}
+              consciousness={consciousness}
+              onSupplementalOxygen={onSupplementalOxygen}
+            />
+          )}
           <table className="w-full text-[11px]">
             <thead className="sticky top-0">
               <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
@@ -180,6 +241,26 @@ export default function VitalsPage() {
               </tr>
             </thead>
             <tbody>
+              <tr>
+                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-[#f5f5f5] z-10">
+                  <div>NEWS2 Score</div>
+                  <div className="text-[9px] text-gray-500 font-normal">Early-warning total</div>
+                </td>
+                <td className="px-2 py-1 border border-gray-300 text-center">
+                  <Sparkline data={news2Results.map(result => result.total)} vitalKey="news2" />
+                </td>
+                {news2Results.map((result, readingIdx) => (
+                  <td
+                    key={vitals[readingIdx].id}
+                    className="cursor-pointer border border-gray-300 px-2 py-1 text-center font-mono font-bold hover:brightness-95"
+                    style={getNews2BandStyle(result.band)}
+                    onClick={() => setSelectedReading(vitals[readingIdx])}
+                    title={`${result.bandLabel}: ${result.total}`}
+                  >
+                    {result.total}
+                  </td>
+                ))}
+              </tr>
               {vitalSigns.map((vital, vitalIdx) => (
                 <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}>
                   <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">
@@ -284,6 +365,23 @@ export default function VitalsPage() {
                 })}
               </div>
             </fieldset>
+            {selectedNews2Result && (
+              <fieldset className="ehr-fieldset">
+                <legend>NEWS2 Deterioration Watch</legend>
+                <div className="mb-2 flex items-center gap-2 text-[11px]">
+                  <span className="font-semibold">Total: {selectedNews2Result.total}</span>
+                  <span className="border border-current px-1.5 py-0.5 font-bold" style={getNews2BandStyle(selectedNews2Result.band)}>
+                    {selectedNews2Result.bandLabel}
+                  </span>
+                </div>
+                <div className="text-[11px]">
+                  <span className="text-gray-500">Red-flag parameters:</span>{' '}
+                  {selectedNews2Result.redFlagParameters.length > 0
+                    ? selectedNews2Result.redFlagParameters.join(', ')
+                    : 'None'}
+                </div>
+              </fieldset>
+            )}
           </div>
         )}
       </Modal>

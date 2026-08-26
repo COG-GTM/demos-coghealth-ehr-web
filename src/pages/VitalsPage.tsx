@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
 import { AlertDialog, Modal } from '../components/ui/Modal';
 import { SepsisAdvisoryDialog } from '../components/ui/SepsisAdvisoryDialog';
@@ -30,6 +30,7 @@ const defaultVitals: VitalReading[] = [
 ];
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
+const sepsisAdvisoryTriggered = new Set<string>();
 
 export default function VitalsPage() {
   const [vitals] = useState<VitalReading[]>(defaultVitals);
@@ -42,16 +43,16 @@ export default function VitalsPage() {
   const [dateRange, setDateRange] = useState<'24h' | '48h' | '7d' | '30d'>('48h');
   const [selectedPatient] = useState(patientInfo);
   const sepsisSummary = useMemo(() => assessSepsisRisk(vitals), [vitals]);
-  const advisoryTriggered = useRef(false);
   const assessmentsByReading = useMemo(() => new Map(
     sepsisSummary?.history.map(assessment => [assessment.readingId, assessment]) ?? [],
   ), [sepsisSummary]);
 
   useEffect(() => {
     const current = sepsisSummary?.current;
-    if (current && (current.riskLevel === 'moderate' || current.riskLevel === 'high') && !bannerDismissed && !advisoryTriggered.current) {
+    const triggerKey = current ? `${selectedPatient.mrn}:${current.readingId}` : '';
+    if (current && (current.riskLevel === 'moderate' || current.riskLevel === 'high') && !bannerDismissed && !sepsisAdvisoryTriggered.has(triggerKey)) {
       logAdvisoryTriggered(selectedPatient.mrn, current.riskLevel, current.readingId);
-      advisoryTriggered.current = true;
+      sepsisAdvisoryTriggered.add(triggerKey);
     }
   }, [bannerDismissed, sepsisSummary, selectedPatient.mrn]);
 

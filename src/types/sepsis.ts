@@ -18,6 +18,9 @@ export interface SepsisAssessment {
   qsofaScore: number;
   mewsScore: number;
   riskLevel: SepsisRiskLevel;
+  /** MEWS change versus the next-older reading; 0 when there is no prior reading. */
+  mewsDelta: number;
+  recommendation: string;
   criteria: SepsisCriterion[];
   undocumented: string[];
 }

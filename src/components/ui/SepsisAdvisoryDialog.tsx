@@ -101,11 +101,17 @@ export function SepsisAdvisoryDialog({
     }, { SIRS: [], qSOFA: [], MEWS: [] });
   }, [assessment]);
 
-  const mewsTrend = summary.history.slice().reverse().map(reading => reading.mewsScore);
-  const trendLabel = summary.mewsDelta > 0 ? 'Rising' : summary.mewsDelta < 0 ? 'Falling' : 'Stable';
-  const trendIcon = summary.mewsDelta > 0
+  const assessmentIndex = summary.history.findIndex(
+    historyAssessment => historyAssessment.readingId === assessment.readingId,
+  );
+  const assessmentHistory = assessmentIndex >= 0
+    ? summary.history.slice(assessmentIndex)
+    : summary.history;
+  const mewsTrend = assessmentHistory.slice().reverse().map(reading => reading.mewsScore);
+  const trendLabel = assessment.mewsDelta > 0 ? 'Rising' : assessment.mewsDelta < 0 ? 'Falling' : 'Stable';
+  const trendIcon = assessment.mewsDelta > 0
     ? <TrendingUp className="w-3 h-3 inline text-red-600" />
-    : summary.mewsDelta < 0
+    : assessment.mewsDelta < 0
       ? <TrendingDown className="w-3 h-3 inline text-green-600" />
       : <Minus className="w-3 h-3 inline text-gray-500" />;
 
@@ -153,7 +159,7 @@ export function SepsisAdvisoryDialog({
             </div>
           </div>
           <div className="mt-2 px-2 py-1 border border-gray-400 text-[11px]" style={riskStyle(assessment.riskLevel)}>
-            {summary.recommendation}
+            {assessment.recommendation}
           </div>
         </fieldset>
 
@@ -177,7 +183,7 @@ export function SepsisAdvisoryDialog({
             <span className="font-semibold">MEWS history:</span>
             <MewsSparkline data={mewsTrend} />
             <span className="ml-2">{assessment.mewsScore} current</span>
-            <span className="ml-2 font-semibold">{trendIcon} {trendLabel} ({summary.mewsDelta > 0 ? '+' : ''}{summary.mewsDelta})</span>
+            <span className="ml-2 font-semibold">{trendIcon} {trendLabel} ({assessment.mewsDelta > 0 ? '+' : ''}{assessment.mewsDelta})</span>
           </div>
         </fieldset>
 

@@ -191,7 +191,11 @@ function riskLevelFor(sirsCount: number, qsofaScore: number, mewsScore: number):
   return 'low';
 }
 
-export function assessReading(reading: VitalReading): SepsisAssessment {
+/**
+ * Scores a single reading. `previous` is the next-older reading, used only for the
+ * MEWS trend; omit it when no prior reading is available.
+ */
+export function assessReading(reading: VitalReading, previous?: VitalReading): SepsisAssessment {
   const criteria = [...sirsCriteria(reading), ...qsofaCriteria(reading), ...mewsCriteria(reading)];
 
   const sirsCount = criteria.filter(c => c.set === 'SIRS' && c.met).length;
@@ -200,27 +204,39 @@ export function assessReading(reading: VitalReading): SepsisAssessment {
     .filter(c => c.set === 'MEWS')
     .reduce((total, c) => total + c.points, 0);
 
+  const mewsDelta = previous ? mewsScore - mewsTotal(previous) : 0;
+  const riskLevel = riskLevelFor(sirsCount, qsofaScore, mewsScore);
+
   return {
     readingId: reading.id,
     timestamp: reading.timestamp,
     sirsCount,
     qsofaScore,
     mewsScore,
-    riskLevel: riskLevelFor(sirsCount, qsofaScore, mewsScore),
+    riskLevel,
+    mewsDelta,
+    recommendation: recommendationFor({ sirsCount, qsofaScore, mewsScore, riskLevel }, mewsDelta),
     criteria,
     undocumented: criteria.filter(c => !c.documented).map(c => c.label),
   };
 }
 
-function recommendationFor(assessment: SepsisAssessment, mewsDelta: number): string {
+function mewsTotal(reading: VitalReading): number {
+  return mewsCriteria(reading).reduce((total, c) => total + c.points, 0);
+}
+
+type Scores = Pick<SepsisAssessment, 'sirsCount' | 'qsofaScore' | 'mewsScore' | 'riskLevel'>;
+
+function recommendationFor(scores: Scores, mewsDelta: number): string {
   const rising = mewsDelta > 0 ? ' MEWS is rising versus the prior reading.' : '';
-  switch (assessment.riskLevel) {
+  const values = `SIRS ${scores.sirsCount}/4, qSOFA ${scores.qsofaScore}/3, MEWS ${scores.mewsScore}`;
+  switch (scores.riskLevel) {
     case 'high':
-      return `Sepsis criteria met (SIRS ${assessment.sirsCount}/4, qSOFA ${assessment.qsofaScore}/3, MEWS ${assessment.mewsScore}).${rising} Initiate the 1-hour sepsis bundle and notify the attending physician.`;
+      return `Sepsis criteria met (${values}).${rising} Initiate the 1-hour sepsis bundle and notify the attending physician.`;
     case 'moderate':
-      return `Possible early sepsis (SIRS ${assessment.sirsCount}/4, qSOFA ${assessment.qsofaScore}/3, MEWS ${assessment.mewsScore}).${rising} Consider lactate and blood cultures, and reassess vitals within 1 hour.`;
+      return `Possible early sepsis (${values}).${rising} Consider lactate and blood cultures, and reassess vitals within 1 hour.`;
     default:
-      return `No sepsis criteria met (SIRS ${assessment.sirsCount}/4, qSOFA ${assessment.qsofaScore}/3, MEWS ${assessment.mewsScore}). Continue routine monitoring.`;
+      return `No sepsis criteria met (${values}). Continue routine monitoring.`;
   }
 }
 
@@ -234,16 +250,14 @@ export function assessSepsisRisk(readings: VitalReading[]): SepsisRiskSummary | 
   const ordered = [...readings].sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   );
-  const history = ordered.map(assessReading);
+  const history = ordered.map((reading, index) => assessReading(reading, ordered[index + 1]));
   const current = history[0];
-  const previous = history[1];
-  const mewsDelta = previous ? current.mewsScore - previous.mewsScore : 0;
 
   return {
     current,
     history,
-    mewsDelta,
-    recommendation: recommendationFor(current, mewsDelta),
+    mewsDelta: current.mewsDelta,
+    recommendation: current.recommendation,
   };
 }
 

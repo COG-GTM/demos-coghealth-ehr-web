@@ -43,6 +43,21 @@ describe('sepsisService', () => {
     expect(summary?.recommendation.toLowerCase()).toContain('sepsis bundle');
   });
 
+  it('scopes assessment recommendations and MEWS deltas to each reading', () => {
+    const summary = assessSepsisRisk(readings);
+    const readingThree = summary?.history.find(assessment => assessment.readingId === 3);
+    const oldestReading = summary?.history.find(assessment => assessment.readingId === 8);
+
+    expect(readingThree?.mewsDelta).toBe(2);
+    expect(readingThree?.riskLevel).toBe('moderate');
+    expect(readingThree?.recommendation).toContain('Possible early sepsis');
+    expect(readingThree?.recommendation).toContain('MEWS 3');
+    expect(readingThree?.recommendation).not.toContain('1-hour sepsis bundle');
+    expect(oldestReading?.mewsDelta).toBe(0);
+    expect(assessReading(readings[0]).mewsDelta).toBe(0);
+    expect(summary?.recommendation).toBe(summary?.current.recommendation);
+  });
+
   it('returns null for an empty timeline', () => {
     expect(assessSepsisRisk([])).toBeNull();
   });

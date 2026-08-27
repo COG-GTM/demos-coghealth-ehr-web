@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
+import { EarlyWarningPanel } from '../components/clinical/EarlyWarningPanel';
+import { calculateNews2 } from '../utils/earlyWarningScore';
+import type { Consciousness } from '../utils/earlyWarningScore';
 import type { VitalReading } from '../types';
 
 const vitalSigns = [
@@ -27,12 +30,58 @@ const defaultVitals: VitalReading[] = [
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
 
+function Sparkline({ data, vitalKey }: { data: (number | undefined)[]; vitalKey: string }) {
+  const values = data.filter((v): v is number => v !== undefined);
+  if (values.length < 2) return null;
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const height = 20;
+  const width = 60;
+
+  const points = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * width;
+    const y = height - ((v - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
+
+  const vital = vitalSigns.find(v => v.key === vitalKey);
+  const lastValue = values[0];
+  const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
+
+  return (
+    <svg width={width} height={height} className="inline-block ml-1">
+      <polyline
+        points={points}
+        fill="none"
+        stroke={isAbnormal ? '#dc2626' : '#2563eb'}
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
+const newsScoreStyle = (total: number, maxComponentScore: number) => {
+  if (total >= 7) return { background: '#ffcccc', color: '#990000' };
+  if (total >= 5) return { background: '#ffe0b2', color: '#7a4b00' };
+  if (maxComponentScore >= 3) return { background: '#fff9c4', color: '#664d00' };
+  return { background: '#e8f5e9', color: '#1b5e20' };
+};
+
 export default function VitalsPage() {
   const [vitals] = useState<VitalReading[]>(defaultVitals);
   const [selectedReading, setSelectedReading] = useState<VitalReading | null>(null);
   const [showAddVitals, setShowAddVitals] = useState(false);
   const [dateRange, setDateRange] = useState<'24h' | '48h' | '7d' | '30d'>('48h');
   const [selectedPatient] = useState(patientInfo);
+  const [supplementalOxygen, setSupplementalOxygen] = useState(false);
+  const [consciousness, setConsciousness] = useState<Consciousness>('alert');
+
+  const newsScores = useMemo(
+    () => vitals.map(reading => calculateNews2(reading, { supplementalOxygen, consciousness })),
+    [vitals, supplementalOxygen, consciousness]
+  );
 
   const getValueStatus = (key: string, value: number | undefined) => {
     if (value === undefined) return 'normal';
@@ -83,40 +132,8 @@ export default function VitalsPage() {
     return null;
   };
 
-  const Sparkline = ({ data, vitalKey }: { data: (number | undefined)[]; vitalKey: string }) => {
-    const values = data.filter((v): v is number => v !== undefined);
-    if (values.length < 2) return null;
-    
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
-    const height = 20;
-    const width = 60;
-    
-    const points = values.map((v, i) => {
-      const x = (i / (values.length - 1)) * width;
-      const y = height - ((v - min) / range) * height;
-      return `${x},${y}`;
-    }).join(' ');
-
-    const vital = vitalSigns.find(v => v.key === vitalKey);
-    const lastValue = values[0];
-    const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
-
-    return (
-      <svg width={width} height={height} className="inline-block ml-1">
-        <polyline
-          points={points}
-          fill="none"
-          stroke={isAbnormal ? '#dc2626' : '#2563eb'}
-          strokeWidth="1.5"
-        />
-      </svg>
-    );
-  };
-
   return (
-    <div className="h-full flex flex-col overflow-hidden p-2">
+    <div className="h-full flex overflow-hidden p-2 space-x-2">
       <div className="ehr-panel flex-1 flex flex-col overflow-hidden">
         <div className="ehr-header flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -218,6 +235,29 @@ export default function VitalsPage() {
                   })}
                 </tr>
               ))}
+              <tr className="bg-[#eef4ff]">
+                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-[#eef4ff] z-10">
+                  <div>NEWS2 Score</div>
+                  <div className="text-[9px] text-gray-500 font-normal">aggregate (0-20)</div>
+                </td>
+                <td className="px-2 py-1 border border-gray-300 text-center">
+                  <Sparkline data={newsScores.map(s => s.total)} vitalKey="news2" />
+                </td>
+                {vitals.map((reading, readingIdx) => {
+                  const score = newsScores[readingIdx];
+                  return (
+                    <td
+                      key={reading.id}
+                      className="px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0] font-mono font-semibold"
+                      style={newsScoreStyle(score.total, score.maxComponentScore)}
+                      onClick={() => setSelectedReading(reading)}
+                      title={`${score.riskLabel} — ${score.monitoringFrequency}`}
+                    >
+                      {score.total}
+                    </td>
+                  );
+                })}
+              </tr>
               <tr className="bg-gray-100">
                 <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Recorded By</td>
                 <td className="px-2 py-1 border border-gray-300"></td>
@@ -241,10 +281,18 @@ export default function VitalsPage() {
         </div>
 
         <div className="ehr-status-bar flex items-center justify-between">
-          <span>{vitals.length} readings displayed</span>
+          <span>{vitals.length} readings displayed | NEWS2 latest: {newsScores[0]?.total ?? '-'}</span>
           <span>Last updated: {new Date().toLocaleTimeString()}</span>
         </div>
       </div>
+
+      <EarlyWarningPanel
+        readings={vitals}
+        supplementalOxygen={supplementalOxygen}
+        consciousness={consciousness}
+        onSupplementalOxygenChange={setSupplementalOxygen}
+        onConsciousnessChange={setConsciousness}
+      />
 
       <Modal
         isOpen={selectedReading !== null}

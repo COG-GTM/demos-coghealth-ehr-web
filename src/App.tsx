@@ -1,20 +1,12 @@
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  Users, 
-  Calendar, 
-  Pill, 
-  FileText, 
-  Settings,
-  LayoutDashboard,
   Menu,
   X,
   User,
   LogOut,
   Search,
   Lock,
-  Shield,
-  FlaskConical,
-  Activity
+  Shield
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
@@ -27,19 +19,12 @@ import SettingsPage from './pages/SettingsPage';
 import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
+import { CommandPalette } from './components/ui';
+import { defaultPatientSearch, navItems } from './components/ui/commandData';
 import { logLogout } from './services/auditService';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
-
-const defaultPatientSearch = [
-  { id: 1, name: 'Smith, John', mrn: 'MRN001234', dob: '03/15/1965' },
-  { id: 2, name: 'Johnson, Sarah', mrn: 'MRN001235', dob: '07/22/1978' },
-  { id: 3, name: 'Williams, Michael', mrn: 'MRN001236', dob: '11/08/1952' },
-  { id: 4, name: 'Brown, Emily', mrn: 'MRN001237', dob: '04/30/1989' },
-  { id: 5, name: 'Davis, Robert', mrn: 'MRN001238', dob: '08/20/1945' },
-  { id: 6, name: 'Martinez, Maria', mrn: 'MRN001240', dob: '12/05/1970' },
-];
 
 interface NavigationProps {
   onSessionWarning: () => void;
@@ -114,17 +99,6 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/patients', icon: Users, label: 'Patients' },
-    { path: '/schedule', icon: Calendar, label: 'Schedule' },
-    { path: '/labs', icon: FlaskConical, label: 'Lab Results' },
-    { path: '/vitals', icon: Activity, label: 'Vitals' },
-    { path: '/medications', icon: Pill, label: 'Medications' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
-  ];
-
   return (
     <>
       {/* Application Header */}
@@ -149,6 +123,9 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
                 className="bg-blue-900/50 border border-blue-400 text-white placeholder-blue-300 text-[10px] px-2 py-0.5 w-40 focus:outline-none focus:border-white"
               />
+              <span className="ml-1 border border-blue-300/70 px-1 py-0.5 text-[9px] font-normal text-blue-100" aria-label="Keyboard shortcut Control K">
+                Ctrl+K
+              </span>
             </div>
             {showSearchDropdown && searchResults.length > 0 && (
               <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50">
@@ -286,6 +263,7 @@ function App() {
           onSessionExpired={handleSessionExpired}
           onLogout={handleLogout}
         />
+        <CommandPalette />
         <main className="flex-1 overflow-hidden">
           <Routes>
             <Route path="/" element={<DashboardPage />} />

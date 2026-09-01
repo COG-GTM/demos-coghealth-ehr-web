@@ -1,11 +1,5 @@
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  Users, 
-  Calendar, 
-  Pill, 
-  FileText, 
-  Settings,
-  LayoutDashboard,
   Menu,
   X,
   User,
@@ -13,8 +7,6 @@ import {
   Search,
   Lock,
   Shield,
-  FlaskConical,
-  Activity
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
@@ -27,32 +19,28 @@ import SettingsPage from './pages/SettingsPage';
 import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
+import CommandPalette from './components/ui/CommandPalette';
 import { logLogout } from './services/auditService';
+import { addRecentPatient } from './utils/recentPatients';
+import { demoPatients } from './utils/demoPatients';
+import { navItems } from './utils/navigation';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
-
-const defaultPatientSearch = [
-  { id: 1, name: 'Smith, John', mrn: 'MRN001234', dob: '03/15/1965' },
-  { id: 2, name: 'Johnson, Sarah', mrn: 'MRN001235', dob: '07/22/1978' },
-  { id: 3, name: 'Williams, Michael', mrn: 'MRN001236', dob: '11/08/1952' },
-  { id: 4, name: 'Brown, Emily', mrn: 'MRN001237', dob: '04/30/1989' },
-  { id: 5, name: 'Davis, Robert', mrn: 'MRN001238', dob: '08/20/1945' },
-  { id: 6, name: 'Martinez, Maria', mrn: 'MRN001240', dob: '12/05/1970' },
-];
 
 interface NavigationProps {
   onSessionWarning: () => void;
   onSessionExpired: () => void;
   onLogout: () => void;
+  onOpenPalette: () => void;
 }
 
-function Navigation({ onSessionWarning, onSessionExpired, onLogout }: NavigationProps) {
+function Navigation({ onSessionWarning, onSessionExpired, onLogout, onOpenPalette }: NavigationProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
-  const [searchResults, setSearchResults] = useState<typeof defaultPatientSearch>([]);
+  const [searchResults, setSearchResults] = useState<typeof demoPatients>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [sessionTime, setSessionTime] = useState(SESSION_TIMEOUT_MS);
 
@@ -90,7 +78,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   const handleSearch = (query: string) => {
     setGlobalSearch(query);
     if (query.length >= 2) {
-      const results = defaultPatientSearch.filter(p =>
+      const results = demoPatients.filter(p =>
         p.name.toLowerCase().includes(query.toLowerCase()) ||
         p.mrn.toLowerCase().includes(query.toLowerCase())
       );
@@ -102,10 +90,11 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     }
   };
 
-  const selectPatient = (patientId: number) => {
+  const selectPatient = (patient: typeof demoPatients[number]) => {
     setGlobalSearch('');
     setShowSearchDropdown(false);
-    navigate(`/patients/${patientId}`);
+    addRecentPatient({ id: patient.id, name: patient.name, mrn: patient.mrn });
+    navigate(`/patients/${patient.id}`);
   };
 
   const formatSessionTime = () => {
@@ -113,17 +102,6 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     const secs = Math.floor((sessionTime % 60000) / 1000);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
-  const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/patients', icon: Users, label: 'Patients' },
-    { path: '/schedule', icon: Calendar, label: 'Schedule' },
-    { path: '/labs', icon: FlaskConical, label: 'Lab Results' },
-    { path: '/vitals', icon: Activity, label: 'Vitals' },
-    { path: '/medications', icon: Pill, label: 'Medications' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
-  ];
 
   return (
     <>
@@ -149,13 +127,20 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
                 className="bg-blue-900/50 border border-blue-400 text-white placeholder-blue-300 text-[10px] px-2 py-0.5 w-40 focus:outline-none focus:border-white"
               />
+              <button
+                type="button"
+                onClick={onOpenPalette}
+                className="ml-1 border border-blue-400 bg-blue-900/50 px-1 text-[9px] text-blue-200"
+              >
+                Ctrl+K
+              </button>
             </div>
             {showSearchDropdown && searchResults.length > 0 && (
               <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50">
                 {searchResults.map((patient) => (
                   <div
                     key={patient.id}
-                    onClick={() => selectPatient(patient.id)}
+                    onClick={() => selectPatient(patient)}
                     className="px-2 py-1.5 hover:bg-blue-100 cursor-pointer text-[11px] text-gray-800 border-b border-gray-200"
                   >
                     <div className="font-semibold">{patient.name}</div>
@@ -260,6 +245,33 @@ function App() {
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSessionExpired, setShowSessionExpired] = useState(false);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setIsPaletteOpen((isOpen) => !isOpen);
+        return;
+      }
+
+      if (
+        event.key === '/' &&
+        !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName ?? '')
+      ) {
+        event.preventDefault();
+        setIsPaletteOpen(true);
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        setIsPaletteOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   const handleSessionWarning = useCallback(() => {
     setShowSessionWarning(true);
@@ -285,6 +297,12 @@ function App() {
           onSessionWarning={handleSessionWarning}
           onSessionExpired={handleSessionExpired}
           onLogout={handleLogout}
+          onOpenPalette={() => setIsPaletteOpen(true)}
+        />
+        <CommandPalette
+          key={isPaletteOpen ? 'open' : 'closed'}
+          isOpen={isPaletteOpen}
+          onClose={() => setIsPaletteOpen(false)}
         />
         <main className="flex-1 overflow-hidden">
           <Routes>

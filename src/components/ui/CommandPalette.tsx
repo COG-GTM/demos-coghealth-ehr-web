@@ -257,11 +257,10 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
             {query.trim().length >= 2 && isSearching && (
               <div className="px-2 py-2 text-[11px] text-gray-500">Searching...</div>
             )}
-            {query.trim().length >= 2 && !isSearching && patientResults.length === 0 && (
-              <div className="px-2 py-2 text-[11px] text-gray-500">No patients found</div>
-            )}
-            {groups.length === 0 && query.trim().length < 2 && (
-              <div className="px-2 py-2 text-[11px] text-gray-500">No commands found</div>
+            {groups.length === 0 && !isSearching && (
+              <div className="px-2 py-2 text-[11px] text-gray-500">
+                {query.trim().length >= 2 ? 'No matching commands or patients' : 'No commands found'}
+              </div>
             )}
           </div>
         </div>

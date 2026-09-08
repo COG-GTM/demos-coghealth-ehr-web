@@ -19,11 +19,20 @@ export function getStoredTheme(): Theme {
   }
 }
 
-export function persistTheme(theme: Theme) {
+function readSettings(): Record<string, unknown> {
   try {
     const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
-    const settings = stored ? JSON.parse(stored) : {};
-    settings.appearance = { ...settings.appearance, theme };
+    const parsed = stored ? JSON.parse(stored) : null;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+export function persistTheme(theme: Theme) {
+  try {
+    const settings = readSettings();
+    settings.appearance = { ...(settings.appearance as object), theme };
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
   } catch (e) {
     console.error('Failed to persist theme:', e);

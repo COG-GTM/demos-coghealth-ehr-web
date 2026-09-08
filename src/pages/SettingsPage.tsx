@@ -14,6 +14,7 @@ import {
   Check
 } from 'lucide-react';
 import { AlertDialog } from '../components/ui/Modal';
+import { applyTheme, persistTheme, type Theme } from '../lib/theme';
 
 type SettingsTab = 'profile' | 'notifications' | 'security' | 'appearance' | 'practice';
 
@@ -48,7 +49,7 @@ const defaultNotifications = {
   systemUpdates: false,
 };
 
-const defaultAppearance = {
+const defaultAppearance: { theme: Theme; compactMode: boolean; fontSize: string } = {
   theme: 'light',
   compactMode: false,
   fontSize: 'medium',
@@ -98,6 +99,12 @@ export default function SettingsPage() {
     { id: 'practice' as const, label: 'Practice', icon: Building2 },
   ];
 
+  const selectTheme = (theme: Theme) => {
+    setAppearance({ ...appearance, theme });
+    applyTheme(theme);
+    persistTheme(theme);
+  };
+
   const handleSave = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ profile, notifications, appearance }));
     setSaved(true);
@@ -105,14 +112,13 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col ehr-desktop">
       {/* Header */}
       <div className="ehr-header flex items-center justify-between">
         <span>System Settings</span>
         <button
           onClick={handleSave}
-          className={`ehr-button flex items-center text-[10px] ${saved ? '' : 'ehr-button-primary'}`}
-          style={saved ? { background: 'linear-gradient(to bottom, #66cc66 0%, #339933 100%)', color: 'white', border: '1px solid #206020' } : undefined}
+          className={`ehr-button flex items-center text-[10px] ${saved ? 'ehr-button-success' : 'ehr-button-primary'}`}
         >
           {saved ? <><Check className="w-3 h-3 mr-1" /> Saved</> : <><Save className="w-3 h-3 mr-1" /> Save Changes</>}
         </button>
@@ -121,7 +127,7 @@ export default function SettingsPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Navigation */}
-        <div className="w-48 overflow-auto p-2 space-y-1" style={{ background: '#ece9d8' }}>
+        <div className="w-48 overflow-auto p-2 space-y-1 ehr-pane">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -130,7 +136,7 @@ export default function SettingsPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center px-2 py-1.5 text-[11px] ${
                   activeTab === tab.id
-                    ? 'bg-white border border-gray-400 font-semibold'
+                    ? 'bg-white dark:bg-slate-900 border border-gray-400 dark:border-slate-600 font-semibold'
                     : 'hover:bg-white/50'
                 }`}
               >
@@ -142,14 +148,14 @@ export default function SettingsPage() {
         </div>
 
         {/* Right Content */}
-        <div className="flex-1 overflow-auto bg-white border-l border-gray-500 p-3">
+        <div className="flex-1 overflow-auto bg-white dark:bg-slate-900 border-l border-gray-500 dark:border-slate-600 p-3">
           {activeTab === 'profile' && (
             <div className="space-y-3">
               <fieldset className="ehr-fieldset">
                 <legend>User Profile</legend>
                 <div className="flex items-center space-x-4 mb-3">
-                  <div className="w-14 h-14 bg-gray-100 flex items-center justify-center border border-gray-400">
-                    <span className="text-[11px] font-bold text-gray-700">
+                  <div className="w-14 h-14 bg-gray-100 dark:bg-slate-800 flex items-center justify-center border border-gray-400 dark:border-slate-600">
+                    <span className="text-[11px] font-bold text-gray-700 dark:text-slate-200">
                       {profile.firstName[0]}{profile.lastName[0]}
                     </span>
                   </div>
@@ -157,7 +163,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">First Name</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">First Name</label>
                     <input
                       type="text"
                       value={profile.firstName}
@@ -166,7 +172,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Last Name</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Last Name</label>
                     <input
                       type="text"
                       value={profile.lastName}
@@ -175,7 +181,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Email</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Email</label>
                     <input
                       type="email"
                       value={profile.email}
@@ -184,7 +190,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Phone</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Phone</label>
                     <input
                       type="tel"
                       value={profile.phone}
@@ -193,7 +199,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">NPI Number</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">NPI Number</label>
                     <input
                       type="text"
                       value={profile.npi}
@@ -202,7 +208,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Specialty</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Specialty</label>
                     <select
                       value={profile.specialty}
                       onChange={(e) => setProfile({ ...profile, specialty: e.target.value })}
@@ -228,20 +234,20 @@ export default function SettingsPage() {
                   onClick={(e) => { e.stopPropagation(); toggleSection('channels'); }}
                 >
                   <div className="flex items-center">
-                    <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
+                    <span className="w-4 h-4 border border-gray-400 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center text-[10px] font-bold mr-1">
                       {expandedSections.has('channels') ? '-' : '+'}
                     </span>
                     Notification Channels
                   </div>
                 </div>
                 {expandedSections.has('channels') && (
-                  <div className="bg-white p-2 space-y-2">
-                    <label className="flex items-center justify-between p-2 bg-gray-50 border border-gray-300 cursor-pointer hover:bg-gray-100">
+                  <div className="bg-white dark:bg-slate-900 p-2 space-y-2">
+                    <label className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700">
                       <div className="flex items-center">
-                        <Mail className="w-4 h-4 text-gray-500 mr-2" />
+                        <Mail className="w-4 h-4 text-gray-500 dark:text-slate-400 mr-2" />
                         <div>
                           <div className="text-[11px] font-medium">Email Notifications</div>
-                          <div className="text-[10px] text-gray-500">Receive alerts via email</div>
+                          <div className="text-[10px] text-gray-500 dark:text-slate-400">Receive alerts via email</div>
                         </div>
                       </div>
                       <input
@@ -251,12 +257,12 @@ export default function SettingsPage() {
                         className="h-4 w-4"
                       />
                     </label>
-                    <label className="flex items-center justify-between p-2 bg-gray-50 border border-gray-300 cursor-pointer hover:bg-gray-100">
+                    <label className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700">
                       <div className="flex items-center">
-                        <Smartphone className="w-4 h-4 text-gray-500 mr-2" />
+                        <Smartphone className="w-4 h-4 text-gray-500 dark:text-slate-400 mr-2" />
                         <div>
                           <div className="text-[11px] font-medium">SMS Notifications</div>
-                          <div className="text-[10px] text-gray-500">Receive urgent alerts via text</div>
+                          <div className="text-[10px] text-gray-500 dark:text-slate-400">Receive urgent alerts via text</div>
                         </div>
                       </div>
                       <input
@@ -276,24 +282,24 @@ export default function SettingsPage() {
                   onClick={(e) => { e.stopPropagation(); toggleSection('alerts'); }}
                 >
                   <div className="flex items-center">
-                    <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
+                    <span className="w-4 h-4 border border-gray-400 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center text-[10px] font-bold mr-1">
                       {expandedSections.has('alerts') ? '-' : '+'}
                     </span>
                     Alert Types
                   </div>
                 </div>
                 {expandedSections.has('alerts') && (
-                  <div className="bg-white">
+                  <div className="bg-white dark:bg-slate-900">
                     {[
                       { key: 'labResults', label: 'Lab Results', desc: 'When new lab results are available' },
                       { key: 'appointments', label: 'Appointments', desc: 'Reminders and schedule changes' },
                       { key: 'messages', label: 'Messages', desc: 'New messages from patients or staff' },
                       { key: 'systemUpdates', label: 'System Updates', desc: 'Maintenance and feature announcements' },
                     ].map((item, idx) => (
-                      <label key={item.key} className={`flex items-center justify-between px-2 py-1.5 cursor-pointer hover:bg-blue-50 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                      <label key={item.key} className={`flex items-center justify-between px-2 py-1.5 cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700 ${idx % 2 === 1 ? 'bg-gray-50 dark:bg-slate-800' : ''}`}>
                         <div>
                           <div className="text-[11px] font-medium">{item.label}</div>
-                          <div className="text-[10px] text-gray-500">{item.desc}</div>
+                          <div className="text-[10px] text-gray-500 dark:text-slate-400">{item.desc}</div>
                         </div>
                         <input
                           type="checkbox"
@@ -317,40 +323,40 @@ export default function SettingsPage() {
                   onClick={(e) => { e.stopPropagation(); toggleSection('security'); }}
                 >
                   <div className="flex items-center">
-                    <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
+                    <span className="w-4 h-4 border border-gray-400 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center text-[10px] font-bold mr-1">
                       {expandedSections.has('security') ? '-' : '+'}
                     </span>
                     Security Settings
                   </div>
                 </div>
                 {expandedSections.has('security') && (
-                  <div className="bg-white p-2 space-y-2">
-                    <div className="flex items-center justify-between p-2 bg-gray-50 border border-gray-300">
+                  <div className="bg-white dark:bg-slate-900 p-2 space-y-2">
+                    <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
                       <div className="flex items-center">
-                        <Key className="w-4 h-4 text-gray-500 mr-2" />
+                        <Key className="w-4 h-4 text-gray-500 dark:text-slate-400 mr-2" />
                         <div>
                           <div className="text-[11px] font-medium">Password</div>
-                          <div className="text-[10px] text-gray-500">Last changed 30 days ago</div>
+                          <div className="text-[10px] text-gray-500 dark:text-slate-400">Last changed 30 days ago</div>
                         </div>
                       </div>
                       <button className="ehr-button text-[10px]" onClick={() => setShowAlert({ title: 'Change Password', message: 'Password change dialog would open here.', type: 'info' })}>Change</button>
                     </div>
-                    <div className="flex items-center justify-between p-2 bg-gray-50 border border-gray-300">
+                    <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
                       <div className="flex items-center">
-                        <Smartphone className="w-4 h-4 text-gray-500 mr-2" />
+                        <Smartphone className="w-4 h-4 text-gray-500 dark:text-slate-400 mr-2" />
                         <div>
                           <div className="text-[11px] font-medium">Two-Factor Authentication</div>
-                          <div className="text-[10px] text-gray-500">Add an extra layer of security</div>
+                          <div className="text-[10px] text-gray-500 dark:text-slate-400">Add an extra layer of security</div>
                         </div>
                       </div>
-                      <span className="px-1.5 py-0.5 bg-gray-100 border border-gray-400 text-gray-700 text-[9px]">Enabled</span>
+                      <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-800 border border-gray-400 dark:border-slate-600 text-gray-700 dark:text-slate-200 text-[9px]">Enabled</span>
                     </div>
-                    <div className="flex items-center justify-between p-2 bg-gray-50 border border-gray-300">
+                    <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
                       <div className="flex items-center">
-                        <Monitor className="w-4 h-4 text-gray-500 mr-2" />
+                        <Monitor className="w-4 h-4 text-gray-500 dark:text-slate-400 mr-2" />
                         <div>
                           <div className="text-[11px] font-medium">Active Sessions</div>
-                          <div className="text-[10px] text-gray-500">Manage your logged-in devices</div>
+                          <div className="text-[10px] text-gray-500 dark:text-slate-400">Manage your logged-in devices</div>
                         </div>
                       </div>
                       <button className="ehr-button text-[10px]" onClick={() => setShowAlert({ title: 'Active Sessions', message: 'You have 2 active sessions: Chrome on MacOS, Safari on iPhone.', type: 'info' })}>View</button>
@@ -368,10 +374,10 @@ export default function SettingsPage() {
                       { action: 'Password changed', time: '30 days ago', location: 'San Francisco, CA' },
                       { action: 'Login from Safari on iPhone', time: '2 days ago', location: 'San Francisco, CA' },
                     ].map((activity, idx) => (
-                      <tr key={idx} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
+                      <tr key={idx} className={idx % 2 === 1 ? 'bg-gray-50 dark:bg-slate-800' : ''}>
                         <td className="px-2 py-1">{activity.action}</td>
-                        <td className="px-2 py-1 text-gray-500">{activity.location}</td>
-                        <td className="px-2 py-1 text-gray-400 text-right">{activity.time}</td>
+                        <td className="px-2 py-1 text-gray-500 dark:text-slate-400">{activity.location}</td>
+                        <td className="px-2 py-1 text-gray-400 dark:text-slate-500 text-right">{activity.time}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -385,17 +391,17 @@ export default function SettingsPage() {
               <fieldset className="ehr-fieldset">
                 <legend>Theme</legend>
                 <div className="grid grid-cols-3 gap-2">
-                  {['light', 'dark', 'system'].map((theme) => (
+                  {(['light', 'dark', 'system'] as const).map((theme) => (
                     <button
                       key={theme}
-                      onClick={() => setAppearance({ ...appearance, theme })}
+                      onClick={() => selectTheme(theme)}
                       className={`p-2 border text-center text-[11px] ${
                         appearance.theme === theme
-                          ? 'border-gray-600 bg-white'
-                          : 'border-gray-400 bg-gray-100 hover:bg-gray-50'
+                          ? 'border-gray-600 dark:border-slate-600 bg-white dark:bg-slate-900'
+                          : 'border-gray-400 dark:border-slate-600 bg-gray-100 dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700'
                       }`}
                     >
-                      <Monitor className="w-4 h-4 mx-auto mb-1 text-gray-600" />
+                      <Monitor className="w-4 h-4 mx-auto mb-1 text-gray-600 dark:text-slate-300" />
                       <span className="capitalize">{theme}</span>
                     </button>
                   ))}
@@ -406,7 +412,7 @@ export default function SettingsPage() {
                 <legend>Display Options</legend>
                 <div className="space-y-2">
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Font Size</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Font Size</label>
                     <select
                       value={appearance.fontSize}
                       onChange={(e) => setAppearance({ ...appearance, fontSize: e.target.value })}
@@ -417,10 +423,10 @@ export default function SettingsPage() {
                       <option value="large">Large</option>
                     </select>
                   </div>
-                  <label className="flex items-center justify-between p-2 bg-gray-50 border border-gray-300 cursor-pointer hover:bg-gray-100">
+                  <label className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700">
                     <div>
                       <div className="text-[11px] font-medium">Compact Mode</div>
-                      <div className="text-[10px] text-gray-500">Reduce spacing for more content on screen</div>
+                      <div className="text-[10px] text-gray-500 dark:text-slate-400">Reduce spacing for more content on screen</div>
                     </div>
                     <input
                       type="checkbox"
@@ -440,23 +446,23 @@ export default function SettingsPage() {
                 <legend>Practice Information</legend>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Practice Name</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Practice Name</label>
                     <input type="text" defaultValue="Anderson Family Medicine" className="ehr-input w-full" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Tax ID</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Tax ID</label>
                     <input type="text" defaultValue="12-3456789" className="ehr-input w-full font-mono" />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Address</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Address</label>
                     <input type="text" defaultValue="123 Medical Center Drive, Suite 100" className="ehr-input w-full" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">City</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">City</label>
                     <input type="text" defaultValue="Springfield" className="ehr-input w-full" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">State</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">State</label>
                     <select className="ehr-input w-full">
                       <option>Illinois</option>
                       <option>California</option>
@@ -472,22 +478,22 @@ export default function SettingsPage() {
                   onClick={(e) => { e.stopPropagation(); toggleSection('hours'); }}
                 >
                   <div className="flex items-center">
-                    <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
+                    <span className="w-4 h-4 border border-gray-400 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center text-[10px] font-bold mr-1">
                       {expandedSections.has('hours') ? '-' : '+'}
                     </span>
                     Business Hours
                   </div>
                 </div>
                 {expandedSections.has('hours') && (
-                  <div className="bg-white p-2 space-y-1.5">
+                  <div className="bg-white dark:bg-slate-900 p-2 space-y-1.5">
                     {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((day) => (
                       <div key={day} className="flex items-center space-x-2 text-[11px]">
-                        <span className="w-20 text-gray-600">{day}</span>
+                        <span className="w-20 text-gray-600 dark:text-slate-300">{day}</span>
                         <select className="ehr-input text-[10px]">
                           <option>8:00 AM</option>
                           <option>9:00 AM</option>
                         </select>
-                        <span className="text-gray-400">to</span>
+                        <span className="text-gray-400 dark:text-slate-500">to</span>
                         <select className="ehr-input text-[10px]">
                           <option>5:00 PM</option>
                           <option>6:00 PM</option>
@@ -501,7 +507,7 @@ export default function SettingsPage() {
               <fieldset className="ehr-fieldset">
                 <legend>Timezone</legend>
                 <div className="flex items-center">
-                  <Globe className="w-4 h-4 text-gray-600 mr-2" />
+                  <Globe className="w-4 h-4 text-gray-600 dark:text-slate-300 mr-2" />
                   <span className="text-[11px]">America/Chicago (Central Time)</span>
                 </div>
               </fieldset>

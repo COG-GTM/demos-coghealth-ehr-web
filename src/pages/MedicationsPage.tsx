@@ -220,21 +220,21 @@ const defaultMedicationOrders: MedicationOrderExtended[] = [
 ];
 
 const statusConfig: Record<MedicationOrderStatus, { label: string; color: string; bg: string }> = {
-  DRAFT: { label: 'Draft', color: 'text-gray-600', bg: 'bg-gray-100' },
-  PENDING: { label: 'Pending', color: 'text-gray-700', bg: 'bg-gray-200' },
-  ACTIVE: { label: 'Active', color: 'text-gray-800', bg: 'bg-gray-300' },
-  ON_HOLD: { label: 'On Hold', color: 'text-gray-700', bg: 'bg-gray-200' },
-  COMPLETED: { label: 'Completed', color: 'text-gray-600', bg: 'bg-gray-100' },
-  CANCELLED: { label: 'Cancelled', color: 'text-gray-600', bg: 'bg-gray-100' },
-  DISCONTINUED: { label: 'D/C', color: 'text-gray-600', bg: 'bg-gray-100' },
-  ENTERED_IN_ERROR: { label: 'Error', color: 'text-gray-600', bg: 'bg-gray-100' },
+  DRAFT: { label: 'Draft', color: 'text-gray-600 dark:text-slate-300', bg: 'bg-gray-100 dark:bg-slate-800' },
+  PENDING: { label: 'Pending', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-200 dark:bg-slate-700' },
+  ACTIVE: { label: 'Active', color: 'text-gray-800 dark:text-slate-100', bg: 'bg-gray-300 dark:bg-slate-700' },
+  ON_HOLD: { label: 'On Hold', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-200 dark:bg-slate-700' },
+  COMPLETED: { label: 'Completed', color: 'text-gray-600 dark:text-slate-300', bg: 'bg-gray-100 dark:bg-slate-800' },
+  CANCELLED: { label: 'Cancelled', color: 'text-gray-600 dark:text-slate-300', bg: 'bg-gray-100 dark:bg-slate-800' },
+  DISCONTINUED: { label: 'D/C', color: 'text-gray-600 dark:text-slate-300', bg: 'bg-gray-100 dark:bg-slate-800' },
+  ENTERED_IN_ERROR: { label: 'Error', color: 'text-gray-600 dark:text-slate-300', bg: 'bg-gray-100 dark:bg-slate-800' },
 };
 
 const formularyConfig = {
-  'preferred': { label: 'Preferred', color: 'text-gray-700', bg: 'bg-gray-100', icon: CheckCircle2 },
-  'non-preferred': { label: 'Non-Preferred', color: 'text-gray-700', bg: 'bg-gray-200', icon: Info },
-  'not-covered': { label: 'Not Covered', color: 'text-gray-800', bg: 'bg-gray-200', icon: XCircle },
-  'prior-auth': { label: 'Prior Auth Req', color: 'text-gray-700', bg: 'bg-gray-200', icon: FileText },
+  'preferred': { label: 'Preferred', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800', icon: CheckCircle2 },
+  'non-preferred': { label: 'Non-Preferred', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-200 dark:bg-slate-700', icon: Info },
+  'not-covered': { label: 'Not Covered', color: 'text-gray-800 dark:text-slate-100', bg: 'bg-gray-200 dark:bg-slate-700', icon: XCircle },
+  'prior-auth': { label: 'Prior Auth Req', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-200 dark:bg-slate-700', icon: FileText },
 };
 
 type FilterStatus = 'all' | 'active' | 'pending' | 'discontinued' | 'controlled';
@@ -308,21 +308,21 @@ export default function MedicationsPage() {
 
   const getInteractionIcon = (severity: string) => {
     switch (severity) {
-      case 'high': return <ShieldAlert className="w-3 h-3 text-red-600" />;
-      case 'moderate': return <AlertTriangle className="w-3 h-3 text-amber-600" />;
-      default: return <Info className="w-3 h-3 text-blue-600" />;
+      case 'high': return <ShieldAlert className="w-3 h-3 text-red-600 dark:text-red-300" />;
+      case 'moderate': return <AlertTriangle className="w-3 h-3 text-amber-600 dark:text-amber-300" />;
+      default: return <Info className="w-3 h-3 text-blue-600 dark:text-blue-300" />;
     }
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col ehr-desktop">
       {/* Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-1">
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'Refreshed', message: 'Medication list has been refreshed.', type: 'info' })}>
             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
           </button>
-          <span className="text-gray-400">|</span>
+          <span className="text-gray-400 dark:text-slate-500">|</span>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPrintDialog(true)}>
             <Printer className="w-3.5 h-3.5 mr-1" /> Print
           </button>
@@ -331,7 +331,7 @@ export default function MedicationsPage() {
           </button>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-gray-600">Search:</span>
+          <span className="text-gray-600 dark:text-slate-300">Search:</span>
           <input
             type="text"
             placeholder="Medication, patient, Rx#..."
@@ -370,7 +370,7 @@ export default function MedicationsPage() {
               {filter.label}
             </button>
           ))}
-          <span className="text-gray-400 mx-1">|</span>
+          <span className="text-gray-400 dark:text-slate-500 mx-1">|</span>
           <button
             onClick={() => setViewMode('all')}
             className={`ehr-tab ${viewMode === 'all' ? 'active' : ''}`}
@@ -389,24 +389,24 @@ export default function MedicationsPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Medication List */}
-        <div className="flex-1 overflow-auto bg-white border-r border-gray-500">
+        <div className="flex-1 overflow-auto bg-white dark:bg-slate-900 border-r border-gray-500 dark:border-slate-600">
           {viewMode === 'by-patient' ? (
             <div>
               {Object.entries(ordersByPatient).map(([mrn, { patient, orders }]) => (
-                <div key={mrn} className="border-b border-gray-300">
+                <div key={mrn} className="border-b border-gray-300 dark:border-slate-700">
                   <div
                     onClick={() => togglePatient(mrn)}
-                    className="px-2 py-1 bg-gray-100 hover:bg-gray-200 cursor-pointer flex items-center justify-between text-[11px]"
+                    className="px-2 py-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 cursor-pointer flex items-center justify-between text-[11px]"
                   >
                     <div className="flex items-center space-x-2">
-                      <span className="w-4 h-4 border border-gray-500 bg-white flex items-center justify-center text-[10px] font-bold">
+                      <span className="w-4 h-4 border border-gray-500 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center text-[10px] font-bold">
                         {expandedPatients.has(mrn) ? '-' : '+'}
                       </span>
                       <span className="font-semibold">{patient.name}</span>
-                      <span className="text-gray-500">{patient.mrn}</span>
-                      <span className="text-gray-400">DOB: {patient.dob}</span>
+                      <span className="text-gray-500 dark:text-slate-400">{patient.mrn}</span>
+                      <span className="text-gray-400 dark:text-slate-500">DOB: {patient.dob}</span>
                     </div>
-                    <span className="text-gray-500">{orders.length} meds</span>
+                    <span className="text-gray-500 dark:text-slate-400">{orders.length} meds</span>
                   </div>
                   {expandedPatients.has(mrn) && (
                     <div>
@@ -444,14 +444,14 @@ export default function MedicationsPage() {
                       className={`cursor-pointer ${
                         isSelected ? 'ehr-grid-row selected' : 
                         order.status === 'DISCONTINUED' || order.status === 'COMPLETED' ? 'opacity-50' : 
-                        idx % 2 === 1 ? 'bg-gray-50' : ''
+                        idx % 2 === 1 ? 'bg-gray-50 dark:bg-slate-800' : ''
                       }`}
                       style={isSelected ? { background: '#316ac5', color: 'white' } : undefined}
                     >
                       <td className="px-1 py-1">
                         <div className="flex items-center space-x-1">
                           {order.controlled && (
-                            <span className={`px-0.5 py-0 text-[9px] font-bold ${isSelected ? 'bg-white/30' : 'bg-gray-200 text-gray-800 border border-gray-400'}`}>
+                            <span className={`px-0.5 py-0 text-[9px] font-bold ${isSelected ? 'bg-white/30' : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-100 border border-gray-400 dark:border-slate-600'}`}>
                               {order.schedule}
                             </span>
                           )}
@@ -470,7 +470,7 @@ export default function MedicationsPage() {
                       <td className="px-1 py-1">
                         <div className="truncate max-w-[180px]">{order.sig}</div>
                         {order.prn && (
-                          <span className={`text-[9px] ${isSelected ? 'text-yellow-200' : 'text-amber-600'}`}>PRN - {order.prnReason}</span>
+                          <span className={`text-[9px] ${isSelected ? 'text-yellow-200' : 'text-amber-600 dark:text-amber-300'}`}>PRN - {order.prnReason}</span>
                         )}
                       </td>
                       <td className="px-1 py-1">
@@ -479,28 +479,27 @@ export default function MedicationsPage() {
                         </span>
                       </td>
                       <td className="px-1 py-1">
-                        <span className={order.refillsRemaining === 0 && !isSelected ? 'text-red-600 font-semibold' : ''}>
+                        <span className={order.refillsRemaining === 0 && !isSelected ? 'text-red-600 dark:text-red-300 font-semibold' : ''}>
                           {order.refillsRemaining}/{order.refills}
                         </span>
                       </td>
                       <td className="px-1 py-1 text-center">
                         {hasAlerts ? (
                           <div className="flex items-center justify-center space-x-0.5">
-                            {order.interactions.length > 0 && <AlertTriangle className={`w-3 h-3 ${isSelected ? 'text-yellow-200' : 'text-red-500'}`} />}
-                            {order.allergies.length > 0 && <Ban className={`w-3 h-3 ${isSelected ? 'text-orange-200' : 'text-orange-500'}`} />}
-                            {order.renalDoseAlert && <Zap className={`w-3 h-3 ${isSelected ? 'text-purple-200' : 'text-purple-500'}`} />}
-                            {order.geriatricAlert && <User className={`w-3 h-3 ${isSelected ? 'text-blue-200' : 'text-blue-500'}`} />}
+                            {order.interactions.length > 0 && <AlertTriangle className={`w-3 h-3 ${isSelected ? 'text-yellow-200' : 'text-red-500 dark:text-red-300'}`} />}
+                            {order.allergies.length > 0 && <Ban className={`w-3 h-3 ${isSelected ? 'text-orange-200' : 'text-orange-500 dark:text-orange-300'}`} />}
+                            {order.renalDoseAlert && <Zap className={`w-3 h-3 ${isSelected ? 'text-purple-200' : 'text-purple-500 dark:text-purple-300'}`} />}
+                            {order.geriatricAlert && <User className={`w-3 h-3 ${isSelected ? 'text-blue-200' : 'text-blue-500 dark:text-blue-300'}`} />}
                           </div>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-gray-400 dark:text-slate-500">-</span>
                         )}
                       </td>
                       <td className="px-1 py-1 text-center">
                         {order.status === 'PENDING' && (
                           <button 
                             onClick={(e) => { e.stopPropagation(); setShowAlert({ title: 'Order Signed', message: `${order.medicationName} ${order.strength} has been signed and sent to pharmacy.`, type: 'success' }); }}
-                            className="ehr-button text-[9px] px-1 py-0" 
-                            style={{ background: 'linear-gradient(to bottom, #66cc66 0%, #339933 100%)', color: 'white', border: '1px solid #206020' }}
+                            className="ehr-button ehr-button-success text-[9px] px-1 py-0"
                           >
                             Sign
                           </button>
@@ -523,14 +522,14 @@ export default function MedicationsPage() {
         </div>
 
         {/* Detail Panel */}
-        <div className="w-80 flex flex-col overflow-hidden" style={{ background: '#ece9d8' }}>
+        <div className="w-80 flex flex-col overflow-hidden ehr-pane">
           {selectedOrder ? (
             <>
               {/* Medication Header */}
               <div className="ehr-header flex items-center justify-between">
                 <div className="flex items-center space-x-1">
                   {selectedOrder.controlled && (
-                    <span className="px-1 py-0.5 bg-gray-300 text-gray-800 text-[9px] font-bold border border-gray-500">{selectedOrder.schedule}</span>
+                    <span className="px-1 py-0.5 bg-gray-300 dark:bg-slate-700 text-gray-800 dark:text-slate-100 text-[9px] font-bold border border-gray-500 dark:border-slate-600">{selectedOrder.schedule}</span>
                   )}
                   <span className="truncate">{selectedOrder.medicationName}</span>
                 </div>
@@ -546,7 +545,7 @@ export default function MedicationsPage() {
                   <div className="flex items-center justify-between text-[10px]">
                     <div>
                       <div className="font-semibold">{selectedOrder.patientName}</div>
-                      <div className="text-gray-500">{selectedOrder.patientMrn} • DOB: {selectedOrder.patientDob}</div>
+                      <div className="text-gray-500 dark:text-slate-400">{selectedOrder.patientMrn} • DOB: {selectedOrder.patientDob}</div>
                     </div>
                     <button 
                       onClick={() => navigate(`/patients/${selectedOrder.patientId}`)}
@@ -562,11 +561,11 @@ export default function MedicationsPage() {
                   <legend>Medication</legend>
                   <table className="w-full text-[10px]">
                     <tbody>
-                      <tr><td className="text-gray-500 pr-2">Drug:</td><td className="font-semibold">{selectedOrder.medicationName} {selectedOrder.strength}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">Form:</td><td>{selectedOrder.form}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">NDC:</td><td className="font-mono">{selectedOrder.ndc}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">RxNorm:</td><td className="font-mono">{selectedOrder.rxnorm}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">Class:</td><td>{selectedOrder.therapeuticClass}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Drug:</td><td className="font-semibold">{selectedOrder.medicationName} {selectedOrder.strength}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Form:</td><td>{selectedOrder.form}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">NDC:</td><td className="font-mono">{selectedOrder.ndc}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">RxNorm:</td><td className="font-mono">{selectedOrder.rxnorm}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Class:</td><td>{selectedOrder.therapeuticClass}</td></tr>
                     </tbody>
                   </table>
                 </fieldset>
@@ -578,34 +577,34 @@ export default function MedicationsPage() {
                     onClick={() => togglePanel('details')}
                   >
                     <div className="flex items-center">
-                      <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
+                      <span className="w-4 h-4 border border-gray-400 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center text-[10px] font-bold mr-1">
                         {expandedPanels.details ? '-' : '+'}
                       </span>
                       <FileText className="w-3 h-3 mr-1" /> Rx Details
                     </div>
                   </div>
                   {expandedPanels.details && (
-                    <div className="bg-white p-2">
-                      <div className="p-1.5 bg-gray-100 border border-gray-300 mb-2">
-                        <div className="text-[9px] text-gray-500 uppercase">Sig</div>
+                    <div className="bg-white dark:bg-slate-900 p-2">
+                      <div className="p-1.5 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 mb-2">
+                        <div className="text-[9px] text-gray-500 dark:text-slate-400 uppercase">Sig</div>
                         <div className="text-[11px]">{selectedOrder.sig}</div>
                       </div>
                       <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
-                        <div className="flex justify-between"><span className="text-gray-500">Dose:</span><span className="font-medium">{selectedOrder.dose}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500">Route:</span><span className="font-medium">{selectedOrder.route}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500">Freq:</span><span className="font-medium">{selectedOrder.frequency}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500">Qty:</span><span className="font-medium">{selectedOrder.quantity}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500">Days:</span><span className="font-medium">{selectedOrder.daysSupply}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500 dark:text-slate-400">Dose:</span><span className="font-medium">{selectedOrder.dose}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500 dark:text-slate-400">Route:</span><span className="font-medium">{selectedOrder.route}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500 dark:text-slate-400">Freq:</span><span className="font-medium">{selectedOrder.frequency}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500 dark:text-slate-400">Qty:</span><span className="font-medium">{selectedOrder.quantity}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500 dark:text-slate-400">Days:</span><span className="font-medium">{selectedOrder.daysSupply}</span></div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500">Refills:</span>
-                          <span className={`font-medium ${selectedOrder.refillsRemaining === 0 ? 'text-red-600' : ''}`}>
+                          <span className="text-gray-500 dark:text-slate-400">Refills:</span>
+                          <span className={`font-medium ${selectedOrder.refillsRemaining === 0 ? 'text-red-600 dark:text-red-300' : ''}`}>
                             {selectedOrder.refillsRemaining}/{selectedOrder.refills}
                           </span>
                         </div>
-                        <div className="flex justify-between"><span className="text-gray-500">Start:</span><span className="font-medium">{formatDate(selectedOrder.startDate)}</span></div>
-                        {selectedOrder.endDate && <div className="flex justify-between"><span className="text-gray-500">End:</span><span className="font-medium">{formatDate(selectedOrder.endDate)}</span></div>}
-                        <div className="flex justify-between"><span className="text-gray-500">DAW:</span><span className="font-medium">{selectedOrder.dispenseAsWritten ? 'Yes' : 'No'}</span></div>
-                        {selectedOrder.prn && <div className="flex justify-between"><span className="text-gray-500">PRN:</span><span className="font-medium text-amber-600">{selectedOrder.prnReason}</span></div>}
+                        <div className="flex justify-between"><span className="text-gray-500 dark:text-slate-400">Start:</span><span className="font-medium">{formatDate(selectedOrder.startDate)}</span></div>
+                        {selectedOrder.endDate && <div className="flex justify-between"><span className="text-gray-500 dark:text-slate-400">End:</span><span className="font-medium">{formatDate(selectedOrder.endDate)}</span></div>}
+                        <div className="flex justify-between"><span className="text-gray-500 dark:text-slate-400">DAW:</span><span className="font-medium">{selectedOrder.dispenseAsWritten ? 'Yes' : 'No'}</span></div>
+                        {selectedOrder.prn && <div className="flex justify-between"><span className="text-gray-500 dark:text-slate-400">PRN:</span><span className="font-medium text-amber-600 dark:text-amber-300">{selectedOrder.prnReason}</span></div>}
                       </div>
                     </div>
                   )}
@@ -618,19 +617,19 @@ export default function MedicationsPage() {
                     onClick={() => togglePanel('pharmacy')}
                   >
                     <div className="flex items-center">
-                      <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
+                      <span className="w-4 h-4 border border-gray-400 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center text-[10px] font-bold mr-1">
                         {expandedPanels.pharmacy ? '-' : '+'}
                       </span>
                       <Building2 className="w-3 h-3 mr-1" /> Pharmacy
                     </div>
                   </div>
                   {expandedPanels.pharmacy && (
-                    <div className="bg-white p-2 text-[10px]">
+                    <div className="bg-white dark:bg-slate-900 p-2 text-[10px]">
                       <div className="font-semibold">{selectedOrder.pharmacy}</div>
-                      <div className="flex items-center text-gray-600"><Phone className="w-3 h-3 mr-1" /> {selectedOrder.pharmacyPhone}</div>
-                      <div className="text-gray-400">NPI: {selectedOrder.pharmacyNpi}</div>
+                      <div className="flex items-center text-gray-600 dark:text-slate-300"><Phone className="w-3 h-3 mr-1" /> {selectedOrder.pharmacyPhone}</div>
+                      <div className="text-gray-400 dark:text-slate-500">NPI: {selectedOrder.pharmacyNpi}</div>
                       {selectedOrder.lastFilled && (
-                        <div className="mt-1 pt-1 border-t border-gray-200">
+                        <div className="mt-1 pt-1 border-t border-gray-200 dark:border-slate-700">
                           <div>Last Filled: <span className="font-medium">{formatDate(selectedOrder.lastFilled)}</span></div>
                           {selectedOrder.nextRefillDate && <div>Next Refill: <span className="font-medium">{formatDate(selectedOrder.nextRefillDate)}</span></div>}
                         </div>
@@ -640,7 +639,7 @@ export default function MedicationsPage() {
                 </div>
 
                 {/* Formulary */}
-                <div className={`p-2 border ${formularyConfig[selectedOrder.formularyStatus].bg} border-gray-400`}>
+                <div className={`p-2 border ${formularyConfig[selectedOrder.formularyStatus].bg} border-gray-400 dark:border-slate-600`}>
                   <div className="flex items-center space-x-1 text-[11px]">
                     {(() => { const F = formularyConfig[selectedOrder.formularyStatus]; return <F.icon className={`w-3.5 h-3.5 ${F.color}`} />; })()}
                     <span className={`font-semibold ${formularyConfig[selectedOrder.formularyStatus].color}`}>
@@ -653,61 +652,60 @@ export default function MedicationsPage() {
                 {(selectedOrder.interactions.length > 0 || selectedOrder.allergies.length > 0 || selectedOrder.renalDoseAlert || selectedOrder.geriatricAlert || selectedOrder.duplicateTherapy) && (
                   <div className="ehr-panel">
                     <div 
-                      className="flex items-center justify-between cursor-pointer text-[11px] px-2 py-1"
-                      style={{ background: '#cc0000', color: 'white' }}
+                      className="ehr-alert-bar flex items-center justify-between cursor-pointer text-[11px] px-2 py-1"
                       onClick={() => togglePanel('alerts')}
                     >
                       <div className="flex items-center">
-                        <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
+                        <span className="w-4 h-4 border border-gray-400 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center text-[10px] font-bold mr-1">
                           {expandedPanels.alerts ? '-' : '+'}
                         </span>
                         <ShieldAlert className="w-3 h-3 mr-1" /> Clinical Alerts
                       </div>
                     </div>
                     {expandedPanels.alerts && (
-                      <div className="bg-red-50 p-2 space-y-1.5">
+                      <div className="bg-red-50 dark:bg-red-950 p-2 space-y-1.5">
                         {selectedOrder.interactions.map((interaction, i) => (
                           <div key={i} className="flex items-start space-x-1.5 text-[10px]">
                             {getInteractionIcon(interaction.severity)}
                             <div>
                               <div className="font-semibold">Drug Interaction: {interaction.drug}</div>
-                              <div className="text-gray-600">{interaction.description}</div>
+                              <div className="text-gray-600 dark:text-slate-300">{interaction.description}</div>
                             </div>
                           </div>
                         ))}
                         {selectedOrder.allergies.map((allergy, i) => (
                           <div key={i} className="flex items-start space-x-1.5 text-[10px]">
-                            <Ban className="w-3 h-3 text-orange-600 mt-0.5" />
+                            <Ban className="w-3 h-3 text-orange-600 dark:text-orange-300 mt-0.5" />
                             <div>
-                              <div className="font-semibold text-orange-800">Allergy Alert</div>
-                              <div className="text-gray-600">{allergy}</div>
+                              <div className="font-semibold text-orange-800 dark:text-orange-200">Allergy Alert</div>
+                              <div className="text-gray-600 dark:text-slate-300">{allergy}</div>
                             </div>
                           </div>
                         ))}
                         {selectedOrder.renalDoseAlert && (
                           <div className="flex items-start space-x-1.5 text-[10px]">
-                            <Zap className="w-3 h-3 text-purple-600 mt-0.5" />
+                            <Zap className="w-3 h-3 text-purple-600 dark:text-purple-300 mt-0.5" />
                             <div>
-                              <div className="font-semibold text-purple-800">Renal Dosing</div>
-                              <div className="text-gray-600">{selectedOrder.renalDoseAlert}</div>
+                              <div className="font-semibold text-purple-800 dark:text-purple-200">Renal Dosing</div>
+                              <div className="text-gray-600 dark:text-slate-300">{selectedOrder.renalDoseAlert}</div>
                             </div>
                           </div>
                         )}
                         {selectedOrder.geriatricAlert && (
                           <div className="flex items-start space-x-1.5 text-[10px]">
-                            <User className="w-3 h-3 text-blue-600 mt-0.5" />
+                            <User className="w-3 h-3 text-blue-600 dark:text-blue-300 mt-0.5" />
                             <div>
-                              <div className="font-semibold text-blue-800">Geriatric Alert</div>
-                              <div className="text-gray-600">{selectedOrder.geriatricAlert}</div>
+                              <div className="font-semibold text-blue-800 dark:text-blue-200">Geriatric Alert</div>
+                              <div className="text-gray-600 dark:text-slate-300">{selectedOrder.geriatricAlert}</div>
                             </div>
                           </div>
                         )}
                         {selectedOrder.duplicateTherapy && (
                           <div className="flex items-start space-x-1.5 text-[10px]">
-                            <AlertCircle className="w-3 h-3 text-red-600 mt-0.5" />
+                            <AlertCircle className="w-3 h-3 text-red-600 dark:text-red-300 mt-0.5" />
                             <div>
-                              <div className="font-semibold text-red-800">Override</div>
-                              <div className="text-gray-600">{selectedOrder.duplicateTherapy}</div>
+                              <div className="font-semibold text-red-800 dark:text-red-200">Override</div>
+                              <div className="text-gray-600 dark:text-slate-300">{selectedOrder.duplicateTherapy}</div>
                             </div>
                           </div>
                         )}
@@ -721,7 +719,7 @@ export default function MedicationsPage() {
                   <legend>Actions</legend>
                   <div className="grid grid-cols-4 gap-1">
                     {selectedOrder.status === 'PENDING' && (
-                      <button className="ehr-button flex flex-col items-center py-1 text-[9px]" style={{ background: 'linear-gradient(to bottom, #66cc66 0%, #339933 100%)', color: 'white', border: '1px solid #206020' }}>
+                      <button className="ehr-button ehr-button-success flex flex-col items-center py-1 text-[9px]">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Sign
                       </button>
@@ -736,7 +734,7 @@ export default function MedicationsPage() {
                           <FileText className="w-3.5 h-3.5" />
                           Modify
                         </button>
-                        <button className="ehr-button flex flex-col items-center py-1 text-[9px]" style={{ background: 'linear-gradient(to bottom, #ff6666 0%, #cc0000 100%)', color: 'white', border: '1px solid #800000' }}>
+                        <button className="ehr-button ehr-button-danger flex flex-col items-center py-1 text-[9px]">
                           <XCircle className="w-3.5 h-3.5" />
                           D/C
                         </button>
@@ -755,9 +753,9 @@ export default function MedicationsPage() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
+            <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-slate-400">
               <div className="text-center">
-                <Pill className="w-10 h-10 mx-auto mb-2 text-gray-400" />
+                <Pill className="w-10 h-10 mx-auto mb-2 text-gray-400 dark:text-slate-500" />
                 <p className="text-[11px]">Select a medication</p>
               </div>
             </div>
@@ -815,13 +813,13 @@ function OrderRow({ order, selected, onSelect, idx }: { order: MedicationOrderEx
     <div
       onClick={onSelect}
       className={`px-3 py-1 cursor-pointer flex items-center justify-between text-[11px] ${
-        selected ? '' : idx % 2 === 1 ? 'bg-gray-50' : ''
+        selected ? '' : idx % 2 === 1 ? 'bg-gray-50 dark:bg-slate-800' : ''
       }`}
       style={selected ? { background: '#316ac5', color: 'white' } : undefined}
     >
       <div className="flex items-center space-x-2">
         <div className="w-6">
-          {order.controlled && <span className={`text-[9px] font-bold ${selected ? 'text-white' : 'text-red-600'}`}>{order.schedule}</span>}
+          {order.controlled && <span className={`text-[9px] font-bold ${selected ? 'text-white' : 'text-red-600 dark:text-red-300'}`}>{order.schedule}</span>}
         </div>
         <div>
           <div className="font-semibold">{order.medicationName} {order.strength}</div>
@@ -829,8 +827,8 @@ function OrderRow({ order, selected, onSelect, idx }: { order: MedicationOrderEx
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        {hasAlerts && <AlertTriangle className={`w-3 h-3 ${selected ? 'text-yellow-200' : 'text-red-500'}`} />}
-        <span className={`px-1 py-0.5 border border-gray-400 text-[9px] ${selected ? 'bg-white/30' : `${status.bg} ${status.color}`}`}>
+        {hasAlerts && <AlertTriangle className={`w-3 h-3 ${selected ? 'text-yellow-200' : 'text-red-500 dark:text-red-300'}`} />}
+        <span className={`px-1 py-0.5 border border-gray-400 dark:border-slate-600 text-[9px] ${selected ? 'bg-white/30' : `${status.bg} ${status.color}`}`}>
           {status.label}
         </span>
       </div>

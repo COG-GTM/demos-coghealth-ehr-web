@@ -30,7 +30,7 @@ export default function PatientBanner({ patient, allergies = [] }: PatientBanner
   const hasSevereAllergy = allergies.some(a => a.severity === 'Severe');
 
   return (
-    <div className="border-b border-gray-500" style={{ background: 'linear-gradient(to bottom, #4a6ea5 0%, #2d4a7c 100%)' }}>
+    <div className="ehr-patient-banner border-b border-gray-500 dark:border-slate-600">
       <div className="px-2 py-1.5 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-white/20 flex items-center justify-center border border-white/30">
@@ -44,10 +44,10 @@ export default function PatientBanner({ patient, allergies = [] }: PatientBanner
                 {patient.middleName && ` ${patient.middleName.charAt(0)}.`}
               </span>
               {patient.deceased && (
-                <span className="px-1.5 py-0.5 bg-gray-600 text-white text-[10px] font-bold border border-gray-500">DECEASED</span>
+                <span className="px-1.5 py-0.5 bg-gray-600 dark:bg-slate-600 text-white text-[10px] font-bold border border-gray-500 dark:border-slate-600">DECEASED</span>
               )}
               {!patient.active && !patient.deceased && (
-                <span className="px-1.5 py-0.5 bg-gray-500 text-white text-[10px] font-bold border border-gray-400">INACTIVE</span>
+                <span className="px-1.5 py-0.5 bg-gray-500 dark:bg-slate-600 text-white text-[10px] font-bold border border-gray-400 dark:border-slate-600">INACTIVE</span>
               )}
             </div>
             
@@ -82,7 +82,7 @@ export default function PatientBanner({ patient, allergies = [] }: PatientBanner
         
         <div className="flex items-center space-x-2">
           {allergies.length > 0 && (
-            <div className={`flex items-center px-2 py-1 text-[10px] font-bold border border-gray-500 ${hasSevereAllergy ? 'bg-gray-300 text-gray-800' : 'bg-gray-200 text-gray-700'}`}>
+            <div className={`flex items-center px-2 py-1 text-[10px] font-bold border ${hasSevereAllergy ? 'ehr-alert-critical' : 'ehr-alert-warning'}`}>
               <ShieldAlert className="w-3.5 h-3.5 mr-1" />
               ALLERGIES: {allergies.map(a => a.allergen).join(', ')}
             </div>

@@ -118,7 +118,7 @@ export default function PatientChartPage() {
   ];
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col ehr-desktop">
       <PatientBanner patient={patient} allergies={allergies} />
       
       {/* Toolbar */}
@@ -127,7 +127,7 @@ export default function PatientChartPage() {
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'Refreshed', message: 'Patient chart has been refreshed.', type: 'info' })}>
             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
           </button>
-          <span className="text-gray-400">|</span>
+          <span className="text-gray-400 dark:text-slate-500">|</span>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPrintDialog(true)}>
             <Printer className="w-3.5 h-3.5 mr-1" /> Print
           </button>
@@ -187,7 +187,7 @@ export default function PatientChartPage() {
                   {expandedPanels.problems ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                 </div>
                 {expandedPanels.problems && (
-                  <div className="bg-white">
+                  <div className="bg-white dark:bg-slate-900">
                     <table className="w-full text-[11px]">
                       <thead>
                         <tr>
@@ -199,15 +199,15 @@ export default function PatientChartPage() {
                       </thead>
                       <tbody>
                         {problems.map((problem, idx) => (
-                          <tr key={problem.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
+                          <tr key={problem.id} className={idx % 2 === 1 ? 'bg-gray-50 dark:bg-slate-800' : ''}>
                             <td className="px-2 py-1">
-                              <span className={`inline-block w-2 h-2 mr-1 border border-gray-500 ${problem.priority === 'high' ? 'bg-gray-400' : problem.priority === 'medium' ? 'bg-gray-300' : 'bg-gray-200'}`} />
+                              <span className={`inline-block w-2 h-2 mr-1 border border-gray-500 dark:border-slate-600 ${problem.priority === 'high' ? 'bg-gray-400 dark:bg-slate-600' : problem.priority === 'medium' ? 'bg-gray-300 dark:bg-slate-700' : 'bg-gray-200 dark:bg-slate-700'}`} />
                               {problem.name}
                             </td>
                             <td className="px-2 py-1 font-mono text-[10px]">{problem.icd10}</td>
                             <td className="px-2 py-1">{problem.onset}</td>
                             <td className="px-2 py-1">
-                              <span className={`px-1 py-0.5 text-[9px] border border-gray-400 ${problem.status === 'Active' ? 'bg-gray-200 text-gray-800' : 'bg-gray-100 text-gray-600'}`}>
+                              <span className={`px-1 py-0.5 text-[9px] border border-gray-400 dark:border-slate-600 ${problem.status === 'Active' ? 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-slate-100' : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300'}`}>
                                 {problem.status}
                               </span>
                             </td>
@@ -232,7 +232,7 @@ export default function PatientChartPage() {
                   {expandedPanels.meds ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                 </div>
                 {expandedPanels.meds && (
-                  <div className="bg-white">
+                  <div className="bg-white dark:bg-slate-900">
                     <table className="w-full text-[11px]">
                       <thead>
                         <tr>
@@ -243,9 +243,9 @@ export default function PatientChartPage() {
                       </thead>
                       <tbody>
                         {medications.map((med, idx) => (
-                          <tr key={med.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
+                          <tr key={med.id} className={idx % 2 === 1 ? 'bg-gray-50 dark:bg-slate-800' : ''}>
                             <td className="px-2 py-1 font-semibold">{med.name} {med.dose}</td>
-                            <td className="px-2 py-1 text-gray-600">{med.sig}</td>
+                            <td className="px-2 py-1 text-gray-600 dark:text-slate-300">{med.sig}</td>
                             <td className="px-2 py-1">{med.refills}</td>
                           </tr>
                         ))}
@@ -268,7 +268,7 @@ export default function PatientChartPage() {
                   {expandedPanels.encounters ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                 </div>
                 {expandedPanels.encounters && (
-                  <div className="bg-white">
+                  <div className="bg-white dark:bg-slate-900">
                     <table className="w-full text-[11px]">
                       <thead>
                         <tr>
@@ -280,7 +280,7 @@ export default function PatientChartPage() {
                       </thead>
                       <tbody>
                         {encounters.map((enc, idx) => (
-                          <tr key={enc.id} className={`cursor-pointer hover:bg-blue-50 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                          <tr key={enc.id} className={`cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700 ${idx % 2 === 1 ? 'bg-gray-50 dark:bg-slate-800' : ''}`}>
                             <td className="px-2 py-1">{enc.date}</td>
                             <td className="px-2 py-1">{enc.type}</td>
                             <td className="px-2 py-1">{enc.reason}</td>
@@ -299,8 +299,7 @@ export default function PatientChartPage() {
               {/* Allergies */}
               <div className="ehr-panel">
                 <div 
-                  className="flex items-center justify-between cursor-pointer px-2 py-1"
-                  style={{ background: '#cc0000', color: 'white' }}
+                  className="ehr-alert-bar flex items-center justify-between cursor-pointer px-2 py-1"
                   onClick={() => togglePanel('allergies')}
                 >
                   <div className="flex items-center text-[11px]">
@@ -310,16 +309,16 @@ export default function PatientChartPage() {
                   {expandedPanels.allergies ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                 </div>
                 {expandedPanels.allergies && (
-                  <div className="bg-red-50">
+                  <div className="bg-red-50 dark:bg-red-950">
                     {allergies.map((allergy, idx) => (
-                      <div key={allergy.id} className={`px-2 py-1.5 text-[11px] ${idx > 0 ? 'border-t border-red-200' : ''}`}>
+                      <div key={allergy.id} className={`px-2 py-1.5 text-[11px] ${idx > 0 ? 'border-t border-red-200 dark:border-red-800' : ''}`}>
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-red-900">{allergy.allergen}</span>
-                          <span className={`px-1 py-0.5 text-[9px] border border-gray-500 ${allergy.severity === 'Severe' ? 'bg-gray-300 text-gray-800 font-bold' : 'bg-gray-200 text-gray-700'}`}>
+                          <span className="font-semibold text-red-900 dark:text-red-200">{allergy.allergen}</span>
+                          <span className={`px-1 py-0.5 text-[9px] border border-gray-500 dark:border-slate-600 ${allergy.severity === 'Severe' ? 'bg-gray-300 dark:bg-slate-700 text-gray-800 dark:text-slate-100 font-bold' : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-200'}`}>
                             {allergy.severity}
                           </span>
                         </div>
-                        <div className="text-red-700 text-[10px]">{allergy.reaction}</div>
+                        <div className="text-red-700 dark:text-red-300 text-[10px]">{allergy.reaction}</div>
                       </div>
                     ))}
                   </div>
@@ -339,31 +338,31 @@ export default function PatientChartPage() {
                   {expandedPanels.vitals ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                 </div>
                 {expandedPanels.vitals && (
-                  <div className="bg-white p-2">
+                  <div className="bg-white dark:bg-slate-900 p-2">
                     <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">BP</div>
-                        <div className={`font-semibold ${parseInt(vitals.bp) > 140 ? 'text-gray-800' : ''}`}>{vitals.bp}</div>
+                      <div className="p-1.5 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
+                        <div className="text-gray-500 dark:text-slate-400">BP</div>
+                        <div className={`font-semibold ${parseInt(vitals.bp) > 140 ? 'text-gray-800 dark:text-slate-100' : ''}`}>{vitals.bp}</div>
                       </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">HR</div>
+                      <div className="p-1.5 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
+                        <div className="text-gray-500 dark:text-slate-400">HR</div>
                         <div className="font-semibold">{vitals.hr}</div>
                       </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">Temp</div>
+                      <div className="p-1.5 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
+                        <div className="text-gray-500 dark:text-slate-400">Temp</div>
                         <div className="font-semibold">{vitals.temp}°F</div>
                       </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">SpO2</div>
+                      <div className="p-1.5 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
+                        <div className="text-gray-500 dark:text-slate-400">SpO2</div>
                         <div className="font-semibold">{vitals.spo2}%</div>
                       </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">Weight</div>
+                      <div className="p-1.5 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
+                        <div className="text-gray-500 dark:text-slate-400">Weight</div>
                         <div className="font-semibold">{vitals.weight} lbs</div>
                       </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">BMI</div>
-                        <div className={`font-semibold ${vitals.bmi > 25 ? 'text-gray-800' : ''}`}>{vitals.bmi}</div>
+                      <div className="p-1.5 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
+                        <div className="text-gray-500 dark:text-slate-400">BMI</div>
+                        <div className={`font-semibold ${vitals.bmi > 25 ? 'text-gray-800 dark:text-slate-100' : ''}`}>{vitals.bmi}</div>
                       </div>
                     </div>
                   </div>
@@ -383,13 +382,13 @@ export default function PatientChartPage() {
                   {expandedPanels.labs ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                 </div>
                 {expandedPanels.labs && (
-                  <div className="bg-white">
+                  <div className="bg-white dark:bg-slate-900">
                     {labs.map((lab, idx) => (
-                      <div key={lab.id} className={`flex items-center justify-between px-2 py-1 text-[10px] ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                      <div key={lab.id} className={`flex items-center justify-between px-2 py-1 text-[10px] ${idx % 2 === 1 ? 'bg-gray-50 dark:bg-slate-800' : ''}`}>
                         <span>{lab.name}</span>
                         <div className="flex items-center space-x-2">
-                          <span className={`font-semibold ${lab.status === 'High' ? 'text-red-600' : ''}`}>{lab.value}</span>
-                          <span className="text-gray-400">{lab.ref}</span>
+                          <span className={`font-semibold ${lab.status === 'High' ? 'text-red-600 dark:text-red-300' : ''}`}>{lab.value}</span>
+                          <span className="text-gray-400 dark:text-slate-500">{lab.ref}</span>
                         </div>
                       </div>
                     ))}
@@ -424,7 +423,7 @@ export default function PatientChartPage() {
         )}
 
         {activeTab !== 'summary' && (
-          <div className="bg-white border border-gray-400 p-4 text-center text-gray-500">
+          <div className="bg-white dark:bg-slate-900 border border-gray-400 dark:border-slate-600 p-4 text-center text-gray-500 dark:text-slate-400">
             <p className="text-[11px]">{tabs.find(t => t.id === activeTab)?.label} view - Coming soon</p>
           </div>
         )}

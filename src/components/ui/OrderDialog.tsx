@@ -126,7 +126,7 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
             <span className="text-[11px]">
               <strong>Patient:</strong> {patientName} {patientMrn && `(${patientMrn})`}
             </span>
-            <span className="text-[10px] text-gray-600">Orders will be signed by Dr. Sarah Anderson</span>
+            <span className="text-[10px] text-gray-600 dark:text-slate-300">Orders will be signed by Dr. Sarah Anderson</span>
           </div>
         )}
 
@@ -136,7 +136,7 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
             <fieldset className="ehr-fieldset h-64 flex flex-col">
               <legend>Available {type === 'lab' ? 'Tests' : 'Studies'}</legend>
               <div className="flex items-center space-x-2 mb-2">
-                <Search className="w-3.5 h-3.5 text-gray-500" />
+                <Search className="w-3.5 h-3.5 text-gray-500 dark:text-slate-400" />
                 <input
                   type="text"
                   placeholder={`Search ${type === 'lab' ? 'tests' : 'studies'}...`}
@@ -145,22 +145,22 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
                   className="ehr-input flex-1"
                 />
               </div>
-              <div className="flex-1 overflow-auto border border-gray-300 bg-white">
+              <div className="flex-1 overflow-auto border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900">
                 {filteredItems.map((item) => {
                   const isSelected = selectedOrders.some(o => o.code === item.code);
                   return (
                     <div
                       key={item.code}
                       onClick={() => !isSelected && addOrder(item)}
-                      className={`px-2 py-1 text-[11px] cursor-pointer border-b border-gray-200 flex items-center justify-between ${
-                        isSelected ? 'bg-gray-200 text-gray-500' : 'hover:bg-blue-50'
+                      className={`px-2 py-1 text-[11px] cursor-pointer border-b border-gray-200 dark:border-slate-700 flex items-center justify-between ${
+                        isSelected ? 'bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400' : 'hover:bg-blue-50 dark:hover:bg-slate-700'
                       }`}
                     >
                       <div>
-                        <span className="font-mono text-[10px] text-gray-500 mr-2">{item.code}</span>
+                        <span className="font-mono text-[10px] text-gray-500 dark:text-slate-400 mr-2">{item.code}</span>
                         <span>{item.name}</span>
                       </div>
-                      {!isSelected && <Plus className="w-3 h-3 text-blue-600" />}
+                      {!isSelected && <Plus className="w-3 h-3 text-blue-600 dark:text-blue-300" />}
                     </div>
                   );
                 })}
@@ -172,19 +172,19 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
           <div className="w-64">
             <fieldset className="ehr-fieldset h-64 flex flex-col">
               <legend>Selected Orders ({selectedOrders.length})</legend>
-              <div className="flex-1 overflow-auto border border-gray-300 bg-white">
+              <div className="flex-1 overflow-auto border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900">
                 {selectedOrders.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500 text-[11px]">
+                  <div className="p-4 text-center text-gray-500 dark:text-slate-400 text-[11px]">
                     Click items on the left to add orders
                   </div>
                 ) : (
                   selectedOrders.map((order) => (
-                    <div key={order.id} className="px-2 py-1 text-[11px] border-b border-gray-200 flex items-center justify-between">
+                    <div key={order.id} className="px-2 py-1 text-[11px] border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
                       <div>
                         <div className="font-medium">{order.code}</div>
-                        <div className="text-[10px] text-gray-500 truncate max-w-[180px]">{order.name}</div>
+                        <div className="text-[10px] text-gray-500 dark:text-slate-400 truncate max-w-[180px]">{order.name}</div>
                       </div>
-                      <button onClick={() => removeOrder(order.id)} className="text-red-600 hover:text-red-800">
+                      <button onClick={() => removeOrder(order.id)} className="text-red-600 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200">
                         <X className="w-3 h-3" />
                       </button>
                     </div>
@@ -214,7 +214,7 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
                     onChange={(e) => setPriority(e.target.value as typeof priority)}
                     className="mr-1"
                   />
-                  <span className={`ehr-label ${p.value === 'stat' ? 'text-red-700 font-semibold' : ''}`}>
+                  <span className={`ehr-label ${p.value === 'stat' ? 'text-red-700 dark:text-red-300 font-semibold' : ''}`}>
                     {p.label}
                   </span>
                 </label>

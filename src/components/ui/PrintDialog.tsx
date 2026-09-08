@@ -59,7 +59,7 @@ export function PrintDialog({ isOpen, onClose, title, documentName, onPrint }: P
         <fieldset className="ehr-fieldset">
           <legend>Document</legend>
           <div className="flex items-center space-x-2">
-            <FileText className="w-4 h-4 text-gray-500" />
+            <FileText className="w-4 h-4 text-gray-500 dark:text-slate-400" />
             <span className="text-[11px] font-medium">{documentName}</span>
           </div>
         </fieldset>
@@ -68,7 +68,7 @@ export function PrintDialog({ isOpen, onClose, title, documentName, onPrint }: P
           <legend>Print Options</legend>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] text-gray-600 mb-0.5">Copies</label>
+              <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Copies</label>
               <input
                 type="number"
                 min="1"
@@ -79,7 +79,7 @@ export function PrintDialog({ isOpen, onClose, title, documentName, onPrint }: P
               />
             </div>
             <div>
-              <label className="block text-[10px] text-gray-600 mb-0.5">Orientation</label>
+              <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Orientation</label>
               <select
                 value={options.orientation}
                 onChange={(e) => setOptions({ ...options, orientation: e.target.value as 'portrait' | 'landscape' })}

@@ -115,9 +115,9 @@ export default function LabResultsPage() {
   const getStatusStyle = (status: LabResult['status']) => {
     switch (status) {
       case 'critical':
-        return { background: '#ffcccc', color: '#990000', fontWeight: 'bold' };
+        return { background: 'var(--ehr-critical-bg)', color: 'var(--ehr-critical-text)', fontWeight: 'bold' };
       case 'abnormal':
-        return { background: '#fff3cd', color: '#664d00' };
+        return { background: 'var(--ehr-warning-bg)', color: 'var(--ehr-warning-text)' };
       default:
         return {};
     }
@@ -126,11 +126,11 @@ export default function LabResultsPage() {
   const getStatusBadge = (status: LabPanel['status']) => {
     switch (status) {
       case 'final':
-        return <span className="px-1.5 py-0.5 text-[9px] bg-green-100 text-green-800 border border-green-300">FINAL</span>;
+        return <span className="px-1.5 py-0.5 text-[9px] bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-800">FINAL</span>;
       case 'preliminary':
-        return <span className="px-1.5 py-0.5 text-[9px] bg-yellow-100 text-yellow-800 border border-yellow-300">PRELIM</span>;
+        return <span className="px-1.5 py-0.5 text-[9px] bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700">PRELIM</span>;
       case 'pending':
-        return <span className="px-1.5 py-0.5 text-[9px] bg-gray-100 text-gray-600 border border-gray-300">PENDING</span>;
+        return <span className="px-1.5 py-0.5 text-[9px] bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-700">PENDING</span>;
     }
   };
 
@@ -173,8 +173,8 @@ export default function LabResultsPage() {
         <div className="ehr-toolbar flex items-center justify-between py-1">
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-1">
-              <Filter className="w-3 h-3 text-gray-500" />
-              <span className="text-[10px] text-gray-600">Filter:</span>
+              <Filter className="w-3 h-3 text-gray-500 dark:text-slate-400" />
+              <span className="text-[10px] text-gray-600 dark:text-slate-300">Filter:</span>
             </div>
             <select
               value={filterStatus}
@@ -199,7 +199,7 @@ export default function LabResultsPage() {
               })}
             </select>
             <div className="flex items-center space-x-1">
-              <Calendar className="w-3 h-3 text-gray-500" />
+              <Calendar className="w-3 h-3 text-gray-500 dark:text-slate-400" />
               <select
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value as typeof dateRange)}
@@ -213,50 +213,50 @@ export default function LabResultsPage() {
             </div>
           </div>
           <div className="flex items-center space-x-3 text-[10px]">
-            <span className="px-2 py-0.5 bg-red-100 text-red-800 border border-red-300">
+            <span className="px-2 py-0.5 bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-800">
               {criticalCount} Critical
             </span>
-            <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 border border-yellow-300">
+            <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700">
               {abnormalCount} Abnormal
             </span>
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto bg-white border border-gray-400">
+        <div className="flex-1 overflow-auto bg-white dark:bg-slate-900 border border-gray-400 dark:border-slate-600">
           {filteredPanels.length === 0 ? (
-            <div className="p-4 text-center text-gray-500 text-[11px]">
+            <div className="p-4 text-center text-gray-500 dark:text-slate-400 text-[11px]">
               No lab results match the selected filters
             </div>
           ) : (
             filteredPanels.map(panel => (
-              <div key={panel.id} className="border-b border-gray-300">
+              <div key={panel.id} className="border-b border-gray-300 dark:border-slate-700">
                 <div
-                  className="flex items-center justify-between px-2 py-1.5 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] cursor-pointer hover:from-[#fff] hover:to-[#f0f0f0]"
+                  className="ehr-subheader flex items-center justify-between px-2 py-1.5 cursor-pointer"
                   onClick={() => togglePanel(panel.id)}
                 >
                   <div className="flex items-center space-x-2">
                     {expandedPanels.includes(panel.id) ? (
-                      <ChevronDown className="w-3 h-3 text-gray-600" />
+                      <ChevronDown className="w-3 h-3 text-gray-600 dark:text-slate-300" />
                     ) : (
-                      <ChevronRight className="w-3 h-3 text-gray-600" />
+                      <ChevronRight className="w-3 h-3 text-gray-600 dark:text-slate-300" />
                     )}
-                    <FlaskConical className="w-3.5 h-3.5 text-blue-600" />
+                    <FlaskConical className="w-3.5 h-3.5 text-blue-600 dark:text-blue-300" />
                     <span className="font-semibold text-[11px]">{panel.panelName}</span>
                     {getStatusBadge(panel.status)}
                     {panel.results.some(r => r.status === 'critical') && (
-                      <span className="flex items-center space-x-0.5 text-red-600">
+                      <span className="flex items-center space-x-0.5 text-red-600 dark:text-red-300">
                         <AlertTriangle className="w-3 h-3" />
                         <span className="text-[9px] font-bold">CRITICAL</span>
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center space-x-4 text-[10px] text-gray-600">
+                  <div className="flex items-center space-x-4 text-[10px] text-gray-600 dark:text-slate-300">
                     <span>{panel.patientName}</span>
-                    <span className="text-gray-400">|</span>
+                    <span className="text-gray-400 dark:text-slate-500">|</span>
                     <span>{panel.patientMrn}</span>
-                    <span className="text-gray-400">|</span>
+                    <span className="text-gray-400 dark:text-slate-500">|</span>
                     <span>Collected: {panel.collectedAt}</span>
-                    <span className="text-gray-400">|</span>
+                    <span className="text-gray-400 dark:text-slate-500">|</span>
                     <span>Resulted: {panel.resultedAt}</span>
                   </div>
                 </div>
@@ -265,32 +265,32 @@ export default function LabResultsPage() {
                   <table className="w-full text-[11px]">
                     <thead>
                       <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
-                        <th className="text-left px-2 py-1 border-b border-gray-400 w-1/4">Test</th>
-                        <th className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Result</th>
-                        <th className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Units</th>
-                        <th className="text-left px-2 py-1 border-b border-gray-400 w-1/4">Reference Range</th>
-                        <th className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Status</th>
+                        <th className="text-left px-2 py-1 border-b border-gray-400 dark:border-slate-600 w-1/4">Test</th>
+                        <th className="text-left px-2 py-1 border-b border-gray-400 dark:border-slate-600 w-1/6">Result</th>
+                        <th className="text-left px-2 py-1 border-b border-gray-400 dark:border-slate-600 w-1/6">Units</th>
+                        <th className="text-left px-2 py-1 border-b border-gray-400 dark:border-slate-600 w-1/4">Reference Range</th>
+                        <th className="text-left px-2 py-1 border-b border-gray-400 dark:border-slate-600 w-1/6">Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {panel.results.map((result, idx) => (
                         <tr
                           key={result.id}
-                          className={`cursor-pointer hover:bg-[#e0e8f0] ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}`}
+                          className={`cursor-pointer hover:bg-[#e0e8f0] dark:hover:bg-slate-700 ${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-[#f8f8f8] dark:bg-slate-800'}`}
                           style={getStatusStyle(result.status)}
                           onClick={() => setSelectedResult(result)}
                         >
-                          <td className="px-2 py-1 border-b border-gray-200">{result.testName}</td>
-                          <td className="px-2 py-1 border-b border-gray-200 font-mono">
-                            {result.status === 'critical' && <AlertTriangle className="w-3 h-3 inline mr-1 text-red-600" />}
+                          <td className="px-2 py-1 border-b border-gray-200 dark:border-slate-700">{result.testName}</td>
+                          <td className="px-2 py-1 border-b border-gray-200 dark:border-slate-700 font-mono">
+                            {result.status === 'critical' && <AlertTriangle className="w-3 h-3 inline mr-1 text-red-600 dark:text-red-300" />}
                             {result.value}
                           </td>
-                          <td className="px-2 py-1 border-b border-gray-200">{result.unit}</td>
-                          <td className="px-2 py-1 border-b border-gray-200 text-gray-600">{result.referenceRange}</td>
-                          <td className="px-2 py-1 border-b border-gray-200">
-                            {result.status === 'critical' && <span className="text-red-700 font-bold">CRITICAL</span>}
-                            {result.status === 'abnormal' && <span className="text-yellow-700">Abnormal</span>}
-                            {result.status === 'normal' && <span className="text-green-700">Normal</span>}
+                          <td className="px-2 py-1 border-b border-gray-200 dark:border-slate-700">{result.unit}</td>
+                          <td className="px-2 py-1 border-b border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300">{result.referenceRange}</td>
+                          <td className="px-2 py-1 border-b border-gray-200 dark:border-slate-700">
+                            {result.status === 'critical' && <span className="text-red-700 dark:text-red-300 font-bold">CRITICAL</span>}
+                            {result.status === 'abnormal' && <span className="text-yellow-700 dark:text-yellow-300">Abnormal</span>}
+                            {result.status === 'normal' && <span className="text-green-700 dark:text-green-300">Normal</span>}
                           </td>
                         </tr>
                       ))}
@@ -325,21 +325,21 @@ export default function LabResultsPage() {
               <legend>Result Information</legend>
               <div className="grid grid-cols-2 gap-2 text-[11px]">
                 <div>
-                  <span className="text-gray-500">Test Name:</span>
+                  <span className="text-gray-500 dark:text-slate-400">Test Name:</span>
                   <span className="ml-2 font-semibold">{selectedResult.testName}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Status:</span>
+                  <span className="text-gray-500 dark:text-slate-400">Status:</span>
                   <span className="ml-2" style={getStatusStyle(selectedResult.status)}>
                     {selectedResult.status.toUpperCase()}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Result:</span>
+                  <span className="text-gray-500 dark:text-slate-400">Result:</span>
                   <span className="ml-2 font-mono font-bold">{selectedResult.value} {selectedResult.unit}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Reference Range:</span>
+                  <span className="text-gray-500 dark:text-slate-400">Reference Range:</span>
                   <span className="ml-2">{selectedResult.referenceRange}</span>
                 </div>
               </div>
@@ -348,19 +348,19 @@ export default function LabResultsPage() {
               <legend>Collection Details</legend>
               <div className="grid grid-cols-2 gap-2 text-[11px]">
                 <div>
-                  <span className="text-gray-500">Collected:</span>
+                  <span className="text-gray-500 dark:text-slate-400">Collected:</span>
                   <span className="ml-2">{selectedResult.collectedAt}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Resulted:</span>
+                  <span className="text-gray-500 dark:text-slate-400">Resulted:</span>
                   <span className="ml-2">{selectedResult.resultedAt}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Ordered By:</span>
+                  <span className="text-gray-500 dark:text-slate-400">Ordered By:</span>
                   <span className="ml-2">{selectedResult.orderedBy}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Performing Lab:</span>
+                  <span className="text-gray-500 dark:text-slate-400">Performing Lab:</span>
                   <span className="ml-2">{selectedResult.performingLab}</span>
                 </div>
               </div>

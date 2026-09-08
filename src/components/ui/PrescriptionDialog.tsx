@@ -165,7 +165,7 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
             <fieldset className="ehr-fieldset h-56 flex flex-col">
               <legend>Select Medication</legend>
               <div className="flex items-center space-x-2 mb-2">
-                <Search className="w-3.5 h-3.5 text-gray-500" />
+                <Search className="w-3.5 h-3.5 text-gray-500 dark:text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search medications..."
@@ -174,17 +174,17 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                   className="ehr-input flex-1"
                 />
               </div>
-              <div className="flex-1 overflow-auto border border-gray-300 bg-white">
+              <div className="flex-1 overflow-auto border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900">
                 {filteredMeds.map((med) => (
                   <div
                     key={med.name}
                     onClick={() => selectMedication(med)}
-                    className={`px-2 py-1 text-[11px] cursor-pointer border-b border-gray-200 ${
-                      selectedMed?.name === med.name ? 'bg-blue-100' : 'hover:bg-blue-50'
+                    className={`px-2 py-1 text-[11px] cursor-pointer border-b border-gray-200 dark:border-slate-700 ${
+                      selectedMed?.name === med.name ? 'bg-blue-100 dark:bg-blue-950' : 'hover:bg-blue-50 dark:hover:bg-slate-700'
                     }`}
                   >
                     <div className="font-medium">{med.name}</div>
-                    <div className="text-[10px] text-gray-500">{med.class} • {med.form}</div>
+                    <div className="text-[10px] text-gray-500 dark:text-slate-400">{med.class} • {med.form}</div>
                   </div>
                 ))}
               </div>
@@ -197,14 +197,14 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
               <legend>Prescription Details</legend>
               {selectedMed ? (
                 <div className="space-y-2">
-                  <div className="p-2 bg-gray-100 border border-gray-400 mb-2">
+                  <div className="p-2 bg-gray-100 dark:bg-slate-800 border border-gray-400 dark:border-slate-600 mb-2">
                     <div className="font-semibold text-[12px]">{selectedMed.name}</div>
-                    <div className="text-[10px] text-gray-600">{selectedMed.class} • {selectedMed.form}</div>
+                    <div className="text-[10px] text-gray-600 dark:text-slate-300">{selectedMed.class} • {selectedMed.form}</div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">Strength</label>
+                      <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Strength</label>
                       <select
                         value={prescription.strength}
                         onChange={(e) => setPrescription({ ...prescription, strength: e.target.value })}
@@ -216,7 +216,7 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">Quantity</label>
+                      <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Quantity</label>
                       <input
                         type="number"
                         value={prescription.quantity}
@@ -227,7 +227,7 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Sig (Directions)</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Sig (Directions)</label>
                     <select
                       value={prescription.sig}
                       onChange={(e) => setPrescription({ ...prescription, sig: e.target.value })}
@@ -248,7 +248,7 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">Refills</label>
+                      <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Refills</label>
                       <select
                         value={prescription.refills}
                         onChange={(e) => setPrescription({ ...prescription, refills: parseInt(e.target.value) })}
@@ -260,7 +260,7 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">DAW</label>
+                      <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">DAW</label>
                       <label className="flex items-center mt-1 cursor-pointer">
                         <input
                           type="checkbox"
@@ -274,7 +274,7 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Pharmacy</label>
+                    <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Pharmacy</label>
                     <select
                       value={prescription.pharmacy}
                       onChange={(e) => setPrescription({ ...prescription, pharmacy: e.target.value })}
@@ -287,7 +287,7 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                   </div>
                 </div>
               ) : (
-                <div className="h-40 flex items-center justify-center text-gray-500 text-[11px]">
+                <div className="h-40 flex items-center justify-center text-gray-500 dark:text-slate-400 text-[11px]">
                   <Pill className="w-5 h-5 mr-2 opacity-50" />
                   Select a medication from the list
                 </div>
@@ -302,7 +302,7 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
             <div>
               <strong>Drug Interaction Check:</strong> No significant interactions found with current medications.
               <br />
-              <span className="text-gray-600">Always verify patient's complete medication list before prescribing.</span>
+              <span className="text-gray-600 dark:text-slate-300">Always verify patient's complete medication list before prescribing.</span>
             </div>
           </div>
         )}

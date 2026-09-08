@@ -47,8 +47,8 @@ export default function VitalsPage() {
 
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'critical': return { background: '#ffcccc', color: '#990000', fontWeight: 'bold' };
-      case 'abnormal': return { background: '#fff3cd', color: '#664d00' };
+      case 'critical': return { background: 'var(--ehr-critical-bg)', color: 'var(--ehr-critical-text)', fontWeight: 'bold' };
+      case 'abnormal': return { background: 'var(--ehr-warning-bg)', color: 'var(--ehr-warning-text)' };
       default: return {};
     }
   };
@@ -71,13 +71,13 @@ export default function VitalsPage() {
     const isGoodUp = vital === 'spo2';
     const isGoodDown = ['systolic', 'diastolic', 'heartRate', 'temperature', 'respiratoryRate', 'painLevel'].includes(vital);
     
-    if (trend === 'stable') return <Minus className="w-3 h-3 text-gray-400 inline ml-0.5" />;
+    if (trend === 'stable') return <Minus className="w-3 h-3 text-gray-400 dark:text-slate-500 inline ml-0.5" />;
     if (trend === 'up') {
-      const color = isGoodUp ? 'text-green-600' : isGoodDown ? 'text-red-600' : 'text-gray-600';
+      const color = isGoodUp ? 'text-green-600 dark:text-green-300' : isGoodDown ? 'text-red-600 dark:text-red-300' : 'text-gray-600 dark:text-slate-300';
       return <TrendingUp className={`w-3 h-3 ${color} inline ml-0.5`} />;
     }
     if (trend === 'down') {
-      const color = isGoodDown ? 'text-green-600' : isGoodUp ? 'text-red-600' : 'text-gray-600';
+      const color = isGoodDown ? 'text-green-600 dark:text-green-300' : isGoodUp ? 'text-red-600 dark:text-red-300' : 'text-gray-600 dark:text-slate-300';
       return <TrendingDown className={`w-3 h-3 ${color} inline ml-0.5`} />;
     }
     return null;
@@ -144,8 +144,8 @@ export default function VitalsPage() {
         <div className="ehr-toolbar flex items-center justify-between py-1">
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-1">
-              <Calendar className="w-3 h-3 text-gray-500" />
-              <span className="text-[10px] text-gray-600">Time Range:</span>
+              <Calendar className="w-3 h-3 text-gray-500 dark:text-slate-400" />
+              <span className="text-[10px] text-gray-600 dark:text-slate-300">Time Range:</span>
             </div>
             <select
               value={dateRange}
@@ -165,15 +165,15 @@ export default function VitalsPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto bg-white border border-gray-400">
+        <div className="flex-1 overflow-auto bg-white dark:bg-slate-900 border border-gray-400 dark:border-slate-600">
           <table className="w-full text-[11px]">
             <thead className="sticky top-0">
               <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
-                <th className="text-left px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
-                <th className="text-center px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] min-w-[50px]">Trend</th>
+                <th className="ehr-subheader text-left px-2 py-1 border border-gray-400 dark:border-slate-600 sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
+                <th className="ehr-subheader text-center px-2 py-1 border border-gray-400 dark:border-slate-600 min-w-[50px]">Trend</th>
                 {vitals.map((reading) => (
-                  <th key={reading.id} className="text-center px-2 py-1 border border-gray-400 min-w-[80px]">
-                    <div className="text-[10px] font-normal text-gray-600">{reading.timestamp.split(' ')[0]}</div>
+                  <th key={reading.id} className="text-center px-2 py-1 border border-gray-400 dark:border-slate-600 min-w-[80px]">
+                    <div className="text-[10px] font-normal text-gray-600 dark:text-slate-300">{reading.timestamp.split(' ')[0]}</div>
                     <div className="font-semibold">{reading.timestamp.split(' ')[1]}</div>
                   </th>
                 ))}
@@ -181,12 +181,12 @@ export default function VitalsPage() {
             </thead>
             <tbody>
               {vitalSigns.map((vital, vitalIdx) => (
-                <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}>
-                  <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">
+                <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-[#f8f8f8] dark:bg-slate-800'}>
+                  <td className="px-2 py-1 border border-gray-300 dark:border-slate-700 font-semibold sticky left-0 bg-inherit z-10">
                     <div>{vital.name}</div>
-                    <div className="text-[9px] text-gray-500 font-normal">{vital.unit} ({vital.normalRange.min}-{vital.normalRange.max})</div>
+                    <div className="text-[9px] text-gray-500 dark:text-slate-400 font-normal">{vital.unit} ({vital.normalRange.min}-{vital.normalRange.max})</div>
                   </td>
-                  <td className="px-2 py-1 border border-gray-300 text-center">
+                  <td className="px-2 py-1 border border-gray-300 dark:border-slate-700 text-center">
                     <Sparkline 
                       data={vitals.map(r => r[vital.key] as number | undefined)} 
                       vitalKey={vital.key}
@@ -200,7 +200,7 @@ export default function VitalsPage() {
                     return (
                       <td
                         key={reading.id}
-                        className="px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0]"
+                        className="px-2 py-1 border border-gray-300 dark:border-slate-700 text-center cursor-pointer hover:bg-[#e0e8f0] dark:hover:bg-slate-700"
                         style={getStatusStyle(status)}
                         onClick={() => setSelectedReading(reading)}
                       >
@@ -211,27 +211,27 @@ export default function VitalsPage() {
                             <TrendIcon trend={trend} vital={vital.key} />
                           </span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-gray-400 dark:text-slate-500">-</span>
                         )}
                       </td>
                     );
                   })}
                 </tr>
               ))}
-              <tr className="bg-gray-100">
-                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Recorded By</td>
-                <td className="px-2 py-1 border border-gray-300"></td>
+              <tr className="bg-gray-100 dark:bg-slate-800">
+                <td className="px-2 py-1 border border-gray-300 dark:border-slate-700 font-semibold sticky left-0 bg-gray-100 dark:bg-slate-800 z-10">Recorded By</td>
+                <td className="px-2 py-1 border border-gray-300 dark:border-slate-700"></td>
                 {vitals.map((reading) => (
-                  <td key={reading.id} className="px-2 py-1 border border-gray-300 text-center text-[10px] text-gray-600">
+                  <td key={reading.id} className="px-2 py-1 border border-gray-300 dark:border-slate-700 text-center text-[10px] text-gray-600 dark:text-slate-300">
                     {reading.recordedBy}
                   </td>
                 ))}
               </tr>
-              <tr className="bg-gray-100">
-                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Location</td>
-                <td className="px-2 py-1 border border-gray-300"></td>
+              <tr className="bg-gray-100 dark:bg-slate-800">
+                <td className="px-2 py-1 border border-gray-300 dark:border-slate-700 font-semibold sticky left-0 bg-gray-100 dark:bg-slate-800 z-10">Location</td>
+                <td className="px-2 py-1 border border-gray-300 dark:border-slate-700"></td>
                 {vitals.map((reading) => (
-                  <td key={reading.id} className="px-2 py-1 border border-gray-300 text-center text-[10px] text-gray-600">
+                  <td key={reading.id} className="px-2 py-1 border border-gray-300 dark:border-slate-700 text-center text-[10px] text-gray-600 dark:text-slate-300">
                     {reading.location}
                   </td>
                 ))}
@@ -262,9 +262,9 @@ export default function VitalsPage() {
             <fieldset className="ehr-fieldset">
               <legend>Reading Information</legend>
               <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div><span className="text-gray-500">Date/Time:</span> <span className="ml-1 font-semibold">{selectedReading.timestamp}</span></div>
-                <div><span className="text-gray-500">Recorded By:</span> <span className="ml-1">{selectedReading.recordedBy}</span></div>
-                <div><span className="text-gray-500">Location:</span> <span className="ml-1">{selectedReading.location}</span></div>
+                <div><span className="text-gray-500 dark:text-slate-400">Date/Time:</span> <span className="ml-1 font-semibold">{selectedReading.timestamp}</span></div>
+                <div><span className="text-gray-500 dark:text-slate-400">Recorded By:</span> <span className="ml-1">{selectedReading.recordedBy}</span></div>
+                <div><span className="text-gray-500 dark:text-slate-400">Location:</span> <span className="ml-1">{selectedReading.location}</span></div>
               </div>
             </fieldset>
             <fieldset className="ehr-fieldset">
@@ -275,7 +275,7 @@ export default function VitalsPage() {
                   const status = getValueStatus(vital.key, value);
                   return (
                     <div key={vital.key} className="flex justify-between" style={getStatusStyle(status)}>
-                      <span className="text-gray-600">{vital.name}:</span>
+                      <span className="text-gray-600 dark:text-slate-300">{vital.name}:</span>
                       <span className="font-mono font-semibold">
                         {value !== undefined ? (vital.key === 'temperature' ? value.toFixed(1) : value) : '-'} {vital.unit}
                       </span>
@@ -312,9 +312,9 @@ export default function VitalsPage() {
             <div className="grid grid-cols-2 gap-3">
               {vitalSigns.map(vital => (
                 <div key={vital.key} className="flex items-center space-x-2">
-                  <label className="text-[11px] text-gray-600 w-20">{vital.name}:</label>
+                  <label className="text-[11px] text-gray-600 dark:text-slate-300 w-20">{vital.name}:</label>
                   <input type="number" className="ehr-input flex-1 text-[11px]" placeholder={`${vital.normalRange.min}-${vital.normalRange.max}`} />
-                  <span className="text-[10px] text-gray-500 w-10">{vital.unit}</span>
+                  <span className="text-[10px] text-gray-500 dark:text-slate-400 w-10">{vital.unit}</span>
                 </div>
               ))}
             </div>

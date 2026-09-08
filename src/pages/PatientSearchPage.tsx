@@ -99,12 +99,12 @@ function mapPatientToListItem(patient: Patient): PatientListItem {
 }
 
 const flagConfig: Record<string, { label: string; color: string; bg: string }> = {
-  FALL_RISK: { label: 'Fall Risk', color: 'text-gray-800', bg: 'bg-gray-200' },
-  ALLERGY: { label: 'Allergy', color: 'text-gray-800', bg: 'bg-gray-200' },
-  ISOLATION: { label: 'Isolation', color: 'text-gray-800', bg: 'bg-gray-200' },
-  DNR: { label: 'DNR/DNI', color: 'text-gray-800', bg: 'bg-gray-300' },
-  VIP: { label: 'VIP', color: 'text-gray-700', bg: 'bg-gray-100' },
-  DIFFICULT_IV: { label: 'Diff IV', color: 'text-gray-700', bg: 'bg-gray-100' },
+  FALL_RISK: { label: 'Fall Risk', color: 'text-gray-800 dark:text-slate-100', bg: 'bg-gray-200 dark:bg-slate-700' },
+  ALLERGY: { label: 'Allergy', color: 'text-gray-800 dark:text-slate-100', bg: 'bg-gray-200 dark:bg-slate-700' },
+  ISOLATION: { label: 'Isolation', color: 'text-gray-800 dark:text-slate-100', bg: 'bg-gray-200 dark:bg-slate-700' },
+  DNR: { label: 'DNR/DNI', color: 'text-gray-800 dark:text-slate-100', bg: 'bg-gray-300 dark:bg-slate-700' },
+  VIP: { label: 'VIP', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
+  DIFFICULT_IV: { label: 'Diff IV', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
 };
 
 interface FilterState {
@@ -267,14 +267,14 @@ export default function PatientSearchPage() {
     (filters.hasBalance !== null ? 1 : 0) + (filters.hasOpenEncounters !== null ? 1 : 0) + (filters.hasAlerts !== null ? 1 : 0);
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col ehr-desktop">
       {/* Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-1">
           <button className="ehr-toolbar-button flex items-center" onClick={() => { fetchPatients(); setShowAlert({ title: 'Refreshed', message: 'Patient list has been refreshed.', type: 'info' }); }}>
             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
           </button>
-          <span className="text-gray-400">|</span>
+          <span className="text-gray-400 dark:text-slate-500">|</span>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'New Patient', message: 'Patient registration form would open here.', type: 'info' })}>
             <Plus className="w-3.5 h-3.5 mr-1" /> New Patient
           </button>
@@ -286,7 +286,7 @@ export default function PatientSearchPage() {
           </button>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-gray-600">Search:</span>
+          <span className="text-gray-600 dark:text-slate-300">Search:</span>
           <input
             type="text"
             placeholder="Name, MRN, DOB, Phone..."
@@ -304,7 +304,7 @@ export default function PatientSearchPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Filter Panel */}
-        <div className="w-52 flex flex-col border-r border-gray-500" style={{ background: '#ece9d8' }}>
+        <div className="w-52 flex flex-col border-r border-gray-500 dark:border-slate-600 ehr-pane">
           <div className="ehr-header text-xs flex items-center justify-between">
             <span>Filter Patients</span>
             {activeFilterCount > 0 && (
@@ -318,16 +318,16 @@ export default function PatientSearchPage() {
             <div className="mb-1">
               <button 
                 onClick={() => toggleSection('quickFilters')}
-                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
+                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 dark:hover:bg-slate-700 font-semibold text-gray-700 dark:text-slate-200"
               >
-                <span className="w-4 h-4 border border-gray-500 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
+                <span className="w-4 h-4 border border-gray-500 dark:border-slate-600 bg-white dark:bg-slate-900 flex items-center justify-center text-[10px] font-bold mr-1">
                   {expandedSections.quickFilters ? '-' : '+'}
                 </span>
                 Quick Filters
               </button>
               {expandedSections.quickFilters && (
                 <div className="ml-4 space-y-0.5 mt-0.5">
-                  <label className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                  <label className="flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 px-1">
                     <input 
                       type="checkbox" 
                       className="ehr-checkbox"
@@ -336,7 +336,7 @@ export default function PatientSearchPage() {
                     />
                     <span className="ehr-label">Open Encounters</span>
                   </label>
-                  <label className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                  <label className="flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 px-1">
                     <input 
                       type="checkbox" 
                       className="ehr-checkbox"
@@ -345,7 +345,7 @@ export default function PatientSearchPage() {
                     />
                     <span className="ehr-label">Outstanding Balance</span>
                   </label>
-                  <label className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                  <label className="flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 px-1">
                     <input 
                       type="checkbox" 
                       className="ehr-checkbox"
@@ -362,7 +362,7 @@ export default function PatientSearchPage() {
             <div className="mb-1">
               <button 
                 onClick={() => toggleSection('status')}
-                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
+                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 dark:hover:bg-slate-700 font-semibold text-gray-700 dark:text-slate-200"
               >
                 {expandedSections.status ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
                 Patient Status
@@ -370,7 +370,7 @@ export default function PatientSearchPage() {
               {expandedSections.status && (
                 <div className="ml-4 space-y-0.5 mt-0.5">
                   {['ACTIVE', 'INACTIVE', 'DECEASED'].map(status => (
-                    <label key={status} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <label key={status} className="flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 px-1">
                       <input 
                         type="checkbox" 
                         className="ehr-checkbox"
@@ -388,16 +388,16 @@ export default function PatientSearchPage() {
             <div className="mb-1">
               <button 
                 onClick={() => toggleSection('demographics')}
-                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
+                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 dark:hover:bg-slate-700 font-semibold text-gray-700 dark:text-slate-200"
               >
                 {expandedSections.demographics ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
                 Demographics
               </button>
               {expandedSections.demographics && (
                 <div className="ml-4 space-y-0.5 mt-0.5">
-                  <div className="text-[10px] text-gray-500 px-1">Gender:</div>
+                  <div className="text-[10px] text-gray-500 dark:text-slate-400 px-1">Gender:</div>
                   {[{ v: 'M', l: 'Male' }, { v: 'F', l: 'Female' }, { v: 'O', l: 'Other' }].map(g => (
-                    <label key={g.v} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <label key={g.v} className="flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 px-1">
                       <input 
                         type="checkbox" 
                         className="ehr-checkbox"
@@ -415,7 +415,7 @@ export default function PatientSearchPage() {
             <div className="mb-1">
               <button 
                 onClick={() => toggleSection('insurance')}
-                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
+                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 dark:hover:bg-slate-700 font-semibold text-gray-700 dark:text-slate-200"
               >
                 {expandedSections.insurance ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
                 Insurance Type
@@ -423,7 +423,7 @@ export default function PatientSearchPage() {
               {expandedSections.insurance && (
                 <div className="ml-4 space-y-0.5 mt-0.5">
                   {[{ v: 'COMMERCIAL', l: 'Commercial' }, { v: 'MEDICARE', l: 'Medicare' }, { v: 'MEDICAID', l: 'Medicaid' }, { v: 'SELF_PAY', l: 'Self Pay' }].map(ins => (
-                    <label key={ins.v} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <label key={ins.v} className="flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 px-1">
                       <input 
                         type="checkbox" 
                         className="ehr-checkbox"
@@ -441,7 +441,7 @@ export default function PatientSearchPage() {
             <div className="mb-1">
               <button 
                 onClick={() => toggleSection('provider')}
-                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
+                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 dark:hover:bg-slate-700 font-semibold text-gray-700 dark:text-slate-200"
               >
                 {expandedSections.provider ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
                 Primary Care Provider
@@ -449,7 +449,7 @@ export default function PatientSearchPage() {
               {expandedSections.provider && (
                 <div className="ml-4 space-y-0.5 mt-0.5">
                   {[{ id: 'PCP001', name: 'Williams, Mark MD' }, { id: 'PCP002', name: 'Chen, Lisa MD' }, { id: 'PCP003', name: 'Patel, Raj MD' }].map(pcp => (
-                    <label key={pcp.id} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <label key={pcp.id} className="flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 px-1">
                       <input 
                         type="checkbox" 
                         className="ehr-checkbox"
@@ -467,7 +467,7 @@ export default function PatientSearchPage() {
             <div className="mb-1">
               <button 
                 onClick={() => toggleSection('location')}
-                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
+                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 dark:hover:bg-slate-700 font-semibold text-gray-700 dark:text-slate-200"
               >
                 {expandedSections.location ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
                 Location
@@ -475,7 +475,7 @@ export default function PatientSearchPage() {
               {expandedSections.location && (
                 <div className="ml-4 space-y-0.5 mt-0.5">
                   {['Main Clinic', 'East Campus', 'West Wing'].map(loc => (
-                    <label key={loc} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <label key={loc} className="flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 px-1">
                       <input 
                         type="checkbox" 
                         className="ehr-checkbox"
@@ -493,7 +493,7 @@ export default function PatientSearchPage() {
             <div className="mb-1">
               <button 
                 onClick={() => toggleSection('flags')}
-                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
+                className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 dark:hover:bg-slate-700 font-semibold text-gray-700 dark:text-slate-200"
               >
                 {expandedSections.flags ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
                 Patient Flags
@@ -501,7 +501,7 @@ export default function PatientSearchPage() {
               {expandedSections.flags && (
                 <div className="ml-4 space-y-0.5 mt-0.5">
                   {Object.entries(flagConfig).map(([key, cfg]) => (
-                    <label key={key} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <label key={key} className="flex items-center cursor-pointer hover:bg-gray-200 dark:hover:bg-slate-700 px-1">
                       <input 
                         type="checkbox" 
                         className="ehr-checkbox"
@@ -515,7 +515,7 @@ export default function PatientSearchPage() {
               )}
             </div>
           </div>
-          <div className="border-t border-gray-400 p-1">
+          <div className="border-t border-gray-400 dark:border-slate-600 p-1">
             <button onClick={handleSearch} className="ehr-button ehr-button-primary w-full">Apply Filters</button>
           </div>
         </div>
@@ -524,9 +524,9 @@ export default function PatientSearchPage() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="ehr-subheader flex items-center justify-between">
             <span>Patient List - {searchResults.length} record(s) found</span>
-            <span className="text-gray-500">Double-click to open chart</span>
+            <span className="text-gray-500 dark:text-slate-400">Double-click to open chart</span>
           </div>
-          <div className="flex-1 overflow-auto bg-white relative">
+          <div className="flex-1 overflow-auto bg-white dark:bg-slate-900 relative">
             <LoadingOverlay isLoading={loading} text="Loading patients..." />
             <table className="w-full text-[11px]">
               <thead className="sticky top-0">
@@ -548,7 +548,7 @@ export default function PatientSearchPage() {
               <tbody>
                 {searchResults.length === 0 && !loading ? (
                   <tr>
-                    <td colSpan={12} className="text-center py-12 text-gray-500">
+                    <td colSpan={12} className="text-center py-12 text-gray-500 dark:text-slate-400">
                       No patients found
                     </td>
                   </tr>
@@ -560,7 +560,7 @@ export default function PatientSearchPage() {
                       onClick={() => handleSelectPatient(patient)}
                       onDoubleClick={() => handleOpenChart(patient.id)}
                       className={`cursor-pointer ${isSelected ? 'ehr-grid-row selected' : `ehr-grid-row ${idx % 2 === 0 ? '' : ''}`}`}
-                      style={isSelected ? { background: '#316ac5', color: 'white' } : idx % 2 === 1 ? { background: '#f0f4f8' } : {}}
+                      style={isSelected ? { background: 'var(--ehr-row-selected)', color: 'var(--ehr-row-selected-text)' } : idx % 2 === 1 ? { background: 'var(--ehr-row-alt)' } : {}}
                     >
                       <td className="px-1 py-0.5">
                         <div className="flex items-center space-x-0.5">
@@ -594,26 +594,26 @@ export default function PatientSearchPage() {
                       <td className="px-1 py-0.5">{patient.nextAppt ? formatDateTime(patient.nextAppt) : '-'}</td>
                       <td className="px-1 py-0.5 text-right">
                         {patient.balance > 0 ? (
-                          <span className={isSelected ? 'text-white' : 'text-gray-800 font-semibold'}>${patient.balance.toFixed(2)}</span>
+                          <span className={isSelected ? 'text-white' : 'text-gray-800 dark:text-slate-100 font-semibold'}>${patient.balance.toFixed(2)}</span>
                         ) : (
-                          <span className={isSelected ? 'text-gray-200' : 'text-gray-600'}>$0.00</span>
+                          <span className={isSelected ? 'text-gray-200' : 'text-gray-600 dark:text-slate-300'}>$0.00</span>
                         )}
                       </td>
                       <td className="px-1 py-0.5">
                         <div className="flex items-center justify-center space-x-0.5">
                           {patient.openEncounters > 0 && (
-                            <span className={`px-0.5 text-[9px] border border-gray-400 ${isSelected ? 'bg-white/30' : 'bg-gray-100 text-gray-700'}`} title="Open encounters">
+                            <span className={`px-0.5 text-[9px] border border-gray-400 dark:border-slate-600 ${isSelected ? 'bg-white/30' : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-200'}`} title="Open encounters">
                               {patient.openEncounters}E
                             </span>
                           )}
                           {patient.recentLabs && (
-                            <span title="Recent labs"><Activity className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600'}`} /></span>
+                            <span title="Recent labs"><Activity className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600 dark:text-slate-300'}`} /></span>
                           )}
                           {patient.recentImaging && (
-                            <span title="Recent imaging"><FileText className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600'}`} /></span>
+                            <span title="Recent imaging"><FileText className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600 dark:text-slate-300'}`} /></span>
                           )}
                           {patient.alerts.length > 0 && (
-                            <span title={patient.alerts.join(', ')}><AlertTriangle className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600'}`} /></span>
+                            <span title={patient.alerts.join(', ')}><AlertTriangle className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600 dark:text-slate-300'}`} /></span>
                           )}
                         </div>
                       </td>
@@ -623,7 +623,7 @@ export default function PatientSearchPage() {
               </tbody>
             </table>
             {searchResults.length === 0 && (
-              <div className="text-center py-3 text-gray-500 text-[11px]">
+              <div className="text-center py-3 text-gray-500 dark:text-slate-400 text-[11px]">
                 No patients found matching your criteria
               </div>
             )}
@@ -632,7 +632,7 @@ export default function PatientSearchPage() {
 
         {/* Patient Detail Panel */}
         {selectedPatient && (
-          <div className="w-72 flex flex-col border-l border-gray-500" style={{ background: '#f5f5f5' }}>
+          <div className="w-72 flex flex-col border-l border-gray-500 dark:border-slate-600 ehr-surface-alt">
             <div className="ehr-header text-xs flex items-center justify-between">
               <span>Patient Details</span>
               <button onClick={() => setSelectedPatient(null)} className="text-white/80 hover:text-white">
@@ -641,14 +641,14 @@ export default function PatientSearchPage() {
             </div>
             <div className="flex-1 overflow-auto">
               {/* Patient Header */}
-              <div className="p-2 border-b border-gray-400" style={{ background: '#e8e8e8' }}>
+              <div className="p-2 border-b border-gray-400 dark:border-slate-600 ehr-surface-raised">
                 <div className="flex items-center space-x-2">
-                  <div className="w-10 h-10 flex items-center justify-center border border-gray-500" style={{ background: '#6699cc' }}>
+                  <div className="w-10 h-10 flex items-center justify-center border border-gray-500 dark:border-slate-600 bg-[#6699cc] dark:bg-[#2b4a6f]">
                     <User className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <div className="font-bold text-gray-900">{selectedPatient.lastName}, {selectedPatient.firstName}</div>
-                    <div className="text-[10px] text-gray-600">{selectedPatient.mrn} | {selectedPatient.age}y {selectedPatient.gender}</div>
+                    <div className="font-bold text-gray-900 dark:text-slate-100">{selectedPatient.lastName}, {selectedPatient.firstName}</div>
+                    <div className="text-[10px] text-gray-600 dark:text-slate-300">{selectedPatient.mrn} | {selectedPatient.age}y {selectedPatient.gender}</div>
                   </div>
                 </div>
                 <button
@@ -691,11 +691,11 @@ export default function PatientSearchPage() {
                   <legend>Demographics</legend>
                   <table className="w-full text-[10px]">
                     <tbody>
-                      <tr><td className="text-gray-500 pr-2">DOB:</td><td>{formatDate(selectedPatient.dob)}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">Age/Sex:</td><td>{selectedPatient.age} years / {selectedPatient.gender === 'M' ? 'Male' : selectedPatient.gender === 'F' ? 'Female' : 'Other'}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">SSN:</td><td>{selectedPatient.ssn}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">Phone:</td><td>{selectedPatient.phone}</td></tr>
-                      <tr><td className="text-gray-500 pr-2 align-top">Address:</td><td>{selectedPatient.address}<br/>{selectedPatient.city}, {selectedPatient.state} {selectedPatient.zip}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">DOB:</td><td>{formatDate(selectedPatient.dob)}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Age/Sex:</td><td>{selectedPatient.age} years / {selectedPatient.gender === 'M' ? 'Male' : selectedPatient.gender === 'F' ? 'Female' : 'Other'}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">SSN:</td><td>{selectedPatient.ssn}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Phone:</td><td>{selectedPatient.phone}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2 align-top">Address:</td><td>{selectedPatient.address}<br/>{selectedPatient.city}, {selectedPatient.state} {selectedPatient.zip}</td></tr>
                     </tbody>
                   </table>
                 </fieldset>
@@ -705,8 +705,8 @@ export default function PatientSearchPage() {
                   <legend>Care Team</legend>
                   <table className="w-full text-[10px]">
                     <tbody>
-                      <tr><td className="text-gray-500 pr-2">PCP:</td><td>{selectedPatient.pcp}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">Location:</td><td>{selectedPatient.location}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">PCP:</td><td>{selectedPatient.pcp}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Location:</td><td>{selectedPatient.location}</td></tr>
                     </tbody>
                   </table>
                 </fieldset>
@@ -716,9 +716,9 @@ export default function PatientSearchPage() {
                   <legend>Insurance</legend>
                   <table className="w-full text-[10px]">
                     <tbody>
-                      <tr><td className="text-gray-500 pr-2">Plan:</td><td>{selectedPatient.insurance}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">ID:</td><td className="font-mono">{selectedPatient.insuranceId}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">Type:</td><td>{selectedPatient.insuranceType}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Plan:</td><td>{selectedPatient.insurance}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">ID:</td><td className="font-mono">{selectedPatient.insuranceId}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Type:</td><td>{selectedPatient.insuranceType}</td></tr>
                     </tbody>
                   </table>
                 </fieldset>
@@ -728,10 +728,10 @@ export default function PatientSearchPage() {
                   <legend>Visit Information</legend>
                   <table className="w-full text-[10px]">
                     <tbody>
-                      <tr><td className="text-gray-500 pr-2">Last Visit:</td><td>{selectedPatient.lastVisit ? formatDate(selectedPatient.lastVisit) : 'N/A'}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">Next Appt:</td><td>{selectedPatient.nextAppt ? formatDateTime(selectedPatient.nextAppt) : 'None'}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">Open Enc:</td><td className={selectedPatient.openEncounters > 0 ? 'font-semibold' : ''}>{selectedPatient.openEncounters}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">Balance:</td><td className={selectedPatient.balance > 0 ? 'font-semibold' : ''}>${selectedPatient.balance.toFixed(2)}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Last Visit:</td><td>{selectedPatient.lastVisit ? formatDate(selectedPatient.lastVisit) : 'N/A'}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Next Appt:</td><td>{selectedPatient.nextAppt ? formatDateTime(selectedPatient.nextAppt) : 'None'}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Open Enc:</td><td className={selectedPatient.openEncounters > 0 ? 'font-semibold' : ''}>{selectedPatient.openEncounters}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Balance:</td><td className={selectedPatient.balance > 0 ? 'font-semibold' : ''}>${selectedPatient.balance.toFixed(2)}</td></tr>
                     </tbody>
                   </table>
                 </fieldset>

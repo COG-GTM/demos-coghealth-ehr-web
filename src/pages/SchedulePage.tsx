@@ -160,34 +160,34 @@ const defaultAppointments: ScheduleAppointment[] = [
 ];
 
 const statusConfig: Record<EncounterStatus, { label: string; color: string; bg: string }> = {
-  PLANNED: { label: 'Scheduled', color: 'text-gray-700', bg: 'bg-gray-100' },
-  ARRIVED: { label: 'Arrived', color: 'text-gray-700', bg: 'bg-gray-200' },
-  TRIAGED: { label: 'Roomed', color: 'text-gray-700', bg: 'bg-gray-200' },
-  IN_PROGRESS: { label: 'In Progress', color: 'text-gray-800', bg: 'bg-gray-300' },
-  ON_HOLD: { label: 'On Hold', color: 'text-gray-700', bg: 'bg-gray-200' },
-  FINISHED: { label: 'Completed', color: 'text-gray-600', bg: 'bg-gray-100' },
-  CANCELLED: { label: 'Cancelled', color: 'text-gray-600', bg: 'bg-gray-100' },
-  ENTERED_IN_ERROR: { label: 'Error', color: 'text-gray-600', bg: 'bg-gray-100' },
-  UNKNOWN: { label: 'Unknown', color: 'text-gray-600', bg: 'bg-gray-100' },
+  PLANNED: { label: 'Scheduled', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
+  ARRIVED: { label: 'Arrived', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-200 dark:bg-slate-700' },
+  TRIAGED: { label: 'Roomed', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-200 dark:bg-slate-700' },
+  IN_PROGRESS: { label: 'In Progress', color: 'text-gray-800 dark:text-slate-100', bg: 'bg-gray-300 dark:bg-slate-700' },
+  ON_HOLD: { label: 'On Hold', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-200 dark:bg-slate-700' },
+  FINISHED: { label: 'Completed', color: 'text-gray-600 dark:text-slate-300', bg: 'bg-gray-100 dark:bg-slate-800' },
+  CANCELLED: { label: 'Cancelled', color: 'text-gray-600 dark:text-slate-300', bg: 'bg-gray-100 dark:bg-slate-800' },
+  ENTERED_IN_ERROR: { label: 'Error', color: 'text-gray-600 dark:text-slate-300', bg: 'bg-gray-100 dark:bg-slate-800' },
+  UNKNOWN: { label: 'Unknown', color: 'text-gray-600 dark:text-slate-300', bg: 'bg-gray-100 dark:bg-slate-800' },
 };
 
 const encounterTypeConfig: Record<string, { label: string; color: string; bg: string }> = {
-  OUTPATIENT: { label: 'Office', color: 'text-gray-700', bg: 'bg-gray-100' },
-  TELEHEALTH: { label: 'Telehealth', color: 'text-gray-700', bg: 'bg-gray-100' },
-  PROCEDURE: { label: 'Procedure', color: 'text-gray-700', bg: 'bg-gray-100' },
-  NEW_PATIENT: { label: 'New Patient', color: 'text-gray-700', bg: 'bg-gray-100' },
-  FOLLOW_UP: { label: 'Follow-up', color: 'text-gray-700', bg: 'bg-gray-100' },
-  URGENT: { label: 'Urgent', color: 'text-gray-800', bg: 'bg-gray-200' },
-  PHYSICAL: { label: 'Physical', color: 'text-gray-700', bg: 'bg-gray-100' },
+  OUTPATIENT: { label: 'Office', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
+  TELEHEALTH: { label: 'Telehealth', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
+  PROCEDURE: { label: 'Procedure', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
+  NEW_PATIENT: { label: 'New Patient', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
+  FOLLOW_UP: { label: 'Follow-up', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
+  URGENT: { label: 'Urgent', color: 'text-gray-800 dark:text-slate-100', bg: 'bg-gray-200 dark:bg-slate-700' },
+  PHYSICAL: { label: 'Physical', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
 };
 
 const flagConfig: Record<string, { label: string; color: string; bg: string }> = {
-  allergy: { label: 'ALLERGY', color: 'text-gray-800', bg: 'bg-gray-200' },
-  'fall-risk': { label: 'FALL', color: 'text-gray-800', bg: 'bg-gray-200' },
-  interpreter: { label: 'INTERP', color: 'text-gray-700', bg: 'bg-gray-100' },
-  wheelchair: { label: 'WC', color: 'text-gray-700', bg: 'bg-gray-100' },
-  vip: { label: 'VIP', color: 'text-gray-700', bg: 'bg-gray-100' },
-  'new-patient': { label: 'NEW', color: 'text-gray-700', bg: 'bg-gray-100' },
+  allergy: { label: 'ALLERGY', color: 'text-gray-800 dark:text-slate-100', bg: 'bg-gray-200 dark:bg-slate-700' },
+  'fall-risk': { label: 'FALL', color: 'text-gray-800 dark:text-slate-100', bg: 'bg-gray-200 dark:bg-slate-700' },
+  interpreter: { label: 'INTERP', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
+  wheelchair: { label: 'WC', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
+  vip: { label: 'VIP', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
+  'new-patient': { label: 'NEW', color: 'text-gray-700 dark:text-slate-200', bg: 'bg-gray-100 dark:bg-slate-800' },
 };
 
 type StatusFilter = 'all' | 'waiting' | 'in-progress' | 'completed';
@@ -274,14 +274,14 @@ export default function SchedulePage() {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col ehr-desktop">
       {/* Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-1">
           <button className="ehr-toolbar-button flex items-center" onClick={() => setAppointments(defaultAppointments)}>
             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
           </button>
-          <span className="text-gray-400">|</span>
+          <span className="text-gray-400 dark:text-slate-500">|</span>
           <button onClick={() => changeDate(-1)} className="ehr-toolbar-button p-1">
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -295,7 +295,7 @@ export default function SchedulePage() {
           <button onClick={() => setSelectedDate(new Date('2024-01-18'))} className="ehr-button text-[10px] px-2 py-0.5">
             Today
           </button>
-          <span className="text-gray-400">|</span>
+          <span className="text-gray-400 dark:text-slate-500">|</span>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPrintDialog(true)}>
             <Printer className="w-3.5 h-3.5 mr-1" /> Print
           </button>
@@ -335,7 +335,7 @@ export default function SchedulePage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Appointment List */}
-        <div className="flex-1 overflow-auto bg-white border-r border-gray-500">
+        <div className="flex-1 overflow-auto bg-white dark:bg-slate-900 border-r border-gray-500 dark:border-slate-600">
           <table className="w-full text-[11px]">
             <thead className="sticky top-0">
               <tr>
@@ -362,18 +362,18 @@ export default function SchedulePage() {
                     className={`cursor-pointer ${
                       isSelected ? 'ehr-grid-row selected' : 
                       isUrgent ? 'ehr-alert-critical' : 
-                      apt.status === 'FINISHED' ? 'opacity-50' : 
-                      idx % 2 === 1 ? 'bg-gray-50' : ''
+                      apt.status === 'FINISHED' ? 'opacity-50 dark:opacity-80' : 
+                      idx % 2 === 1 ? 'bg-gray-50 dark:bg-slate-800' : ''
                     }`}
                     style={isSelected ? { background: '#316ac5', color: 'white' } : undefined}
                   >
                     <td className="px-1 py-1">
                       <div className="font-semibold">{formatTime(apt.appointmentTime)}</div>
-                      <div className="text-[9px] text-gray-500">{apt.duration}m</div>
+                      <div className="text-[9px] text-gray-500 dark:text-slate-400">{apt.duration}m</div>
                     </td>
                     <td className="px-1 py-1">
                       <div className="font-semibold">{apt.patientName}</div>
-                      <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: '#666' }}>
+                      <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: 'var(--ehr-text-muted)' }}>
                         {apt.patientMrn} • {apt.patientAge}{apt.patientGender}
                       </div>
                       <div className="flex space-x-0.5 mt-0.5">
@@ -390,7 +390,7 @@ export default function SchedulePage() {
                     <td className="px-1 py-1">
                       <div className="truncate max-w-[200px]">{apt.chiefComplaint}</div>
                       {apt.alerts.length > 0 && (
-                        <div className={`text-[10px] flex items-center ${isSelected ? 'text-yellow-200' : 'text-red-600'}`}>
+                        <div className={`text-[10px] flex items-center ${isSelected ? 'text-yellow-200' : 'text-red-600 dark:text-red-300'}`}>
                           <AlertTriangle className="w-3 h-3 mr-0.5" />
                           {apt.alerts[0]}
                         </div>
@@ -421,12 +421,12 @@ export default function SchedulePage() {
                         </button>
                       )}
                       {apt.status === 'ARRIVED' && (
-                        <button onClick={(e) => { e.stopPropagation(); handleRoom(apt); }} className="ehr-button text-[9px] px-1 py-0" style={{ background: 'linear-gradient(to bottom, #9966cc 0%, #663399 100%)', color: 'white', border: '1px solid #4a2080' }}>
+                        <button onClick={(e) => { e.stopPropagation(); handleRoom(apt); }} className="ehr-button ehr-button-accent text-[9px] px-1 py-0">
                           Room
                         </button>
                       )}
                       {(apt.status === 'TRIAGED' || apt.status === 'ARRIVED') && (
-                        <button onClick={(e) => { e.stopPropagation(); handleStartVisit(apt); }} className="ehr-button text-[9px] px-1 py-0 ml-0.5" style={{ background: 'linear-gradient(to bottom, #66cc66 0%, #339933 100%)', color: 'white', border: '1px solid #206020' }}>
+                        <button onClick={(e) => { e.stopPropagation(); handleStartVisit(apt); }} className="ehr-button ehr-button-success text-[9px] px-1 py-0 ml-0.5">
                           Start
                         </button>
                       )}
@@ -444,7 +444,7 @@ export default function SchedulePage() {
         </div>
 
         {/* Detail Panel */}
-        <div className="w-80 flex flex-col overflow-hidden" style={{ background: '#ece9d8' }}>
+        <div className="w-80 flex flex-col overflow-hidden ehr-pane">
           {selectedAppointment ? (
             <>
               {/* Patient Header */}
@@ -464,18 +464,18 @@ export default function SchedulePage() {
                   <legend>Patient Info</legend>
                   <table className="w-full text-[10px]">
                     <tbody>
-                      <tr><td className="text-gray-500 pr-2">MRN:</td><td className="font-mono">{selectedAppointment.patientMrn}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">DOB:</td><td>{selectedAppointment.patientDob} ({selectedAppointment.patientAge}y {selectedAppointment.patientGender})</td></tr>
-                      <tr><td className="text-gray-500 pr-2">Phone:</td><td>{selectedAppointment.patientPhone}</td></tr>
-                      <tr><td className="text-gray-500 pr-2">Insurance:</td><td>{selectedAppointment.insurancePrimary}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">MRN:</td><td className="font-mono">{selectedAppointment.patientMrn}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">DOB:</td><td>{selectedAppointment.patientDob} ({selectedAppointment.patientAge}y {selectedAppointment.patientGender})</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Phone:</td><td>{selectedAppointment.patientPhone}</td></tr>
+                      <tr><td className="text-gray-500 dark:text-slate-400 pr-2">Insurance:</td><td>{selectedAppointment.insurancePrimary}</td></tr>
                       <tr>
-                        <td className="text-gray-500 pr-2">Copay:</td>
+                        <td className="text-gray-500 dark:text-slate-400 pr-2">Copay:</td>
                         <td className="flex items-center">
                           ${selectedAppointment.copay || 0}
                           {selectedAppointment.copayCollected ? (
-                            <CheckCircle2 className="w-3 h-3 ml-1 text-green-600" />
+                            <CheckCircle2 className="w-3 h-3 ml-1 text-green-600 dark:text-green-300" />
                           ) : (
-                            <XCircle className="w-3 h-3 ml-1 text-red-600" />
+                            <XCircle className="w-3 h-3 ml-1 text-red-600 dark:text-red-300" />
                           )}
                         </td>
                       </tr>
@@ -499,12 +499,12 @@ export default function SchedulePage() {
                 <fieldset className="ehr-fieldset">
                   <legend>Chief Complaint</legend>
                   <p className="text-[11px]">{selectedAppointment.chiefComplaint}</p>
-                  <p className="text-[10px] text-gray-500 mt-1">{selectedAppointment.visitType} • {selectedAppointment.duration} min</p>
+                  <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-1">{selectedAppointment.visitType} • {selectedAppointment.duration} min</p>
                 </fieldset>
 
                 {/* Alerts */}
                 {selectedAppointment.alerts.length > 0 && (
-                  <div className="ehr-alert-critical p-2 border border-gray-400">
+                  <div className="ehr-alert-critical p-2 border border-gray-400 dark:border-slate-600">
                     <div className="flex items-center font-semibold text-[11px] mb-1">
                       <AlertTriangle className="w-3 h-3 mr-1" /> Alerts
                     </div>
@@ -516,13 +516,13 @@ export default function SchedulePage() {
 
                 {/* Pending Orders */}
                 {selectedAppointment.pendingOrders && selectedAppointment.pendingOrders.length > 0 && (
-                  <div className="ehr-alert-warning p-2 border border-gray-400">
+                  <div className="ehr-alert-warning p-2 border border-gray-400 dark:border-slate-600">
                     <div className="flex items-center font-semibold text-[11px] mb-1">
                       <Clock className="w-3 h-3 mr-1" /> Pending Orders
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {selectedAppointment.pendingOrders.map((order, i) => (
-                        <span key={i} className="px-1 py-0.5 bg-white border border-gray-400 text-[10px]">{order}</span>
+                        <span key={i} className="px-1 py-0.5 bg-white dark:bg-slate-900 border border-gray-400 dark:border-slate-600 text-[10px]">{order}</span>
                       ))}
                     </div>
                   </div>
@@ -543,28 +543,28 @@ export default function SchedulePage() {
                       </div>
                     </div>
                     {expandedPanels.vitals && (
-                      <div className="bg-white p-2">
+                      <div className="bg-white dark:bg-slate-900 p-2">
                         <div className="grid grid-cols-5 gap-1 text-center text-[10px]">
-                          <div className="p-1 bg-gray-100 border border-gray-300">
-                            <div className="text-gray-500">BP</div>
-                            <div className={`font-semibold ${parseInt(selectedAppointment.lastVitals.bp) > 140 ? 'text-red-600' : ''}`}>
+                          <div className="p-1 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
+                            <div className="text-gray-500 dark:text-slate-400">BP</div>
+                            <div className={`font-semibold ${parseInt(selectedAppointment.lastVitals.bp) > 140 ? 'text-red-600 dark:text-red-300' : ''}`}>
                               {selectedAppointment.lastVitals.bp}
                             </div>
                           </div>
-                          <div className="p-1 bg-gray-100 border border-gray-300">
-                            <div className="text-gray-500">HR</div>
+                          <div className="p-1 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
+                            <div className="text-gray-500 dark:text-slate-400">HR</div>
                             <div className="font-semibold">{selectedAppointment.lastVitals.hr}</div>
                           </div>
-                          <div className="p-1 bg-gray-100 border border-gray-300">
-                            <div className="text-gray-500">Temp</div>
+                          <div className="p-1 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
+                            <div className="text-gray-500 dark:text-slate-400">Temp</div>
                             <div className="font-semibold">{selectedAppointment.lastVitals.temp}°</div>
                           </div>
-                          <div className="p-1 bg-gray-100 border border-gray-300">
-                            <div className="text-gray-500">SpO2</div>
+                          <div className="p-1 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
+                            <div className="text-gray-500 dark:text-slate-400">SpO2</div>
                             <div className="font-semibold">{selectedAppointment.lastVitals.spo2}%</div>
                           </div>
-                          <div className="p-1 bg-gray-100 border border-gray-300">
-                            <div className="text-gray-500">Wt</div>
+                          <div className="p-1 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-slate-700">
+                            <div className="text-gray-500 dark:text-slate-400">Wt</div>
                             <div className="font-semibold">{selectedAppointment.lastVitals.weight}</div>
                           </div>
                         </div>
@@ -588,7 +588,7 @@ export default function SchedulePage() {
                       </div>
                     </div>
                     {expandedPanels.prep && (
-                      <div className="bg-white p-2 text-[10px]">
+                      <div className="bg-white dark:bg-slate-900 p-2 text-[10px]">
                         {selectedAppointment.prepNotes.map((note, i) => (
                           <div key={i} className="flex items-start mb-1">
                             <span className="mr-1.5">•</span>
@@ -615,13 +615,13 @@ export default function SchedulePage() {
                       </div>
                     </div>
                     {expandedPanels.labs && (
-                      <div className="bg-white">
+                      <div className="bg-white dark:bg-slate-900">
                         {selectedAppointment.recentLabs.map((lab, i) => (
-                          <div key={i} className={`flex items-center justify-between px-2 py-1 text-[10px] ${i % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                          <div key={i} className={`flex items-center justify-between px-2 py-1 text-[10px] ${i % 2 === 1 ? 'bg-gray-50 dark:bg-slate-800' : ''}`}>
                             <span>{lab.name}</span>
                             <div className="flex items-center space-x-2">
-                              <span className={lab.abnormal ? 'text-red-600 font-semibold' : ''}>{lab.value}</span>
-                              <span className="text-gray-400">{lab.date}</span>
+                              <span className={lab.abnormal ? 'text-red-600 dark:text-red-300 font-semibold' : ''}>{lab.value}</span>
+                              <span className="text-gray-400 dark:text-slate-500">{lab.date}</span>
                             </div>
                           </div>
                         ))}
@@ -645,11 +645,11 @@ export default function SchedulePage() {
                       </div>
                     </div>
                     {expandedPanels.meds && (
-                      <div className="bg-white">
+                      <div className="bg-white dark:bg-slate-900">
                         {selectedAppointment.medications.map((med, i) => (
-                          <div key={i} className={`flex items-center justify-between px-2 py-1 text-[10px] ${i % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                          <div key={i} className={`flex items-center justify-between px-2 py-1 text-[10px] ${i % 2 === 1 ? 'bg-gray-50 dark:bg-slate-800' : ''}`}>
                             <span className="font-medium">{med.name}</span>
-                            <span className="text-gray-500">{med.dose}</span>
+                            <span className="text-gray-500 dark:text-slate-400">{med.dose}</span>
                           </div>
                         ))}
                       </div>
@@ -690,9 +690,9 @@ export default function SchedulePage() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
+            <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-slate-400">
               <div className="text-center">
-                <User className="w-10 h-10 mx-auto mb-2 text-gray-400" />
+                <User className="w-10 h-10 mx-auto mb-2 text-gray-400 dark:text-slate-500" />
                 <p className="text-[11px]">Select an appointment</p>
               </div>
             </div>
@@ -742,11 +742,11 @@ export default function SchedulePage() {
               <legend>Date & Time</legend>
               <div className="space-y-2">
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Date</label>
+                  <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Date</label>
                   <input type="date" defaultValue="2024-01-18" className="ehr-input w-full" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Time</label>
+                  <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Time</label>
                   <select className="ehr-input w-full">
                     <option>9:00 AM</option>
                     <option>9:30 AM</option>
@@ -756,7 +756,7 @@ export default function SchedulePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Duration</label>
+                  <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Duration</label>
                   <select className="ehr-input w-full">
                     <option>15 minutes</option>
                     <option>30 minutes</option>
@@ -770,7 +770,7 @@ export default function SchedulePage() {
               <legend>Visit Details</legend>
               <div className="space-y-2">
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Visit Type</label>
+                  <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Visit Type</label>
                   <select className="ehr-input w-full">
                     <option>Follow-up</option>
                     <option>New Patient</option>
@@ -781,7 +781,7 @@ export default function SchedulePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Provider</label>
+                  <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Provider</label>
                   <select className="ehr-input w-full">
                     <option>Dr. Anderson</option>
                     <option>Dr. Chen</option>
@@ -789,7 +789,7 @@ export default function SchedulePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Reason for Visit</label>
+                  <label className="block text-[10px] text-gray-600 dark:text-slate-300 mb-0.5">Reason for Visit</label>
                   <input type="text" placeholder="Chief complaint..." className="ehr-input w-full" />
                 </div>
               </div>

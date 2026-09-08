@@ -39,12 +39,9 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col`} style={{ fontFamily: 'Tahoma, sans-serif' }}>
         {/* Window frame */}
-        <div className="bg-white border-2 border-gray-400 shadow-lg flex flex-col" style={{ boxShadow: '2px 2px 8px rgba(0,0,0,0.3)' }}>
+        <div className="ehr-surface border-2 border-gray-400 dark:border-slate-600 shadow-lg flex flex-col" style={{ boxShadow: '2px 2px 8px rgba(0,0,0,0.3)' }}>
           {/* Title bar */}
-          <div 
-            className="flex items-center justify-between px-2 py-1"
-            style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
-          >
+          <div className="ehr-header flex items-center justify-between px-2 py-1">
             <span className="text-white font-semibold text-[11px]">{title}</span>
             <button 
               onClick={onClose}
@@ -55,13 +52,13 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           </div>
           
           {/* Content */}
-          <div className="flex-1 overflow-auto p-3 bg-[#ece9d8]">
+          <div className="flex-1 overflow-auto p-3 ehr-pane">
             {children}
           </div>
           
           {/* Footer */}
           {footer && (
-            <div className="px-3 py-2 bg-[#ece9d8] border-t border-gray-400 flex justify-end space-x-2">
+            <div className="px-3 py-2 ehr-pane border-t border-gray-400 dark:border-slate-600 flex justify-end space-x-2">
               {footer}
             </div>
           )}
@@ -105,15 +102,14 @@ export function ConfirmDialog({
           </button>
           <button 
             onClick={() => { onConfirm(); onClose(); }} 
-            className={`ehr-button px-4 ${type === 'danger' ? '' : 'ehr-button-primary'}`}
-            style={type === 'danger' ? { background: 'linear-gradient(to bottom, #e87458 0%, #c84030 100%)', color: 'white', border: '1px solid #a02010' } : undefined}
+            className={`ehr-button px-4 ${type === 'danger' ? 'ehr-button-danger' : 'ehr-button-primary'}`}
           >
             {confirmText}
           </button>
         </>
       }
     >
-      <p className="text-[11px] text-gray-700">{message}</p>
+      <p className="text-[11px] text-gray-700 dark:text-slate-200">{message}</p>
     </Modal>
   );
 }
@@ -127,11 +123,11 @@ interface AlertDialogProps {
 }
 
 export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: AlertDialogProps) {
-  const bgColors = {
-    info: '#cce5ff',
-    success: '#d4edda',
-    warning: '#fff3cd',
-    error: '#f8d7da',
+  const toneClasses = {
+    info: 'ehr-alert-info',
+    success: 'ehr-alert-success',
+    warning: 'ehr-alert-warning',
+    error: 'ehr-alert-critical',
   };
   
   return (
@@ -146,7 +142,7 @@ export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: 
         </button>
       }
     >
-      <div className="p-2 border border-gray-400" style={{ background: bgColors[type] }}>
+      <div className={`p-2 ${toneClasses[type]}`}>
         <p className="text-[11px]">{message}</p>
       </div>
     </Modal>

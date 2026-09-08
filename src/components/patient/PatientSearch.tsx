@@ -75,7 +75,7 @@ export default function PatientSearch({ onSelectPatient }: PatientSearchProps) {
   return (
     <div className="space-y-6">
       <Card>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Patient Search</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-4">Patient Search</h2>
         <div className="flex space-x-4">
           <div className="flex-1">
             <Input
@@ -94,27 +94,27 @@ export default function PatientSearch({ onSelectPatient }: PatientSearchProps) {
 
       {results.length > 0 && (
         <Card padding="none">
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 dark:divide-slate-700">
             {results.map((patient) => (
               <button
                 key={patient.id}
                 onClick={() => onSelectPatient(patient)}
-                className="w-full px-3 py-2 flex items-center justify-between hover:bg-[#e0e8f0] text-left text-[11px]"
+                className="w-full px-3 py-2 flex items-center justify-between hover:bg-[#e0e8f0] dark:hover:bg-slate-700 text-left text-[11px]"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-gray-200 flex items-center justify-center border border-gray-400">
-                    <User className="w-5 h-5 text-primary-600" />
+                  <div className="w-10 h-10 bg-gray-200 dark:bg-slate-700 flex items-center justify-center border border-gray-400 dark:border-slate-600">
+                    <User className="w-5 h-5 text-primary-600 dark:text-primary-300" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-gray-900 dark:text-slate-100">
                       {patient.lastName}, {patient.firstName}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-slate-400">
                       MRN: {patient.mrn}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-6 text-[10px] text-gray-500">
+                <div className="flex items-center space-x-6 text-[10px] text-gray-500 dark:text-slate-400">
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 mr-1" />
                     {new Date(patient.dateOfBirth).toLocaleDateString()} ({calculateAge(patient.dateOfBirth)} yo)
@@ -129,7 +129,7 @@ export default function PatientSearch({ onSelectPatient }: PatientSearchProps) {
 
       {searchTerm && results.length === 0 && !isSearching && (
         <Card>
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 dark:text-slate-400">
             No patients found matching "{searchTerm}"
           </div>
         </Card>

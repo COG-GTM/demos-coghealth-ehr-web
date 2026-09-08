@@ -11,6 +11,13 @@ export interface LabResult {
   performingLab: string;
 }
 
+export interface LabAcknowledgment {
+  panelId: number;
+  acknowledgedBy: string;
+  acknowledgedAt: string;
+  note: string;
+}
+
 export interface LabPanel {
   id: number;
   panelName: string;

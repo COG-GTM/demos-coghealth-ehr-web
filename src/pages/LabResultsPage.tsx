@@ -3,7 +3,7 @@ import { FlaskConical, AlertTriangle, ChevronDown, ChevronRight, Printer, Refres
 import { Modal } from '../components/ui/Modal';
 import { AcknowledgeLabDialog } from '../components/ui/AcknowledgeLabDialog';
 import { defaultLabPanels } from '../data/labPanels';
-import { acknowledgePanel, getAcknowledgments, hasCriticalResult, isUnacknowledgedCritical } from '../services/labAcknowledgmentService';
+import { acknowledgePanel, getAcknowledgments, getValidAcknowledgment, hasCriticalResult, isUnacknowledgedCritical } from '../services/labAcknowledgmentService';
 import type { LabAcknowledgment, LabPanel, LabResult } from '../types';
 
 export default function LabResultsPage() {
@@ -24,6 +24,21 @@ export default function LabResultsPage() {
   };
 
   const formatAckTime = (iso: string) => new Date(iso).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+
+  const renderAckBadge = (panel: LabPanel) => {
+    const ack = getValidAcknowledgment(panel, acknowledgments);
+    if (!ack) return null;
+    return (
+      <span
+        className="flex items-center space-x-0.5 px-1.5 py-0.5 text-[9px] bg-green-100 text-green-800 border border-green-300"
+        title={ack.note ? `Note: ${ack.note}` : undefined}
+        data-testid={`ack-badge-${panel.id}`}
+      >
+        <CheckCircle2 className="w-3 h-3" />
+        <span>Acknowledged by {ack.acknowledgedBy} at {formatAckTime(ack.acknowledgedAt)}</span>
+      </span>
+    );
+  };
 
   const togglePanel = (panelId: number) => {
     setExpandedPanels(prev =>
@@ -176,16 +191,7 @@ export default function LabResultsPage() {
                         <span className="text-[9px] font-bold">CRITICAL</span>
                       </span>
                     )}
-                    {acknowledgments[panel.id] && (
-                      <span
-                        className="flex items-center space-x-0.5 px-1.5 py-0.5 text-[9px] bg-green-100 text-green-800 border border-green-300"
-                        title={acknowledgments[panel.id].note ? `Note: ${acknowledgments[panel.id].note}` : undefined}
-                        data-testid={`ack-badge-${panel.id}`}
-                      >
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>Acknowledged by {acknowledgments[panel.id].acknowledgedBy} at {formatAckTime(acknowledgments[panel.id].acknowledgedAt)}</span>
-                      </span>
-                    )}
+                    {renderAckBadge(panel)}
                   </div>
                   <div className="flex items-center space-x-4 text-[10px] text-gray-600">
                     {isUnacknowledgedCritical(panel, acknowledgments) && (

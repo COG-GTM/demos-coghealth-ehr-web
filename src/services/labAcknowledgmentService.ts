@@ -13,10 +13,40 @@ export function hasCriticalResult(panel: LabPanel): boolean {
   return getCriticalResults(panel).length > 0;
 }
 
+export function getCriticalFingerprint(panel: LabPanel): string {
+  return getCriticalResults(panel)
+    .map(r => `${r.id}:${r.value}:${r.unit}`)
+    .sort()
+    .join('|');
+}
+
+function isLabAcknowledgment(value: unknown): value is LabAcknowledgment {
+  if (typeof value !== 'object' || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.panelId === 'number' &&
+    typeof v.acknowledgedBy === 'string' &&
+    typeof v.acknowledgedAt === 'string' &&
+    typeof v.note === 'string' &&
+    typeof v.criticalFingerprint === 'string'
+  );
+}
+
 export function getAcknowledgments(): Record<number, LabAcknowledgment> {
   try {
     const raw = localStorage.getItem(ACK_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
+    if (!raw) return {};
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
+
+    const valid: Record<number, LabAcknowledgment> = {};
+    for (const [key, entry] of Object.entries(parsed)) {
+      const panelId = Number(key);
+      if (Number.isInteger(panelId) && isLabAcknowledgment(entry) && entry.panelId === panelId) {
+        valid[panelId] = entry;
+      }
+    }
+    return valid;
   } catch {
     return {};
   }
@@ -26,17 +56,22 @@ export function getAcknowledgment(panelId: number): LabAcknowledgment | undefine
   return getAcknowledgments()[panelId];
 }
 
+export function getValidAcknowledgment(
+  panel: LabPanel,
+  acknowledgments: Record<number, LabAcknowledgment>
+): LabAcknowledgment | undefined {
+  const ack = acknowledgments[panel.id];
+  return ack && ack.criticalFingerprint === getCriticalFingerprint(panel) ? ack : undefined;
+}
+
 export function acknowledgePanel(panel: LabPanel, note: string): LabAcknowledgment {
   const acknowledgment: LabAcknowledgment = {
     panelId: panel.id,
     acknowledgedBy: CURRENT_USER_NAME,
     acknowledgedAt: new Date().toISOString(),
     note: note.trim(),
+    criticalFingerprint: getCriticalFingerprint(panel),
   };
-
-  const all = getAcknowledgments();
-  all[panel.id] = acknowledgment;
-  localStorage.setItem(ACK_STORAGE_KEY, JSON.stringify(all));
 
   logLabAcknowledgment(
     panel.id,
@@ -47,11 +82,15 @@ export function acknowledgePanel(panel: LabPanel, note: string): LabAcknowledgme
     acknowledgment.note
   );
 
+  const all = getAcknowledgments();
+  all[panel.id] = acknowledgment;
+  localStorage.setItem(ACK_STORAGE_KEY, JSON.stringify(all));
+
   return acknowledgment;
 }
 
 export function isUnacknowledgedCritical(panel: LabPanel, acknowledgments: Record<number, LabAcknowledgment>): boolean {
-  return hasCriticalResult(panel) && !acknowledgments[panel.id];
+  return hasCriticalResult(panel) && !getValidAcknowledgment(panel, acknowledgments);
 }
 
 export function getUnacknowledgedCriticalPanels(panels: LabPanel[]): LabPanel[] {

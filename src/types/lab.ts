@@ -16,6 +16,7 @@ export interface LabAcknowledgment {
   acknowledgedBy: string;
   acknowledgedAt: string;
   note: string;
+  criticalFingerprint: string;
 }
 
 export interface LabPanel {

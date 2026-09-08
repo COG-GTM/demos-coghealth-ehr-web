@@ -102,4 +102,53 @@ describe('labAcknowledgmentService', () => {
     localStorage.setItem('coghealth_lab_acknowledgments', '{not json');
     expect(getAcknowledgments()).toEqual({});
   });
+
+  test.each(['null', '[]', '"str"', '42'])('getAcknowledgments returns empty object for non-object JSON %s', (raw) => {
+    localStorage.setItem('coghealth_lab_acknowledgments', raw);
+    expect(getAcknowledgments()).toEqual({});
+  });
+
+  test('getAcknowledgments drops malformed or mismatched records', () => {
+    const good = acknowledgePanel(criticalPanel, '');
+    localStorage.setItem('coghealth_lab_acknowledgments', JSON.stringify({
+      1: good,
+      2: { panelId: 2, acknowledgedBy: 'x' },
+      3: { ...good, panelId: 99 },
+      4: null,
+    }));
+    expect(getAcknowledgments()).toEqual({ 1: good });
+  });
+
+  test('acknowledgment is invalidated when critical results change', () => {
+    acknowledgePanel(criticalPanel, '');
+    expect(isUnacknowledgedCritical(criticalPanel, getAcknowledgments())).toBe(false);
+
+    const amended: LabPanel = {
+      ...criticalPanel,
+      results: [
+        ...criticalPanel.results,
+        { id: 3, testName: 'Creatinine', value: '3.2', status: 'critical', ...baseResult },
+      ],
+    };
+    expect(isUnacknowledgedCritical(amended, getAcknowledgments())).toBe(true);
+    expect(getUnacknowledgedCriticalPanels([amended])).toEqual([amended]);
+
+    const changedValue: LabPanel = {
+      ...criticalPanel,
+      results: [{ id: 2, testName: 'Potassium', value: '7.1', status: 'critical', ...baseResult }],
+    };
+    expect(isUnacknowledgedCritical(changedValue, getAcknowledgments())).toBe(true);
+  });
+
+  test('acknowledgment is not persisted when the audit write fails', () => {
+    const original = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = (key: string, value: string) => {
+      if (key === 'coghealth_audit_log') throw new Error('quota');
+      original(key, value);
+    };
+
+    expect(() => acknowledgePanel(criticalPanel, 'note')).toThrow('quota');
+    expect(getAcknowledgments()).toEqual({});
+    expect(getAuditLog()).toEqual([]);
+  });
 });

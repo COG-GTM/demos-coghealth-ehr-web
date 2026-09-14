@@ -50,6 +50,7 @@ export interface Patient {
   ethnicity?: string;
   race?: string;
   religion?: string;
+  allergies?: string;
   identifiers?: PatientIdentifier[];
   emergencyContacts?: EmergencyContact[];
   active?: boolean;

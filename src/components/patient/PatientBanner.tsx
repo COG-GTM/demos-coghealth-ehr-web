@@ -87,6 +87,12 @@ export default function PatientBanner({ patient, allergies = [] }: PatientBanner
               ALLERGIES: {allergies.map(a => a.allergen).join(', ')}
             </div>
           )}
+          {patient.allergies && allergies.length === 0 && (
+            <div className="flex items-center px-2 py-1 text-[10px] font-bold border border-gray-500 bg-gray-200 text-gray-700">
+              <ShieldAlert className="w-3.5 h-3.5 mr-1" />
+              ALLERGIES: {patient.allergies}
+            </div>
+          )}
           <button className="p-1.5 text-white/80 hover:text-white hover:bg-white/10" title="View Allergies">
             <AlertTriangle className="w-4 h-4" />
           </button>

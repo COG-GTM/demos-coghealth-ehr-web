@@ -25,6 +25,7 @@ import {
 type PatientFlag = 'FALL_RISK' | 'ALLERGY' | 'ISOLATION' | 'DNR' | 'VIP' | 'DIFFICULT_IV';
 
 import { AlertDialog } from '../components/ui/Modal';
+import PatientFormDialog from '../components/ui/PatientFormDialog';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
@@ -43,6 +44,7 @@ interface PatientListItem {
   gender: 'M' | 'F' | 'O';
   ssn?: string;
   phone: string;
+  allergies?: string;
   address: string;
   city: string;
   state: string;
@@ -78,6 +80,7 @@ function mapPatientToListItem(patient: Patient): PatientListItem {
     age,
     gender: genderMap[patient.gender || 'UNKNOWN'] || 'O',
     phone: patient.phoneMobile || patient.phoneHome || patient.phoneWork || '',
+    allergies: patient.allergies,
     address: patient.address?.street1 || '',
     city: patient.address?.city || '',
     state: patient.address?.state || '',
@@ -149,6 +152,7 @@ export default function PatientSearchPage() {
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [showRxDialog, setShowRxDialog] = useState(false);
   const [showLabDialog, setShowLabDialog] = useState(false);
+  const [showPatientForm, setShowPatientForm] = useState(false);
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
 
   const fetchPatients = async (query = '') => {
@@ -163,6 +167,18 @@ export default function PatientSearchPage() {
       setShowAlert({ title: 'Error', message: 'Failed to load patients from server.', type: 'info' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreatePatient = async (patient: Partial<Patient>) => {
+    try {
+      await patientService.create(patient);
+      setShowPatientForm(false);
+      await fetchPatients();
+      setShowAlert({ title: 'Patient Created', message: 'The new patient has been added.', type: 'success' });
+    } catch (error) {
+      console.error('Failed to create patient:', error);
+      setShowAlert({ title: 'Error', message: 'Failed to create patient.', type: 'info' });
     }
   };
 
@@ -275,7 +291,7 @@ export default function PatientSearchPage() {
             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
           </button>
           <span className="text-gray-400">|</span>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'New Patient', message: 'Patient registration form would open here.', type: 'info' })}>
+          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPatientForm(true)}>
             <Plus className="w-3.5 h-3.5 mr-1" /> New Patient
           </button>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPrintDialog(true)}>
@@ -695,6 +711,7 @@ export default function PatientSearchPage() {
                       <tr><td className="text-gray-500 pr-2">Age/Sex:</td><td>{selectedPatient.age} years / {selectedPatient.gender === 'M' ? 'Male' : selectedPatient.gender === 'F' ? 'Female' : 'Other'}</td></tr>
                       <tr><td className="text-gray-500 pr-2">SSN:</td><td>{selectedPatient.ssn}</td></tr>
                       <tr><td className="text-gray-500 pr-2">Phone:</td><td>{selectedPatient.phone}</td></tr>
+                      <tr><td className="text-gray-500 pr-2 align-top">Allergies:</td><td>{selectedPatient.allergies || 'None recorded'}</td></tr>
                       <tr><td className="text-gray-500 pr-2 align-top">Address:</td><td>{selectedPatient.address}<br/>{selectedPatient.city}, {selectedPatient.state} {selectedPatient.zip}</td></tr>
                     </tbody>
                   </table>
@@ -779,6 +796,13 @@ export default function PatientSearchPage() {
       </div>
 
       {/* Dialogs */}
+      <PatientFormDialog
+        key={showPatientForm ? 'open' : 'closed'}
+        isOpen={showPatientForm}
+        onClose={() => setShowPatientForm(false)}
+        onSubmit={handleCreatePatient}
+      />
+
       <PrintDialog
         isOpen={showPrintDialog}
         onClose={() => setShowPrintDialog(false)}

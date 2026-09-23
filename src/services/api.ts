@@ -1,11 +1,14 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+import { API_BASE_URL } from './apiConfig';
+import { authHeaders, clearAuthToken, UnauthorizedError } from './authToken';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
+  /** Endpoints that establish a session (login) and therefore carry no token yet. */
+  anonymous?: boolean;
 }
 
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { params, ...fetchOptions } = options;
+  const { params, anonymous, ...fetchOptions } = options;
   
   let url = `${API_BASE_URL}${endpoint}`;
   
@@ -24,11 +27,18 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   const response = await fetch(url, {
     ...fetchOptions,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      ...(anonymous ? {} : authHeaders()),
       ...fetchOptions.headers,
     },
   });
+
+  if (response.status === 401 || response.status === 403) {
+    clearAuthToken();
+    throw new UnauthorizedError(response.status);
+  }
 
   if (!response.ok) {
     throw new Error(`API Error: ${response.status} ${response.statusText}`);
@@ -49,4 +59,7 @@ export const api = {
   
   delete: <T>(endpoint: string) => 
     request<T>(endpoint, { method: 'DELETE' }),
+
+  postAnonymous: <T>(endpoint: string, data?: unknown) => 
+    request<T>(endpoint, { method: 'POST', body: JSON.stringify(data), anonymous: true }),
 };

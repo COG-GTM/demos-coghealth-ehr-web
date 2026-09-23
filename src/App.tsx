@@ -26,8 +26,10 @@ import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
+import LoginPage from './pages/LoginPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
 import { logLogout } from './services/auditService';
+import { authService } from './services/authService';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
@@ -260,6 +262,7 @@ function App() {
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSessionExpired, setShowSessionExpired] = useState(false);
+  const [authenticated, setAuthenticated] = useState(() => authService.isAuthenticated());
 
   const handleSessionWarning = useCallback(() => {
     setShowSessionWarning(true);
@@ -275,8 +278,13 @@ function App() {
 
   const performLogout = (reason: 'manual' | 'timeout' = 'manual') => {
     logLogout(reason);
+    authService.logout();
     window.location.reload();
   };
+
+  if (!authenticated) {
+    return <LoginPage onAuthenticated={() => setAuthenticated(true)} />;
+  }
 
   return (
     <BrowserRouter>

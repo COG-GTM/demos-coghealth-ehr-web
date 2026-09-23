@@ -39,7 +39,7 @@ Based on 45 CFR Part 160 and Part 164 (HIPAA Security Rule).
 
 | Requirement | Status | Implementation |
 |-------------|--------|----------------|
-| User Authentication | ⚠️ Demo | Demo shows logged-in state |
+| User Authentication | ✅ Done | Sign-in screen; bearer token attached to every API request, cleared on 401/403 |
 | Multi-Factor Auth | 🔲 TODO | Would require MFA in production |
 | Password Requirements | 🔲 TODO | Password policy enforcement |
 

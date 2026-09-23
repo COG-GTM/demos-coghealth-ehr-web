@@ -1,3 +1,5 @@
+import { api } from './api';
+
 export type AuditEventType = 
   | 'LOGIN'
   | 'LOGOUT'
@@ -15,6 +17,15 @@ export type AuditEventType =
   | 'SETTINGS_CHANGE'
   | 'FAILED_LOGIN';
 
+export interface AuditEventInput {
+  patientId?: string;
+  resourceType?: string;
+  resourceId?: string;
+  action?: string;
+  details?: string;
+  success?: boolean;
+}
+
 export interface AuditEvent {
   id: string;
   timestamp: string;
@@ -25,8 +36,6 @@ export interface AuditEvent {
   ipAddress: string;
   sessionId: string;
   patientId?: string;
-  patientMrn?: string;
-  patientName?: string;
   resourceType?: string;
   resourceId?: string;
   action?: string;
@@ -34,98 +43,56 @@ export interface AuditEvent {
   success: boolean;
 }
 
-const AUDIT_LOG_KEY = 'coghealth_audit_log';
-const MAX_LOG_ENTRIES = 1000;
+const AUDIT_ENDPOINT = '/audit/events';
+const LEGACY_AUDIT_LOG_KEY = 'coghealth_audit_log';
 
-function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+export function purgeLegacyClientAuditLog(): void {
+  if (typeof localStorage === 'undefined') return;
+  localStorage.removeItem(LEGACY_AUDIT_LOG_KEY);
 }
 
-function getSessionId(): string {
-  let sessionId = sessionStorage.getItem('coghealth_session_id');
-  if (!sessionId) {
-    sessionId = generateId();
-    sessionStorage.setItem('coghealth_session_id', sessionId);
-  }
-  return sessionId;
-}
+purgeLegacyClientAuditLog();
 
-export function logAuditEvent(
+export async function submitAuditEvent(
   eventType: AuditEventType,
-  options: {
-    patientId?: string;
-    patientMrn?: string;
-    patientName?: string;
-    resourceType?: string;
-    resourceId?: string;
-    action?: string;
-    details?: string;
-    success?: boolean;
-  } = {}
-): void {
-  const event: AuditEvent = {
-    id: generateId(),
-    timestamp: new Date().toISOString(),
+  options: AuditEventInput = {}
+): Promise<void> {
+  await api.post(AUDIT_ENDPOINT, {
     eventType,
-    userId: 'USR001',
-    userName: 'Dr. Sarah Anderson',
-    userRole: 'Physician',
-    ipAddress: '192.168.1.100',
-    sessionId: getSessionId(),
+    occurredAt: new Date().toISOString(),
     patientId: options.patientId,
-    patientMrn: options.patientMrn,
-    patientName: options.patientName,
     resourceType: options.resourceType,
     resourceId: options.resourceId,
     action: options.action,
     details: options.details,
     success: options.success ?? true,
-  };
-
-  const existingLog = getAuditLog();
-  existingLog.unshift(event);
-  
-  if (existingLog.length > MAX_LOG_ENTRIES) {
-    existingLog.splice(MAX_LOG_ENTRIES);
-  }
-  
-  localStorage.setItem(AUDIT_LOG_KEY, JSON.stringify(existingLog));
-  
-
+  });
 }
 
-export function getAuditLog(): AuditEvent[] {
-  try {
-    const log = localStorage.getItem(AUDIT_LOG_KEY);
-    return log ? JSON.parse(log) : [];
-  } catch {
-    return [];
-  }
+export function logAuditEvent(eventType: AuditEventType, options: AuditEventInput = {}): void {
+  void submitAuditEvent(eventType, options).catch(() => {
+    console.error(`Failed to record audit event: ${eventType}`);
+  });
 }
 
-export function clearAuditLog(): void {
-  localStorage.removeItem(AUDIT_LOG_KEY);
+export function getPatientAccessLog(patientId: string): Promise<AuditEvent[]> {
+  return api.get<AuditEvent[]>(AUDIT_ENDPOINT, {
+    patientId,
+    eventType: 'PATIENT_ACCESS',
+  });
 }
 
-export function getPatientAccessLog(patientId: string): AuditEvent[] {
-  return getAuditLog().filter(
-    event => event.patientId === patientId && event.eventType === 'PATIENT_ACCESS'
-  );
-}
-
-export function logPatientAccess(patientId: string, patientMrn: string, patientName: string): void {
+export function logPatientAccess(patientId: string): void {
   logAuditEvent('PATIENT_ACCESS', {
     patientId,
-    patientMrn,
-    patientName,
     action: 'Opened patient chart',
   });
 }
 
-export function logPatientSearch(query: string, resultCount: number): void {
+export function logPatientSearch(resultCount: number): void {
   logAuditEvent('PATIENT_SEARCH', {
     action: 'Patient search',
-    details: `Query: "${query}" - ${resultCount} results`,
+    details: `${resultCount} results`,
   });
 }
 

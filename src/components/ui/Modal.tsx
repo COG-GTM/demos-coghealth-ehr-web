@@ -55,13 +55,13 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           </div>
           
           {/* Content */}
-          <div className="flex-1 overflow-auto p-3 bg-[#ece9d8]">
+          <div className="flex-1 overflow-auto p-3 ehr-sidebar">
             {children}
           </div>
           
           {/* Footer */}
           {footer && (
-            <div className="px-3 py-2 bg-[#ece9d8] border-t border-gray-400 flex justify-end space-x-2">
+            <div className="px-3 py-2 ehr-sidebar border-t border-gray-400 flex justify-end space-x-2">
               {footer}
             </div>
           )}
@@ -127,13 +127,13 @@ interface AlertDialogProps {
 }
 
 export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: AlertDialogProps) {
-  const bgColors = {
-    info: '#cce5ff',
-    success: '#d4edda',
-    warning: '#fff3cd',
-    error: '#f8d7da',
+  const alertClasses = {
+    info: 'ehr-alert-info',
+    success: 'ehr-alert-success',
+    warning: 'ehr-alert-warning',
+    error: 'ehr-alert-critical',
   };
-  
+
   return (
     <Modal
       isOpen={isOpen}
@@ -146,7 +146,7 @@ export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: 
         </button>
       }
     >
-      <div className="p-2 border border-gray-400" style={{ background: bgColors[type] }}>
+      <div className={`p-2 ${alertClasses[type]}`}>
         <p className="text-[11px]">{message}</p>
       </div>
     </Modal>

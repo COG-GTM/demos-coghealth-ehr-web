@@ -164,6 +164,14 @@ td {
   font-size: 11px;
 }
 
+.ehr-meta {
+  color: var(--ehr-text-muted);
+}
+
+.ehr-meta[data-selected] {
+  color: #ccc;
+}
+
 .ehr-header {
   background: linear-gradient(to bottom, #6699cc 0%, #336699 100%);
   color: white;

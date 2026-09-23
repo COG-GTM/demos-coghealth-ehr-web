@@ -457,7 +457,7 @@ export default function MedicationsPage() {
                           )}
                           <div>
                             <div className="font-semibold">{order.medicationName} {order.strength}</div>
-                            <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: '#666' }}>
+                            <div className="text-[10px] ehr-meta" data-selected={isSelected || undefined}>
                               {order.form} • {order.orderNumber}
                             </div>
                           </div>
@@ -465,7 +465,7 @@ export default function MedicationsPage() {
                       </td>
                       <td className="px-1 py-1">
                         <div>{order.patientName}</div>
-                        <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: '#666' }}>{order.patientMrn}</div>
+                        <div className="text-[10px] ehr-meta" data-selected={isSelected || undefined}>{order.patientMrn}</div>
                       </td>
                       <td className="px-1 py-1">
                         <div className="truncate max-w-[180px]">{order.sig}</div>
@@ -825,7 +825,7 @@ function OrderRow({ order, selected, onSelect, idx }: { order: MedicationOrderEx
         </div>
         <div>
           <div className="font-semibold">{order.medicationName} {order.strength}</div>
-          <div style={selected ? { color: '#ccc' } : { color: '#666' }}>{order.sig}</div>
+          <div className="ehr-meta" data-selected={selected || undefined}>{order.sig}</div>
         </div>
       </div>
       <div className="flex items-center space-x-2">

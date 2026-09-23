@@ -22,9 +22,9 @@ Based on 45 CFR Part 160 and Part 164 (HIPAA Security Rule).
 
 | Requirement | Status | Implementation |
 |-------------|--------|----------------|
-| Audit Log Recording | ✅ Done | Logout events logged to localStorage |
+| Audit Log Recording | ✅ Done | Events posted to the server audit API (`POST /audit/events`); nothing stored in the browser |
 | User Activity Tracking | 🔲 TODO | Track all PHI access events |
-| Login/Logout Logging | ✅ Done | Logout with timestamp, user, IP logged |
+| Login/Logout Logging | ✅ Done | Logout timestamped server-side; actor identity and source IP derived from the authenticated session |
 | Failed Login Attempts | 🔲 TODO | Track and lock after X failures |
 
 ### Integrity Controls (Addressable)
@@ -131,7 +131,7 @@ Based on 45 CFR Part 160 and Part 164 (HIPAA Security Rule).
 
 4. **Logout & Access Control**
    - [x] Logout confirmation dialog
-   - [x] Audit logging on logout
+   - [x] Audit logging on logout (server-side)
    - [x] Session expired dialog
 
 5. **Data Display**

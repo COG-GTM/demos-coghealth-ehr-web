@@ -89,7 +89,7 @@ export default function PatientChartPage() {
         const data = await patientService.getById(parseInt(id));
         setPatient(data);
         if (data.id && data.mrn) {
-          logPatientAccess(data.id.toString(), data.mrn, `${data.lastName}, ${data.firstName}`);
+          logPatientAccess(data.id.toString());
         }
       } catch (error) {
         console.error('Failed to fetch patient:', error);

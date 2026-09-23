@@ -12,6 +12,7 @@ export type AuditEventType =
   | 'NOTE_CREATE'
   | 'NOTE_SIGN'
   | 'PRESCRIPTION_CREATE'
+  | 'INTERACTION_OVERRIDE'
   | 'SETTINGS_CHANGE'
   | 'FAILED_LOGIN';
 
@@ -151,6 +152,25 @@ export function logPrescription(patientId: string, medication: string): void {
     patientId,
     action: 'Prescription created',
     details: medication,
+  });
+}
+
+export function logInteractionOverride(options: {
+  patientId?: string;
+  patientMrn?: string;
+  patientName?: string;
+  medication: string;
+  alerts: string[];
+  reason: string;
+}): void {
+  logAuditEvent('INTERACTION_OVERRIDE', {
+    patientId: options.patientId,
+    patientMrn: options.patientMrn,
+    patientName: options.patientName,
+    resourceType: 'Prescription',
+    resourceId: options.medication,
+    action: 'Clinical decision support alert overridden',
+    details: `Reason: ${options.reason} | Alerts: ${options.alerts.join('; ')}`,
   });
 }
 

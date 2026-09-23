@@ -289,6 +289,54 @@ td {
   color: #a9cdf5;
 }
 
+.ehr-alert-success {
+  background: #d4edda;
+  border: 1px solid #28a745;
+  color: #155724;
+}
+
+.dark .ehr-alert-success {
+  background: #1f4a2c;
+  border-color: #4cbf6a;
+  color: #a8e6b8;
+}
+
+.ehr-badge-default {
+  background: #e8e8e8;
+  border: 1px solid #999;
+  color: #333;
+}
+
+.dark .ehr-badge-default {
+  background: #42464f;
+  border-color: var(--ehr-border);
+  color: var(--ehr-text);
+}
+
+.ehr-status-critical {
+  background: #ffcccc;
+  color: #990000;
+  font-weight: bold;
+}
+
+.dark .ehr-status-critical {
+  background: #4a1f1f;
+  color: #ffb3b3;
+}
+
+.ehr-status-abnormal {
+  background: #fff3cd;
+  color: #664d00;
+}
+
+.dark .ehr-status-abnormal {
+  background: #4a3d14;
+  color: #ffe08a;
+}
+
+.dark .bg-\[\#f8f8f8\] { background-color: var(--ehr-surface-alt); }
+.dark .hover\:bg-\[\#e0e8f0\]:hover { background-color: var(--ehr-hover); }
+
 .ehr-toolbar {
   background: linear-gradient(to bottom, var(--ehr-surface-alt) 0%, var(--ehr-btn-bottom) 100%);
   border-bottom: 1px solid var(--ehr-border);

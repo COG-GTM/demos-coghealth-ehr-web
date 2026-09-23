@@ -112,14 +112,14 @@ export default function LabResultsPage() {
     );
   };
 
-  const getStatusStyle = (status: LabResult['status']) => {
+  const getStatusClass = (status: LabResult['status']) => {
     switch (status) {
       case 'critical':
-        return { background: '#ffcccc', color: '#990000', fontWeight: 'bold' };
+        return 'ehr-result-critical';
       case 'abnormal':
-        return { background: '#fff3cd', color: '#664d00' };
+        return 'ehr-result-abnormal';
       default:
-        return {};
+        return '';
     }
   };
 
@@ -276,8 +276,7 @@ export default function LabResultsPage() {
                       {panel.results.map((result, idx) => (
                         <tr
                           key={result.id}
-                          className={`cursor-pointer hover:bg-[#e0e8f0] ${idx % 2 === 0 ? 'bg-white' : 'ehr-table-row-alt'}`}
-                          style={getStatusStyle(result.status)}
+                          className={`cursor-pointer hover:bg-[#e0e8f0] ${idx % 2 === 0 ? 'bg-white' : 'ehr-table-row-alt'} ${getStatusClass(result.status)}`}
                           onClick={() => setSelectedResult(result)}
                         >
                           <td className="px-2 py-1 border-b border-gray-200">{result.testName}</td>
@@ -330,7 +329,7 @@ export default function LabResultsPage() {
                 </div>
                 <div>
                   <span className="text-gray-500">Status:</span>
-                  <span className="ml-2" style={getStatusStyle(selectedResult.status)}>
+                  <span className={`ml-2 ${getStatusClass(selectedResult.status)}`}>
                     {selectedResult.status.toUpperCase()}
                   </span>
                 </div>

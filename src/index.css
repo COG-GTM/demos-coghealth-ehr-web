@@ -483,6 +483,24 @@ td {
   background: #f8f8f8;
 }
 
+.ehr-result-critical {
+  background: var(--ehr-badge-danger-bg);
+  color: var(--ehr-badge-danger-text);
+  font-weight: bold;
+}
+
+.ehr-result-abnormal {
+  background: var(--ehr-badge-warning-bg);
+  color: var(--ehr-badge-warning-text);
+}
+
+.ehr-result-critical .text-gray-600,
+.ehr-result-critical .text-red-700,
+.ehr-result-abnormal .text-gray-600,
+.ehr-result-abnormal .text-yellow-700 {
+  color: inherit;
+}
+
 .dark .ehr-table-heading {
   background: linear-gradient(to bottom, #354557, #293747);
 }
@@ -493,4 +511,16 @@ td {
 
 .dark .ehr-table-row-alt:hover {
   background: #314e67;
+}
+
+.dark .ehr-result-critical,
+.dark .ehr-result-critical:hover {
+  background: var(--ehr-badge-danger-bg);
+  color: var(--ehr-badge-danger-text);
+}
+
+.dark .ehr-result-abnormal,
+.dark .ehr-result-abnormal:hover {
+  background: var(--ehr-badge-warning-bg);
+  color: var(--ehr-badge-warning-text);
 }

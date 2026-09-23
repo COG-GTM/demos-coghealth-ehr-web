@@ -7,6 +7,8 @@ import {
   Building2,
   Key,
   Monitor,
+  Sun,
+  Moon,
   Mail,
   Smartphone,
   Globe,
@@ -14,6 +16,7 @@ import {
   Check
 } from 'lucide-react';
 import { AlertDialog } from '../components/ui/Modal';
+import { useThemeStore, type ThemePreference } from '../store/themeStore';
 
 type SettingsTab = 'profile' | 'notifications' | 'security' | 'appearance' | 'practice';
 
@@ -49,7 +52,6 @@ const defaultNotifications = {
 };
 
 const defaultAppearance = {
-  theme: 'light',
   compactMode: false,
   fontSize: 'medium',
 };
@@ -73,6 +75,8 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<UserProfile>(defaultProfile);
   const [notifications, setNotifications] = useState(defaultNotifications);
   const [appearance, setAppearance] = useState(defaultAppearance);
+  const themePreference = useThemeStore((s) => s.preference);
+  const setThemePreference = useThemeStore((s) => s.setPreference);
 
   const [initialized, setInitialized] = useState(false);
   if (!initialized) {
@@ -82,7 +86,12 @@ export default function SettingsPage() {
         const data = JSON.parse(stored);
         if (data.profile) Object.assign(profile, data.profile);
         if (data.notifications) Object.assign(notifications, data.notifications);
-        if (data.appearance) Object.assign(appearance, data.appearance);
+        if (data.appearance) {
+          Object.assign(appearance, {
+            compactMode: data.appearance.compactMode ?? appearance.compactMode,
+            fontSize: data.appearance.fontSize ?? appearance.fontSize,
+          });
+        }
       } catch (e) {
         console.error('Failed to load settings:', e);
       }
@@ -105,7 +114,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col ehr-desktop">
       {/* Header */}
       <div className="ehr-header flex items-center justify-between">
         <span>System Settings</span>
@@ -121,7 +130,7 @@ export default function SettingsPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Navigation */}
-        <div className="w-48 overflow-auto p-2 space-y-1" style={{ background: '#ece9d8' }}>
+        <div className="w-48 overflow-auto p-2 space-y-1 ehr-sidebar">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -385,20 +394,24 @@ export default function SettingsPage() {
               <fieldset className="ehr-fieldset">
                 <legend>Theme</legend>
                 <div className="grid grid-cols-3 gap-2">
-                  {['light', 'dark', 'system'].map((theme) => (
-                    <button
-                      key={theme}
-                      onClick={() => setAppearance({ ...appearance, theme })}
-                      className={`p-2 border text-center text-[11px] ${
-                        appearance.theme === theme
-                          ? 'border-gray-600 bg-white'
-                          : 'border-gray-400 bg-gray-100 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Monitor className="w-4 h-4 mx-auto mb-1 text-gray-600" />
-                      <span className="capitalize">{theme}</span>
-                    </button>
-                  ))}
+                  {(['light', 'dark', 'system'] as ThemePreference[]).map((theme) => {
+                    const Icon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor;
+                    return (
+                      <button
+                        key={theme}
+                        onClick={() => setThemePreference(theme)}
+                        aria-pressed={themePreference === theme}
+                        className={`p-2 border text-center text-[11px] ${
+                          themePreference === theme
+                            ? 'border-gray-600 bg-white'
+                            : 'border-gray-400 bg-gray-100 hover:bg-gray-50'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 mx-auto mb-1 text-gray-600" />
+                        <span className="capitalize">{theme}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </fieldset>
 

@@ -87,7 +87,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col ehr-desktop">
       {/* Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-1">
@@ -121,7 +121,7 @@ export default function ReportsPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Report Summary */}
-        <div className="w-56 overflow-auto p-2 space-y-2" style={{ background: '#ece9d8' }}>
+        <div className="w-56 overflow-auto p-2 space-y-2 ehr-sidebar">
           <fieldset className="ehr-fieldset">
             <legend>Today's Summary</legend>
             <table className="w-full text-[10px]">

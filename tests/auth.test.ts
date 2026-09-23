@@ -96,6 +96,30 @@ describe('PHI requests carry authentication', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  test('the session ends at token expiry without any further request', () => {
+    jest.useFakeTimers();
+    const listener = jest.fn();
+    const fakeWindow = new EventTarget();
+    Object.defineProperty(globalThis, 'window', {
+      value: fakeWindow,
+      configurable: true,
+      writable: true,
+    });
+    fakeWindow.addEventListener(UNAUTHORIZED_EVENT, listener);
+
+    try {
+      setAuthToken(jwt(60));
+      jest.advanceTimersByTime(60_000);
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(getAuthToken()).toBeNull();
+    } finally {
+      fakeWindow.removeEventListener(UNAUTHORIZED_EVENT, listener);
+      delete (globalThis as { window?: unknown }).window;
+      jest.useRealTimers();
+    }
+  });
+
   test('clearing the token notifies the app so the session UI closes', () => {
     const listener = jest.fn();
     const fakeWindow = new EventTarget();

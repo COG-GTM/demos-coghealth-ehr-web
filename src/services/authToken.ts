@@ -27,8 +27,11 @@ function storage(): Storage | null {
   }
 }
 
+let expiryTimer: ReturnType<typeof setTimeout> | null = null;
+
 export function setAuthToken(token: string): void {
   storage()?.setItem(TOKEN_STORAGE_KEY, token);
+  scheduleExpiry(token);
 }
 
 export function getAuthToken(): string | null {
@@ -41,9 +44,33 @@ export function getAuthToken(): string | null {
 }
 
 export function clearAuthToken(): void {
+  cancelExpiry();
   storage()?.removeItem(TOKEN_STORAGE_KEY);
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+  }
+}
+
+// Expiry has to end the session on its own: an idle user may never issue
+// another request that would notice the token has gone stale.
+export function scheduleExpiry(token: string | null = getAuthToken()): void {
+  cancelExpiry();
+  const exp = token === null ? null : expiryOf(token);
+  if (exp === null) {
+    return;
+  }
+  const remaining = exp * 1000 - Date.now();
+  if (remaining <= 0) {
+    clearAuthToken();
+    return;
+  }
+  expiryTimer = setTimeout(clearAuthToken, remaining);
+}
+
+function cancelExpiry(): void {
+  if (expiryTimer !== null) {
+    clearTimeout(expiryTimer);
+    expiryTimer = null;
   }
 }
 

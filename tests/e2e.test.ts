@@ -345,6 +345,85 @@ describe('CogHealth EHR E2E Tests', () => {
     });
   });
 
+  describe('Dark Mode', () => {
+    const isDark = () => page.evaluate(() => document.documentElement.classList.contains('dark'));
+    const storedTheme = () => page.evaluate(() => localStorage.getItem('coghealth_theme'));
+
+    beforeEach(async () => {
+      await page.goto(BASE_URL);
+      await page.evaluate(() => localStorage.removeItem('coghealth_theme'));
+      await page.reload();
+      await page.waitForSelector('[data-testid="theme-toggle"]');
+    });
+
+    afterAll(async () => {
+      await page.evaluate(() => localStorage.removeItem('coghealth_theme'));
+    });
+
+    test('should default to light mode', async () => {
+      expect(await isDark()).toBe(false);
+      const label = await page.$eval('[data-testid="theme-toggle"]', el => el.textContent);
+      expect(label).toContain('Dark');
+    });
+
+    test('should toggle dark mode from the header and persist it', async () => {
+      await page.click('[data-testid="theme-toggle"]');
+      await page.waitForFunction(() => document.documentElement.classList.contains('dark'));
+      expect(await storedTheme()).toBe('dark');
+      const label = await page.$eval('[data-testid="theme-toggle"]', el => el.textContent);
+      expect(label).toContain('Light');
+
+      const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      expect(bodyBg).toBe('rgb(30, 31, 34)');
+
+      await page.reload();
+      await page.waitForSelector('[data-testid="theme-toggle"]');
+      expect(await isDark()).toBe(true);
+
+      await page.click('[data-testid="theme-toggle"]');
+      await page.waitForFunction(() => !document.documentElement.classList.contains('dark'));
+      expect(await storedTheme()).toBe('light');
+    });
+
+    test('should select theme from Settings > Appearance', async () => {
+      await page.goto(`${BASE_URL}/settings`);
+      await page.click('::-p-xpath(//button[contains(., "Appearance")])');
+      await page.waitForSelector('[data-theme-option="dark"]');
+
+      await page.click('[data-theme-option="dark"]');
+      await page.waitForFunction(() => document.documentElement.classList.contains('dark'));
+      expect(await page.$eval('[data-theme-option="dark"]', el => el.getAttribute('aria-checked'))).toBe('true');
+      expect(await storedTheme()).toBe('dark');
+
+      await page.click('[data-theme-option="light"]');
+      await page.waitForFunction(() => !document.documentElement.classList.contains('dark'));
+      expect(await page.$eval('[data-theme-option="light"]', el => el.getAttribute('aria-checked'))).toBe('true');
+      expect(await storedTheme()).toBe('light');
+    });
+
+    test('should follow the OS preference when set to system', async () => {
+      await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'dark' }]);
+      await page.goto(`${BASE_URL}/settings`);
+      await page.click('::-p-xpath(//button[contains(., "Appearance")])');
+      await page.waitForSelector('[data-theme-option="system"]');
+
+      await page.click('[data-theme-option="system"]');
+      await page.waitForFunction(() => document.documentElement.classList.contains('dark'));
+      expect(await storedTheme()).toBe('system');
+
+      await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }]);
+      await page.waitForFunction(() => !document.documentElement.classList.contains('dark'));
+
+      await page.emulateMediaFeatures([]);
+    });
+
+    test('should apply the stored theme before first paint', async () => {
+      await page.evaluate(() => localStorage.setItem('coghealth_theme', 'dark'));
+      await page.reload();
+      expect(await isDark()).toBe(true);
+    });
+  });
+
   describe('Patient Chart Page', () => {
     let patientLoaded = false;
 

@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CogHealth EHR</title>
+    <script>
+      (function () {
+        try {
+          var pref = localStorage.getItem('coghealth_theme');
+          var dark = pref === 'dark' ||
+            (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          }
+        } catch (e) { /* storage unavailable; theme applied after hydration */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

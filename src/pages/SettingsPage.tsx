@@ -7,6 +7,8 @@ import {
   Building2,
   Key,
   Monitor,
+  Sun,
+  Moon,
   Mail,
   Smartphone,
   Globe,
@@ -14,6 +16,8 @@ import {
   Check
 } from 'lucide-react';
 import { AlertDialog } from '../components/ui/Modal';
+import { useTheme } from '../theme/useTheme';
+import { THEME_PREFERENCES, type ThemePreference } from '../theme/themeStore';
 
 type SettingsTab = 'profile' | 'notifications' | 'security' | 'appearance' | 'practice';
 
@@ -48,8 +52,13 @@ const defaultNotifications = {
   systemUpdates: false,
 };
 
+const themeIcons: Record<ThemePreference, typeof Monitor> = {
+  light: Sun,
+  dark: Moon,
+  system: Monitor,
+};
+
 const defaultAppearance = {
-  theme: 'light',
   compactMode: false,
   fontSize: 'medium',
 };
@@ -73,6 +82,7 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<UserProfile>(defaultProfile);
   const [notifications, setNotifications] = useState(defaultNotifications);
   const [appearance, setAppearance] = useState(defaultAppearance);
+  const { preference: theme, resolved: resolvedTheme, setTheme } = useTheme();
 
   const [initialized, setInitialized] = useState(false);
   if (!initialized) {
@@ -82,7 +92,13 @@ export default function SettingsPage() {
         const data = JSON.parse(stored);
         if (data.profile) Object.assign(profile, data.profile);
         if (data.notifications) Object.assign(notifications, data.notifications);
-        if (data.appearance) Object.assign(appearance, data.appearance);
+        if (data.appearance) {
+          const { compactMode, fontSize } = data.appearance;
+          Object.assign(appearance, {
+            compactMode: compactMode ?? appearance.compactMode,
+            fontSize: fontSize ?? appearance.fontSize,
+          });
+        }
       } catch (e) {
         console.error('Failed to load settings:', e);
       }
@@ -105,7 +121,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col" style={{ background: 'var(--ehr-desktop)' }}>
       {/* Header */}
       <div className="ehr-header flex items-center justify-between">
         <span>System Settings</span>
@@ -121,7 +137,7 @@ export default function SettingsPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Navigation */}
-        <div className="w-48 overflow-auto p-2 space-y-1" style={{ background: '#ece9d8' }}>
+        <div className="w-48 overflow-auto p-2 space-y-1" style={{ background: 'var(--ehr-sidebar)' }}>
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -384,21 +400,33 @@ export default function SettingsPage() {
             <div className="space-y-3">
               <fieldset className="ehr-fieldset">
                 <legend>Theme</legend>
-                <div className="grid grid-cols-3 gap-2">
-                  {['light', 'dark', 'system'].map((theme) => (
-                    <button
-                      key={theme}
-                      onClick={() => setAppearance({ ...appearance, theme })}
-                      className={`p-2 border text-center text-[11px] ${
-                        appearance.theme === theme
-                          ? 'border-gray-600 bg-white'
-                          : 'border-gray-400 bg-gray-100 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Monitor className="w-4 h-4 mx-auto mb-1 text-gray-600" />
-                      <span className="capitalize">{theme}</span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Theme">
+                  {THEME_PREFERENCES.map((option) => {
+                    const Icon = themeIcons[option];
+                    const selected = theme === option;
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        data-theme-option={option}
+                        onClick={() => setTheme(option)}
+                        className={`p-2 border text-center text-[11px] ${
+                          selected
+                            ? 'border-gray-600 bg-white'
+                            : 'border-gray-400 bg-gray-100 hover:bg-gray-50'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 mx-auto mb-1 text-gray-600" />
+                        <span className="capitalize">{option}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-2 text-[10px] text-gray-500">
+                  Currently using the <span className="font-medium capitalize">{resolvedTheme}</span> theme
+                  {theme === 'system' ? ' (follows your operating system setting)' : ''}. Changes apply immediately.
                 </div>
               </fieldset>
 

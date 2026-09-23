@@ -1,4 +1,9 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+import { API_BASE_URL } from './apiConfig';
+import {
+  AuthenticationRequiredError,
+  getSession,
+  notifyUnauthorized,
+} from './authService';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;
@@ -6,7 +11,12 @@ interface RequestOptions extends RequestInit {
 
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { params, ...fetchOptions } = options;
-  
+
+  const session = getSession();
+  if (!session) {
+    throw new AuthenticationRequiredError(`Refusing to call ${endpoint} without an authenticated session`);
+  }
+
   let url = `${API_BASE_URL}${endpoint}`;
   
   if (params) {
@@ -26,9 +36,17 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     ...fetchOptions,
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `${session.tokenType} ${session.token}`,
       ...fetchOptions.headers,
     },
   });
+
+  if (response.status === 401 || response.status === 403) {
+    notifyUnauthorized();
+    throw new AuthenticationRequiredError(
+      `API Error: ${response.status} ${response.statusText}`
+    );
+  }
 
   if (!response.ok) {
     throw new Error(`API Error: ${response.status} ${response.statusText}`);

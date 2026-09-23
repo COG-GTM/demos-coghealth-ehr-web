@@ -17,9 +17,30 @@
   --font-family-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+:root {
+  --ehr-canvas: #d4d0c8;
+  --ehr-chrome: #ece9d8;
+  --ehr-surface: #fff;
+  --ehr-surface-muted: #f5f5f5;
+  --ehr-alert-info: #cce5ff;
+  --ehr-alert-success: #d4edda;
+  --ehr-alert-warning: #fff3cd;
+  --ehr-alert-error: #f8d7da;
+  --ehr-badge-default-bg: #e8e8e8;
+  --ehr-badge-default-text: #333;
+  --ehr-badge-success-bg: #d4edda;
+  --ehr-badge-success-text: #155724;
+  --ehr-badge-warning-bg: #fff3cd;
+  --ehr-badge-warning-text: #664d00;
+  --ehr-badge-danger-bg: #ffcccc;
+  --ehr-badge-danger-text: #990000;
+  --ehr-badge-info-bg: #cce5ff;
+  --ehr-badge-info-text: #004085;
+}
+
 body {
   font-size: 11px;
-  background-color: #d4d0c8;
+  background-color: var(--ehr-canvas);
 }
 
 input, select, textarea, button {
@@ -235,4 +256,271 @@ td {
 
 .ehr-splitter:hover {
   background: #b0b0b0;
+}
+
+.ehr-app-status {
+  background: linear-gradient(to bottom, var(--ehr-chrome), var(--ehr-canvas));
+}
+
+.dark {
+  color-scheme: dark;
+  color: #e6edf5;
+  --ehr-canvas: #141a23;
+  --ehr-chrome: #242e3b;
+  --ehr-surface: #1c2632;
+  --ehr-surface-muted: #263341;
+  --ehr-alert-info: #22435c;
+  --ehr-alert-success: #204636;
+  --ehr-alert-warning: #4e3f26;
+  --ehr-alert-error: #512932;
+  --ehr-badge-default-bg: #354455;
+  --ehr-badge-default-text: #e6edf5;
+  --ehr-badge-success-bg: #204636;
+  --ehr-badge-success-text: #c8f8d8;
+  --ehr-badge-warning-bg: #4e3f26;
+  --ehr-badge-warning-text: #ffdfa0;
+  --ehr-badge-danger-bg: #512932;
+  --ehr-badge-danger-text: #ffd2d6;
+  --ehr-badge-info-bg: #22435c;
+  --ehr-badge-info-text: #d0ebff;
+  --color-gray-50: #202b38;
+  --color-gray-100: #283543;
+  --color-gray-200: #354455;
+  --color-gray-300: #52667b;
+  --color-gray-400: #98aabd;
+  --color-gray-500: #adbdcd;
+  --color-gray-600: #c0cddb;
+  --color-gray-700: #d4dfe9;
+  --color-gray-800: #e4ebf2;
+  --color-gray-900: #f1f5f9;
+  --color-blue-50: #1d344b;
+  --color-blue-100: #254463;
+  --color-blue-600: #93c5fd;
+  --color-blue-800: #bfdbfe;
+  --color-red-50: #3b232b;
+  --color-red-100: #4b2730;
+  --color-red-600: #f9a8a8;
+  --color-red-700: #fecaca;
+  --color-red-800: #fecaca;
+  --color-red-900: #ffe4e6;
+  --color-green-100: #203f35;
+  --color-green-600: #86efac;
+  --color-green-700: #bbf7d0;
+  --color-green-800: #dcfce7;
+  --color-yellow-100: #45391d;
+  --color-yellow-700: #fde68a;
+  --color-yellow-800: #fef08a;
+}
+
+.dark .bg-white {
+  background-color: var(--ehr-surface);
+}
+
+.dark .ehr-header .bg-white {
+  background-color: #fff;
+}
+
+.dark .ehr-header .text-blue-800 {
+  color: #1e40af;
+}
+
+.dark .ehr-header .text-blue-100 {
+  color: #dbeafe;
+}
+
+.dark .bg-gray-600.text-white,
+.dark .bg-gray-500.text-white {
+  background-color: #354455;
+}
+
+.dark .hover\:bg-white\/50:hover {
+  background-color: rgb(65 80 100 / 50%);
+}
+
+.dark th {
+  background: linear-gradient(to bottom, #354557, #293747);
+  border-color: #62768b;
+}
+
+.dark td {
+  border-color: #44576a;
+}
+
+.dark .ehr-panel {
+  background: var(--ehr-surface-muted);
+  border-color: #60748a;
+  box-shadow: inset 1px 1px 0 #44576a, 1px 1px 2px #111827;
+}
+
+.dark .ehr-button,
+.dark .ehr-tab {
+  background: linear-gradient(to bottom, #435368, #303f52);
+  border-color: #74869a;
+  box-shadow: inset 1px 1px 0 #617187, -1px -1px 0 #17212b;
+}
+
+.dark .ehr-button:hover,
+.dark .ehr-tab:hover {
+  background: linear-gradient(to bottom, #52647a, #394b60);
+}
+
+.dark .ehr-button:active {
+  background: #283747;
+}
+
+.dark .ehr-button-primary {
+  background: linear-gradient(to bottom, #3366a4, #224c82);
+  border-color: #6d9bd2;
+  color: white;
+}
+
+.dark .ehr-button-primary:hover {
+  background: linear-gradient(to bottom, #4278ba, #2e609b);
+}
+
+.dark .ehr-input {
+  background: var(--ehr-surface);
+  color: #e6edf5;
+  border-color: #8397ab;
+}
+
+.dark .ehr-fieldset {
+  background: var(--ehr-surface-muted);
+  border-color: #60748a;
+}
+
+.dark .ehr-fieldset legend,
+.dark .ehr-label {
+  color: #e6edf5;
+}
+
+.dark .ehr-header {
+  background: linear-gradient(to bottom, #315b88, #213f62);
+  border-color: #6896c2;
+}
+
+.dark .ehr-subheader,
+.dark .ehr-toolbar {
+  background: linear-gradient(to bottom, #354658, #273645);
+  color: #e6edf5;
+  border-color: #60748a;
+}
+
+.dark .ehr-tree-item:hover,
+.dark .ehr-toolbar-button:hover,
+.dark .ehr-grid-row:hover {
+  background: #314e67;
+}
+
+.dark .ehr-tree-item.selected,
+.dark .ehr-grid-row.selected {
+  background: #315d94;
+  color: white;
+}
+
+.dark .ehr-toolbar-button-active {
+  background: linear-gradient(to bottom, #3d5772, #30465d);
+  border-color: #8397ab;
+}
+
+.dark .ehr-status-bar {
+  background: var(--ehr-chrome);
+  border-color: #60748a;
+  color: #d4dfe9;
+}
+
+.dark .ehr-tab.active,
+.dark .ehr-tab-content {
+  background: var(--ehr-surface);
+  border-color: #8397ab;
+}
+
+.dark .ehr-grid-row:nth-child(even) {
+  background: #263747;
+}
+
+.dark .ehr-grid-row:nth-child(even):hover {
+  background: #314e67;
+}
+
+.dark .ehr-grid-row.selected,
+.dark .ehr-grid-row.selected:hover {
+  background: #315d94;
+  color: white;
+}
+
+.dark .ehr-alert-critical {
+  background: #512932;
+  border-color: #e3838b;
+  color: #ffd2d6;
+}
+
+.dark .ehr-alert-warning {
+  background: #4e3f26;
+  border-color: #d5a95c;
+  color: #ffdfa0;
+}
+
+.dark .ehr-alert-info {
+  background: #22435c;
+  border-color: #6aa7d5;
+  color: #d0ebff;
+}
+
+.dark .ehr-splitter {
+  background: #3a4b5e;
+}
+
+.dark .ehr-splitter:hover {
+  background: #59718a;
+}
+
+.ehr-table-heading {
+  background: linear-gradient(to bottom, #f8f8f8, #e0e0e0);
+}
+
+.ehr-table-row-alt {
+  background: #f8f8f8;
+}
+
+.ehr-result-critical {
+  background: var(--ehr-badge-danger-bg);
+  color: var(--ehr-badge-danger-text);
+  font-weight: bold;
+}
+
+.ehr-result-abnormal {
+  background: var(--ehr-badge-warning-bg);
+  color: var(--ehr-badge-warning-text);
+}
+
+.ehr-result-critical .text-gray-600,
+.ehr-result-critical .text-red-700,
+.ehr-result-abnormal .text-gray-600,
+.ehr-result-abnormal .text-yellow-700 {
+  color: inherit;
+}
+
+.dark .ehr-table-heading {
+  background: linear-gradient(to bottom, #354557, #293747);
+}
+
+.dark .ehr-table-row-alt {
+  background: #253241;
+}
+
+.dark .ehr-table-row-alt:hover {
+  background: #314e67;
+}
+
+.dark .ehr-result-critical,
+.dark .ehr-result-critical:hover {
+  background: var(--ehr-badge-danger-bg);
+  color: var(--ehr-badge-danger-text);
+}
+
+.dark .ehr-result-abnormal,
+.dark .ehr-result-abnormal:hover {
+  background: var(--ehr-badge-warning-bg);
+  color: var(--ehr-badge-warning-text);
 }

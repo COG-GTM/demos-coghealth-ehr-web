@@ -55,13 +55,13 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           </div>
           
           {/* Content */}
-          <div className="flex-1 overflow-auto p-3 bg-[#ece9d8]">
+          <div className="flex-1 overflow-auto p-3" style={{ background: 'var(--ehr-chrome)' }}>
             {children}
           </div>
           
           {/* Footer */}
           {footer && (
-            <div className="px-3 py-2 bg-[#ece9d8] border-t border-gray-400 flex justify-end space-x-2">
+            <div className="px-3 py-2 border-t border-gray-400 flex justify-end space-x-2" style={{ background: 'var(--ehr-chrome)' }}>
               {footer}
             </div>
           )}
@@ -128,10 +128,10 @@ interface AlertDialogProps {
 
 export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: AlertDialogProps) {
   const bgColors = {
-    info: '#cce5ff',
-    success: '#d4edda',
-    warning: '#fff3cd',
-    error: '#f8d7da',
+    info: 'var(--ehr-alert-info)',
+    success: 'var(--ehr-alert-success)',
+    warning: 'var(--ehr-alert-warning)',
+    error: 'var(--ehr-alert-error)',
   };
   
   return (

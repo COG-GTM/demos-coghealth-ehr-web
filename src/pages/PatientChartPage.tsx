@@ -42,6 +42,7 @@ const defaultProblems: Problem[] = [
 ];
 const defaultMedications: Medication[] = [
   { id: 1, name: 'Metformin HCl ER', dose: '500mg', sig: 'Take 1 tablet by mouth twice daily', status: 'Active', refills: '2/3' },
+  { id: 2, name: 'Lisinopril', dose: '10mg', sig: 'Take 1 tablet by mouth once daily', status: 'Active', refills: '1/3' },
 ];
 const defaultAllergies: Allergy[] = [
   { id: 1, allergen: 'Penicillin', reaction: 'Rash', severity: 'Moderate', type: 'Drug' },
@@ -452,13 +453,21 @@ export default function PatientChartPage() {
       <PrescriptionDialog
         isOpen={showRxDialog}
         onClose={() => setShowRxDialog(false)}
+        patientId={patient.id?.toString()}
         patientName={`${patient.lastName}, ${patient.firstName}`}
         patientMrn={patient.mrn}
         patientAllergies={allergies.map(a => a.allergen)}
+        currentMedications={medications.filter(m => m.status === 'Active').map(m => `${m.name} ${m.dose}`)}
         onSubmit={(rx) => {
           console.log('New Rx:', rx);
           setShowRxDialog(false);
-          setShowAlert({ title: 'Prescription Sent', message: `${rx.medication} ${rx.strength} sent to ${rx.pharmacy}.`, type: 'success' });
+          setShowAlert({
+            title: rx.overrideReason ? 'Prescription Sent (Alert Overridden)' : 'Prescription Sent',
+            message: rx.overrideReason
+              ? `${rx.medication} ${rx.strength} sent to ${rx.pharmacy}. Override recorded in audit log: "${rx.overrideReason}".`
+              : `${rx.medication} ${rx.strength} sent to ${rx.pharmacy}.`,
+            type: 'success',
+          });
         }}
       />
 

@@ -335,6 +335,12 @@ td {
 }
 
 .dark .bg-\[\#f8f8f8\] { background-color: var(--ehr-surface-alt); }
+.dark .from-\[\#f8f8f8\],
+.dark .from-\[\#f0f0f0\],
+.dark .hover\:from-\[\#fff\]:hover { --tw-gradient-from: var(--ehr-btn-top); }
+.dark .to-\[\#e8e8e8\],
+.dark .to-\[\#e0e0e0\],
+.dark .hover\:to-\[\#f0f0f0\]:hover { --tw-gradient-to: var(--ehr-btn-bottom); }
 .dark .hover\:bg-\[\#e0e8f0\]:hover { background-color: var(--ehr-hover); }
 
 .ehr-toolbar {

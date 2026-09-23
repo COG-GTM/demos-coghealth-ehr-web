@@ -632,7 +632,7 @@ export default function PatientSearchPage() {
 
         {/* Patient Detail Panel */}
         {selectedPatient && (
-          <div className="w-72 flex flex-col border-l border-gray-500" style={{ background: '#f5f5f5' }}>
+          <div className="w-72 flex flex-col border-l border-gray-500 bg-gray-100">
             <div className="ehr-header text-xs flex items-center justify-between">
               <span>Patient Details</span>
               <button onClick={() => setSelectedPatient(null)} className="text-white/80 hover:text-white">
@@ -641,7 +641,7 @@ export default function PatientSearchPage() {
             </div>
             <div className="flex-1 overflow-auto">
               {/* Patient Header */}
-              <div className="p-2 border-b border-gray-400" style={{ background: '#e8e8e8' }}>
+              <div className="p-2 border-b border-gray-400 bg-gray-200">
                 <div className="flex items-center space-x-2">
                   <div className="w-10 h-10 flex items-center justify-center border border-gray-500" style={{ background: '#6699cc' }}>
                     <User className="w-5 h-5 text-white" />

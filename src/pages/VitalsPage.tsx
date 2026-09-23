@@ -168,9 +168,9 @@ export default function VitalsPage() {
         <div className="flex-1 overflow-auto bg-white border border-gray-400">
           <table className="w-full text-[11px]">
             <thead className="sticky top-0">
-              <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
-                <th className="text-left px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
-                <th className="text-center px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] min-w-[50px]">Trend</th>
+              <tr className="ehr-table-heading">
+                <th className="text-left px-2 py-1 border border-gray-400 sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
+                <th className="text-center px-2 py-1 border border-gray-400 min-w-[50px]">Trend</th>
                 {vitals.map((reading) => (
                   <th key={reading.id} className="text-center px-2 py-1 border border-gray-400 min-w-[80px]">
                     <div className="text-[10px] font-normal text-gray-600">{reading.timestamp.split(' ')[0]}</div>
@@ -181,7 +181,7 @@ export default function VitalsPage() {
             </thead>
             <tbody>
               {vitalSigns.map((vital, vitalIdx) => (
-                <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}>
+                <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white' : 'ehr-table-row-alt'}>
                   <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">
                     <div>{vital.name}</div>
                     <div className="text-[9px] text-gray-500 font-normal">{vital.unit} ({vital.normalRange.min}-{vital.normalRange.max})</div>

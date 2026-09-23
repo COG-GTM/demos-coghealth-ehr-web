@@ -176,7 +176,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
           </div>
         </div>
         <div className="flex items-center space-x-3 text-[10px]">
-          <span className="text-blue-100">Springfield Medical Center</span>
+          <span className="text-blue-200">Springfield Medical Center</span>
           <span className="text-blue-300">|</span>
           <div className="flex items-center space-x-1">
             <Lock className="w-3 h-3" />

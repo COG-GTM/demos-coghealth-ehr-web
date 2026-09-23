@@ -37,6 +37,7 @@
   --ehr-grad-hover-to: #f0f0f0;
   --ehr-text: #000;
   --ehr-text-muted: #333;
+  --ehr-text-subtle: #666;
   --ehr-border: #999;
   --ehr-border-light: #ccc;
   --ehr-alert-critical-bg: #ffcccc;
@@ -75,6 +76,7 @@
   --ehr-grad-hover-to: #33363b;
   --ehr-text: #e6e6e6;
   --ehr-text-muted: #c8c8c8;
+  --ehr-text-subtle: #a3a8b0;
   --ehr-border: #55595f;
   --ehr-border-light: #3d4045;
   --ehr-alert-critical-bg: #4a1c1c;
@@ -170,6 +172,7 @@ td {
 .ehr-button {
   background: linear-gradient(to bottom, var(--ehr-grad-from) 0%, var(--ehr-grad-strong-to) 100%);
   border: 1px solid #888;
+  color: var(--ehr-text);
   padding: 2px 8px;
   font-size: 11px;
   cursor: pointer;

@@ -1,3 +1,5 @@
+import { getSession } from './authService';
+
 export type AuditEventType = 
   | 'LOGIN'
   | 'LOGOUT'
@@ -63,13 +65,14 @@ export function logAuditEvent(
     success?: boolean;
   } = {}
 ): void {
+  const user = getSession()?.user;
   const event: AuditEvent = {
     id: generateId(),
     timestamp: new Date().toISOString(),
     eventType,
-    userId: 'USR001',
-    userName: 'Dr. Sarah Anderson',
-    userRole: 'Physician',
+    userId: user?.username ?? 'anonymous',
+    userName: user?.displayName ?? 'Unauthenticated user',
+    userRole: user?.role ?? 'unknown',
     ipAddress: '192.168.1.100',
     sessionId: getSessionId(),
     patientId: options.patientId,

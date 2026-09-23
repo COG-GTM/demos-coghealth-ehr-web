@@ -9,6 +9,14 @@ interface LoginPageProps {
   onAuthenticated: () => void;
 }
 
+function audit(event: 'LOGIN' | 'FAILED_LOGIN', action: string, success: boolean) {
+  try {
+    logAuditEvent(event, { action, success });
+  } catch {
+    // Audit persistence must never block or reverse the sign-in outcome.
+  }
+}
+
 export default function LoginPage({ onAuthenticated }: LoginPageProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -21,14 +29,16 @@ export default function LoginPage({ onAuthenticated }: LoginPageProps) {
     setLoading(true);
     try {
       await authService.login(username, password);
-      logAuditEvent('LOGIN', { action: 'User signed in' });
-      onAuthenticated();
     } catch {
-      logAuditEvent('FAILED_LOGIN', { action: 'Sign in failed', success: false });
+      audit('FAILED_LOGIN', 'Sign in failed', false);
       setError('Sign in failed. Check your credentials and try again.');
-    } finally {
       setLoading(false);
+      return;
     }
+
+    audit('LOGIN', 'User signed in', true);
+    setLoading(false);
+    onAuthenticated();
   };
 
   return (

@@ -30,6 +30,7 @@ import LoginPage from './pages/LoginPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
 import { logLogout } from './services/auditService';
 import { authService } from './services/authService';
+import { UNAUTHORIZED_EVENT } from './services/authToken';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
@@ -263,6 +264,12 @@ function App() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSessionExpired, setShowSessionExpired] = useState(false);
   const [authenticated, setAuthenticated] = useState(() => authService.isAuthenticated());
+
+  useEffect(() => {
+    const onUnauthorized = () => setAuthenticated(false);
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+  }, []);
 
   const handleSessionWarning = useCallback(() => {
     setShowSessionWarning(true);

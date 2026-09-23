@@ -3,6 +3,13 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 const BASE_URL = 'http://localhost:5173';
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+function sessionToken(): string {
+  const payload = Buffer.from(
+    JSON.stringify({ sub: 'e2e', exp: Math.floor(Date.now() / 1000) + 3600 })
+  ).toString('base64');
+  return `header.${payload}.signature`;
+}
+
 describe('CogHealth EHR E2E Tests', () => {
   let browser: Browser;
   let page: Page;
@@ -11,6 +18,9 @@ describe('CogHealth EHR E2E Tests', () => {
     browser = await puppeteer.launch({ headless: true });
     page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 800 });
+    await page.evaluateOnNewDocument((token: string) => {
+      sessionStorage.setItem('coghealth_auth_token', token);
+    }, sessionToken());
   });
 
   afterAll(async () => {

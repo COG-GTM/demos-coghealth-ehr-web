@@ -387,7 +387,8 @@ td {
 .dark .bg-gray-600 { background-color: #8b909b; }
 .dark .bg-blue-50 { background-color: #1c3554; }
 .dark .bg-blue-100 { background-color: #22406a; }
-.dark .bg-red-50 { background-color: #4a1f1f; }
+.dark .bg-red-50, .dark .bg-red-100 { background-color: #4a1f1f; }
+.dark .bg-green-100 { background-color: #1f4a2c; }
 .dark .bg-yellow-100 { background-color: #4a3d14; }
 
 .dark .hover\:bg-gray-50:hover { background-color: #363942; }

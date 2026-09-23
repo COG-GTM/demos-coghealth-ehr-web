@@ -273,7 +273,7 @@ export default function LabResultsPage() {
                       {panel.results.map((result, idx) => (
                         <tr
                           key={result.id}
-                          className={`cursor-pointer hover:bg-[#e0e8f0] ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'} ${getStatusClass(result.status)}`}
+                          className={`cursor-pointer hover:bg-[#e0e8f0] ${getStatusClass(result.status) || (idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]')}`}
                           onClick={() => setSelectedResult(result)}
                         >
                           <td className="px-2 py-1 border-b border-gray-200">{result.testName}</td>

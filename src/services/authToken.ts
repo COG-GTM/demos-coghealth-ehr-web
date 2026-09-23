@@ -27,6 +27,8 @@ function storage(): Storage | null {
   }
 }
 
+const MAX_TIMEOUT_MS = 2_147_483_647;
+
 let expiryTimer: ReturnType<typeof setTimeout> | null = null;
 
 export function setAuthToken(token: string): void {
@@ -64,7 +66,11 @@ export function scheduleExpiry(token: string | null = getAuthToken()): void {
     clearAuthToken();
     return;
   }
-  expiryTimer = setTimeout(clearAuthToken, remaining);
+  // setTimeout truncates delays past 2^31-1 ms, so re-arm in chunks.
+  expiryTimer = setTimeout(
+    () => scheduleExpiry(token),
+    Math.min(remaining, MAX_TIMEOUT_MS)
+  );
 }
 
 function cancelExpiry(): void {

@@ -113,6 +113,12 @@ describe('PHI requests carry authentication', () => {
 
       expect(listener).toHaveBeenCalledTimes(1);
       expect(getAuthToken()).toBeNull();
+
+      // A delay past setTimeout's 32-bit limit must re-arm, not fire at once.
+      listener.mockClear();
+      setAuthToken(jwt(60 * 24 * 3600));
+      jest.advanceTimersByTime(2_147_483_647);
+      expect(listener).not.toHaveBeenCalled();
     } finally {
       fakeWindow.removeEventListener(UNAUTHORIZED_EVENT, listener);
       delete (globalThis as { window?: unknown }).window;

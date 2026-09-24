@@ -112,14 +112,14 @@ export default function LabResultsPage() {
     );
   };
 
-  const getStatusStyle = (status: LabResult['status']) => {
+  const getStatusClass = (status: LabResult['status']) => {
     switch (status) {
       case 'critical':
-        return { background: '#ffcccc', color: '#990000', fontWeight: 'bold' };
+        return 'ehr-value-critical';
       case 'abnormal':
-        return { background: '#fff3cd', color: '#664d00' };
+        return 'ehr-value-abnormal';
       default:
-        return {};
+        return '';
     }
   };
 
@@ -231,7 +231,7 @@ export default function LabResultsPage() {
             filteredPanels.map(panel => (
               <div key={panel.id} className="border-b border-gray-300">
                 <div
-                  className="flex items-center justify-between px-2 py-1.5 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] cursor-pointer hover:from-[#fff] hover:to-[#f0f0f0]"
+                  className="ehr-section-header flex items-center justify-between px-2 py-1.5 cursor-pointer"
                   onClick={() => togglePanel(panel.id)}
                 >
                   <div className="flex items-center space-x-2">
@@ -264,7 +264,7 @@ export default function LabResultsPage() {
                 {expandedPanels.includes(panel.id) && (
                   <table className="w-full text-[11px]">
                     <thead>
-                      <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
+                      <tr className="ehr-table-head">
                         <th className="text-left px-2 py-1 border-b border-gray-400 w-1/4">Test</th>
                         <th className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Result</th>
                         <th className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Units</th>
@@ -276,8 +276,7 @@ export default function LabResultsPage() {
                       {panel.results.map((result, idx) => (
                         <tr
                           key={result.id}
-                          className={`cursor-pointer hover:bg-[#e0e8f0] ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}`}
-                          style={getStatusStyle(result.status)}
+                          className={`cursor-pointer hover:bg-[#e0e8f0] ${idx % 2 === 0 ? 'ehr-row-even' : 'ehr-row-odd'} ${getStatusClass(result.status)}`}
                           onClick={() => setSelectedResult(result)}
                         >
                           <td className="px-2 py-1 border-b border-gray-200">{result.testName}</td>
@@ -330,7 +329,7 @@ export default function LabResultsPage() {
                 </div>
                 <div>
                   <span className="text-gray-500">Status:</span>
-                  <span className="ml-2" style={getStatusStyle(selectedResult.status)}>
+                  <span className={`ml-2 px-1 ${getStatusClass(selectedResult.status)}`}>
                     {selectedResult.status.toUpperCase()}
                   </span>
                 </div>

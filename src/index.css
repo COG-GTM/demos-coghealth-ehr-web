@@ -582,3 +582,96 @@ td {
 .dark .ehr-theme-option-selected svg {
   color: #9cc5f5;
 }
+
+/* Collapsible section headers, table heads and data rows */
+.ehr-section-header {
+  background: linear-gradient(to bottom, #f8f8f8 0%, #e8e8e8 100%);
+}
+
+.ehr-section-header:hover {
+  background: linear-gradient(to bottom, #ffffff 0%, #f0f0f0 100%);
+}
+
+.ehr-table-head {
+  background: linear-gradient(to bottom, #f0f0f0 0%, #e0e0e0 100%);
+}
+
+.ehr-table-head-cell {
+  background: linear-gradient(to bottom, #f8f8f8 0%, #e8e8e8 100%);
+}
+
+.ehr-row-even {
+  background: #ffffff;
+}
+
+.ehr-row-odd {
+  background: #f8f8f8;
+}
+
+.ehr-value-critical {
+  background: #ffcccc;
+  color: #990000;
+  font-weight: bold;
+}
+
+.ehr-value-abnormal {
+  background: #fff3cd;
+  color: #664d00;
+}
+
+.dark .ehr-section-header {
+  background: linear-gradient(to bottom, #303036 0%, #26262a 100%);
+  color: #dcdcdc;
+}
+
+.dark .ehr-section-header:hover {
+  background: linear-gradient(to bottom, #3a3a41 0%, #2e2e33 100%);
+}
+
+.dark .ehr-table-head,
+.dark .ehr-table-head-cell {
+  background: linear-gradient(to bottom, #35353b 0%, #2b2b30 100%);
+  color: #e2e2e2;
+}
+
+.dark .ehr-row-even {
+  background: #232326;
+}
+
+.dark .ehr-row-odd {
+  background: #1f1f22;
+}
+
+.dark .ehr-value-critical {
+  background: #4d1f22;
+  color: #ffb1b1;
+}
+
+.dark .ehr-value-abnormal {
+  background: #46391a;
+  color: #f0d488;
+}
+
+.dark .ehr-value-critical td,
+.dark .ehr-value-abnormal td,
+.dark .ehr-value-critical span,
+.dark .ehr-value-abnormal span,
+.dark .ehr-value-critical svg,
+.dark .ehr-value-abnormal svg {
+  color: inherit;
+}
+
+.dark .text-red-600,
+.dark .text-red-500 {
+  color: #ff8f8f;
+}
+
+.dark .text-yellow-600,
+.dark .text-amber-600 {
+  color: #e8c46e;
+}
+
+.dark .text-green-600,
+.dark .text-green-500 {
+  color: #7fcf97;
+}

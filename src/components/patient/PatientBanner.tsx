@@ -30,7 +30,7 @@ export default function PatientBanner({ patient, allergies = [] }: PatientBanner
   const hasSevereAllergy = allergies.some(a => a.severity === 'Severe');
 
   return (
-    <div className="border-b border-gray-500" style={{ background: 'linear-gradient(to bottom, #4a6ea5 0%, #2d4a7c 100%)' }}>
+    <div className="border-b border-gray-500 ehr-banner">
       <div className="px-2 py-1.5 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-white/20 flex items-center justify-center border border-white/30">

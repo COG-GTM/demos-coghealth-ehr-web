@@ -43,7 +43,7 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           {/* Title bar */}
           <div 
             className="flex items-center justify-between px-2 py-1"
-            style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
+            style={{ background: 'linear-gradient(to bottom, var(--ehr-header-from) 0%, var(--ehr-header-to) 100%)' }}
           >
             <span className="text-white font-semibold text-[11px]">{title}</span>
             <button 
@@ -55,13 +55,13 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           </div>
           
           {/* Content */}
-          <div className="flex-1 overflow-auto p-3 bg-[#ece9d8]">
+          <div className="flex-1 overflow-auto p-3 ehr-sidebar">
             {children}
           </div>
           
           {/* Footer */}
           {footer && (
-            <div className="px-3 py-2 bg-[#ece9d8] border-t border-gray-400 flex justify-end space-x-2">
+            <div className="px-3 py-2 ehr-sidebar border-t border-gray-400 flex justify-end space-x-2">
               {footer}
             </div>
           )}
@@ -128,10 +128,10 @@ interface AlertDialogProps {
 
 export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: AlertDialogProps) {
   const bgColors = {
-    info: '#cce5ff',
-    success: '#d4edda',
-    warning: '#fff3cd',
-    error: '#f8d7da',
+    info: 'var(--ehr-alert-info-bg)',
+    success: 'var(--ehr-alert-success-bg)',
+    warning: 'var(--ehr-alert-warning-bg)',
+    error: 'var(--ehr-alert-error-bg)',
   };
   
   return (

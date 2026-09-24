@@ -13,11 +13,31 @@ export default function Badge({
   className = '' 
 }: BadgeProps) {
   const variants = {
-    default: { background: '#e8e8e8', border: '1px solid #999', color: '#333' },
-    success: { background: '#d4edda', border: '1px solid #28a745', color: '#155724' },
-    warning: { background: '#fff3cd', border: '1px solid #cc9900', color: '#664d00' },
-    danger: { background: '#ffcccc', border: '1px solid #cc0000', color: '#990000' },
-    info: { background: '#cce5ff', border: '1px solid #0066cc', color: '#004085' },
+    default: {
+      background: 'var(--ehr-surface-sunken)',
+      border: '1px solid var(--ehr-border)',
+      color: 'var(--ehr-text)',
+    },
+    success: {
+      background: 'var(--ehr-alert-success-bg)',
+      border: '1px solid var(--ehr-alert-success-border)',
+      color: 'var(--ehr-alert-success-text)',
+    },
+    warning: {
+      background: 'var(--ehr-alert-warning-bg)',
+      border: '1px solid var(--ehr-alert-warning-border)',
+      color: 'var(--ehr-alert-warning-text)',
+    },
+    danger: {
+      background: 'var(--ehr-alert-critical-bg)',
+      border: '1px solid var(--ehr-alert-critical-border)',
+      color: 'var(--ehr-alert-critical-text)',
+    },
+    info: {
+      background: 'var(--ehr-alert-info-bg)',
+      border: '1px solid var(--ehr-alert-info-border)',
+      color: 'var(--ehr-alert-info-text)',
+    },
   };
 
   return (

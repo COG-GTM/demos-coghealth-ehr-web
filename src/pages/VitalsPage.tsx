@@ -45,11 +45,11 @@ export default function VitalsPage() {
     return 'normal';
   };
 
-  const getStatusStyle = (status: string) => {
+  const getStatusClass = (status: string) => {
     switch (status) {
-      case 'critical': return { background: '#ffcccc', color: '#990000', fontWeight: 'bold' };
-      case 'abnormal': return { background: '#fff3cd', color: '#664d00' };
-      default: return {};
+      case 'critical': return 'ehr-value-critical';
+      case 'abnormal': return 'ehr-value-abnormal';
+      default: return '';
     }
   };
 
@@ -168,9 +168,9 @@ export default function VitalsPage() {
         <div className="flex-1 overflow-auto bg-white border border-gray-400">
           <table className="w-full text-[11px]">
             <thead className="sticky top-0">
-              <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
-                <th className="text-left px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
-                <th className="text-center px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] min-w-[50px]">Trend</th>
+              <tr className="ehr-table-head">
+                <th className="ehr-table-head-cell text-left px-2 py-1 border border-gray-400 sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
+                <th className="ehr-table-head-cell text-center px-2 py-1 border border-gray-400 min-w-[50px]">Trend</th>
                 {vitals.map((reading) => (
                   <th key={reading.id} className="text-center px-2 py-1 border border-gray-400 min-w-[80px]">
                     <div className="text-[10px] font-normal text-gray-600">{reading.timestamp.split(' ')[0]}</div>
@@ -181,7 +181,7 @@ export default function VitalsPage() {
             </thead>
             <tbody>
               {vitalSigns.map((vital, vitalIdx) => (
-                <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}>
+                <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'ehr-row-even' : 'ehr-row-odd'}>
                   <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">
                     <div>{vital.name}</div>
                     <div className="text-[9px] text-gray-500 font-normal">{vital.unit} ({vital.normalRange.min}-{vital.normalRange.max})</div>
@@ -200,8 +200,7 @@ export default function VitalsPage() {
                     return (
                       <td
                         key={reading.id}
-                        className="px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0]"
-                        style={getStatusStyle(status)}
+                        className={`px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0] ${getStatusClass(status)}`}
                         onClick={() => setSelectedReading(reading)}
                       >
                         {value !== undefined ? (
@@ -274,7 +273,7 @@ export default function VitalsPage() {
                   const value = selectedReading[vital.key] as number | undefined;
                   const status = getValueStatus(vital.key, value);
                   return (
-                    <div key={vital.key} className="flex justify-between" style={getStatusStyle(status)}>
+                    <div key={vital.key} className={`flex justify-between ${getStatusClass(status)}`}>
                       <span className="text-gray-600">{vital.name}:</span>
                       <span className="font-mono font-semibold">
                         {value !== undefined ? (vital.key === 'temperature' ? value.toFixed(1) : value) : '-'} {vital.unit}

@@ -5,6 +5,18 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CogHealth EHR</title>
+    <script>
+      (function () {
+        try {
+          var settings = JSON.parse(localStorage.getItem('coghealth_settings') || '{}');
+          var theme = (settings.appearance && settings.appearance.theme) || 'light';
+          var dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {
+          /* fall back to the light theme */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

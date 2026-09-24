@@ -7,6 +7,8 @@ import {
   Building2,
   Key,
   Monitor,
+  Moon,
+  Sun,
   Mail,
   Smartphone,
   Globe,
@@ -14,6 +16,7 @@ import {
   Check
 } from 'lucide-react';
 import { AlertDialog } from '../components/ui/Modal';
+import { useTheme, type Theme } from '../theme';
 
 type SettingsTab = 'profile' | 'notifications' | 'security' | 'appearance' | 'practice';
 
@@ -28,6 +31,12 @@ interface UserProfile {
 }
 
 const STORAGE_KEY = 'coghealth_settings';
+
+const themeIcons: Record<Theme, typeof Monitor> = {
+  light: Sun,
+  dark: Moon,
+  system: Monitor,
+};
 
 const defaultProfile: UserProfile = {
   firstName: 'Sarah',
@@ -73,6 +82,7 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<UserProfile>(defaultProfile);
   const [notifications, setNotifications] = useState(defaultNotifications);
   const [appearance, setAppearance] = useState(defaultAppearance);
+  const { theme, setTheme } = useTheme();
 
   const [initialized, setInitialized] = useState(false);
   if (!initialized) {
@@ -99,13 +109,16 @@ export default function SettingsPage() {
   ];
 
   const handleSave = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ profile, notifications, appearance }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ profile, notifications, appearance: { ...appearance, theme } })
+    );
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="ehr-desktop h-full flex flex-col">
       {/* Header */}
       <div className="ehr-header flex items-center justify-between">
         <span>System Settings</span>
@@ -121,7 +134,7 @@ export default function SettingsPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Navigation */}
-        <div className="w-48 overflow-auto p-2 space-y-1" style={{ background: '#ece9d8' }}>
+        <div className="ehr-pane w-48 overflow-auto p-2 space-y-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -385,20 +398,26 @@ export default function SettingsPage() {
               <fieldset className="ehr-fieldset">
                 <legend>Theme</legend>
                 <div className="grid grid-cols-3 gap-2">
-                  {['light', 'dark', 'system'].map((theme) => (
-                    <button
-                      key={theme}
-                      onClick={() => setAppearance({ ...appearance, theme })}
-                      className={`p-2 border text-center text-[11px] ${
-                        appearance.theme === theme
-                          ? 'border-gray-600 bg-white'
-                          : 'border-gray-400 bg-gray-100 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Monitor className="w-4 h-4 mx-auto mb-1 text-gray-600" />
-                      <span className="capitalize">{theme}</span>
-                    </button>
-                  ))}
+                  {(['light', 'dark', 'system'] as Theme[]).map((option) => {
+                    const Icon = themeIcons[option];
+                    return (
+                      <button
+                        key={option}
+                        onClick={() => {
+                          setTheme(option);
+                          setAppearance({ ...appearance, theme: option });
+                        }}
+                        className={`ehr-theme-option p-2 border text-center text-[11px] ${
+                          theme === option
+                            ? 'ehr-theme-option-selected border-gray-600 bg-white'
+                            : 'border-gray-400 bg-gray-100 hover:bg-gray-50'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 mx-auto mb-1 text-gray-600" />
+                        <span className="capitalize">{option}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </fieldset>
 

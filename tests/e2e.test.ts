@@ -419,6 +419,45 @@ describe('CogHealth EHR E2E Tests', () => {
     });
   });
 
+  describe('Dark Mode', () => {
+    beforeEach(async () => {
+      await page.goto(BASE_URL);
+      await page.evaluate(() => localStorage.removeItem('coghealth_theme'));
+      await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }]);
+      await page.goto(BASE_URL);
+    });
+
+    test('should start in light mode and toggle to dark from the header', async () => {
+      await page.waitForSelector('.ehr-header');
+      expect(await page.evaluate(() => document.documentElement.classList.contains('dark'))).toBe(false);
+
+      await page.click('button[aria-label="Switch to dark mode"]');
+      await page.waitForFunction(() => document.documentElement.classList.contains('dark'));
+
+      const stored = await page.evaluate(() => localStorage.getItem('coghealth_theme'));
+      expect(stored).toBe('dark');
+    });
+
+    test('should persist the dark preference across reloads', async () => {
+      await page.click('button[aria-label="Switch to dark mode"]');
+      await page.waitForFunction(() => document.documentElement.classList.contains('dark'));
+      await page.reload();
+      await page.waitForSelector('.ehr-header');
+      expect(await page.evaluate(() => document.documentElement.classList.contains('dark'))).toBe(true);
+    });
+
+    test('should follow the OS preference when set to System in Settings', async () => {
+      await page.goto(`${BASE_URL}/settings`);
+      await page.click('::-p-xpath(//button[contains(., "Appearance")])');
+      await page.click('::-p-xpath(//button[contains(., "System")])');
+      await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'dark' }]);
+      await page.waitForFunction(() => document.documentElement.classList.contains('dark'));
+
+      await page.click('::-p-xpath(//button[contains(., "Light")])');
+      await page.waitForFunction(() => !document.documentElement.classList.contains('dark'));
+    });
+  });
+
   describe('Modal Dialogs', () => {
     beforeEach(async () => {
       await page.goto(BASE_URL);

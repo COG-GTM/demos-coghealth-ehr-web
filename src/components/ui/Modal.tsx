@@ -43,7 +43,7 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           {/* Title bar */}
           <div 
             className="flex items-center justify-between px-2 py-1"
-            style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
+            style={{ background: 'linear-gradient(to bottom, var(--ehr-titlebar-from) 0%, var(--ehr-titlebar-to) 100%)' }}
           >
             <span className="text-white font-semibold text-[11px]">{title}</span>
             <button 
@@ -55,13 +55,13 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           </div>
           
           {/* Content */}
-          <div className="flex-1 overflow-auto p-3 bg-[#ece9d8]">
+          <div className="flex-1 overflow-auto p-3 bg-[var(--ehr-chrome)]">
             {children}
           </div>
           
           {/* Footer */}
           {footer && (
-            <div className="px-3 py-2 bg-[#ece9d8] border-t border-gray-400 flex justify-end space-x-2">
+            <div className="px-3 py-2 bg-[var(--ehr-chrome)] border-t border-gray-400 flex justify-end space-x-2">
               {footer}
             </div>
           )}
@@ -127,11 +127,11 @@ interface AlertDialogProps {
 }
 
 export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: AlertDialogProps) {
-  const bgColors = {
-    info: '#cce5ff',
-    success: '#d4edda',
-    warning: '#fff3cd',
-    error: '#f8d7da',
+  const alertStyles = {
+    info: { background: 'var(--ehr-alert-info-bg)', color: 'var(--ehr-alert-info-text)' },
+    success: { background: 'var(--ehr-alert-success-bg)', color: 'var(--ehr-alert-success-text)' },
+    warning: { background: 'var(--ehr-alert-warning-bg)', color: 'var(--ehr-alert-warning-text)' },
+    error: { background: 'var(--ehr-alert-error-bg)', color: 'var(--ehr-alert-error-text)' },
   };
   
   return (
@@ -146,7 +146,7 @@ export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: 
         </button>
       }
     >
-      <div className="p-2 border border-gray-400" style={{ background: bgColors[type] }}>
+      <div className="p-2 border border-gray-400" style={alertStyles[type]}>
         <p className="text-[11px]">{message}</p>
       </div>
     </Modal>

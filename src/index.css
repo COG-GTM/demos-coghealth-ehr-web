@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&family=Tahoma&display=swap');
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary-50: #e8f4fc;
   --color-primary-100: #d1e9f9;
@@ -17,9 +19,148 @@
   --font-family-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+:root {
+  --ehr-desktop: #d4d0c8;
+  --ehr-chrome: #ece9d8;
+  --ehr-chrome-alt: #e8e8e8;
+  --ehr-panel: #f5f5f5;
+  --ehr-surface: #ffffff;
+  --ehr-surface-alt: #fafafa;
+  --ehr-text: #333333;
+  --ehr-text-muted: #666666;
+  --ehr-border: #999999;
+  --ehr-border-strong: #888888;
+  --ehr-border-soft: #cccccc;
+  --ehr-bevel-light: #ffffff;
+  --ehr-bevel-dark: #999999;
+  --ehr-shadow: rgba(0, 0, 0, 0.1);
+
+  --ehr-titlebar-from: #6699cc;
+  --ehr-titlebar-to: #336699;
+  --ehr-titlebar-border: #1a4080;
+  --ehr-titlebar-text: #ffffff;
+
+  --ehr-button-from: #f8f8f8;
+  --ehr-button-to: #e0e0e0;
+  --ehr-button-hover-from: #ffffff;
+  --ehr-button-hover-to: #e8e8e8;
+  --ehr-button-active-from: #d8d8d8;
+  --ehr-button-active-to: #e8e8e8;
+  --ehr-button-primary-from: #4a90d9;
+  --ehr-button-primary-to: #2a5db0;
+  --ehr-button-primary-hover-from: #5aa0e9;
+  --ehr-button-primary-hover-to: #3a6dc0;
+  --ehr-button-primary-border: #1a4080;
+
+  --ehr-input-bg: #ffffff;
+  --ehr-input-border: #7f9db9;
+  --ehr-input-focus-border: #4a90d9;
+  --ehr-input-focus-ring: rgba(74, 144, 217, 0.5);
+
+  --ehr-subheader-from: #e8e8e8;
+  --ehr-subheader-to: #d0d0d0;
+  --ehr-toolbar-from: #f5f5f5;
+  --ehr-toolbar-to: #e5e5e5;
+  --ehr-toolbar-hover: #e0e8f0;
+
+  --ehr-th-from: #f8f8f8;
+  --ehr-th-to: #e8e8e8;
+
+  --ehr-row-alt: #f0f4f8;
+  --ehr-row-hover: #d0e0f0;
+  --ehr-row-selected: #316ac5;
+  --ehr-row-selected-text: #ffffff;
+
+  --ehr-alert-critical-bg: #ffcccc;
+  --ehr-alert-critical-border: #cc0000;
+  --ehr-alert-critical-text: #990000;
+  --ehr-alert-warning-bg: #fff3cd;
+  --ehr-alert-warning-border: #cc9900;
+  --ehr-alert-warning-text: #664d00;
+  --ehr-alert-info-bg: #cce5ff;
+  --ehr-alert-info-border: #0066cc;
+  --ehr-alert-info-text: #004085;
+  --ehr-alert-success-bg: #d4edda;
+  --ehr-alert-success-text: #155724;
+  --ehr-alert-error-bg: #f8d7da;
+  --ehr-alert-error-text: #721c24;
+
+  color-scheme: light;
+}
+
+.dark {
+  --ehr-desktop: #15171a;
+  --ehr-chrome: #22252a;
+  --ehr-chrome-alt: #282c32;
+  --ehr-panel: #1e2126;
+  --ehr-surface: #1a1d21;
+  --ehr-surface-alt: #202429;
+  --ehr-text: #d9dee5;
+  --ehr-text-muted: #9aa2ad;
+  --ehr-border: #444a52;
+  --ehr-border-strong: #4d545d;
+  --ehr-border-soft: #343a41;
+  --ehr-bevel-light: #3a4048;
+  --ehr-bevel-dark: #101215;
+  --ehr-shadow: rgba(0, 0, 0, 0.5);
+
+  --ehr-titlebar-from: #2f4f76;
+  --ehr-titlebar-to: #1d3350;
+  --ehr-titlebar-border: #0d1a2c;
+  --ehr-titlebar-text: #e8eef6;
+
+  --ehr-button-from: #343941;
+  --ehr-button-to: #292d34;
+  --ehr-button-hover-from: #3d434c;
+  --ehr-button-hover-to: #31363d;
+  --ehr-button-active-from: #23272d;
+  --ehr-button-active-to: #2c3138;
+  --ehr-button-primary-from: #3a6fb0;
+  --ehr-button-primary-to: #27507f;
+  --ehr-button-primary-hover-from: #4680c4;
+  --ehr-button-primary-hover-to: #2f5f96;
+  --ehr-button-primary-border: #16304f;
+
+  --ehr-input-bg: #12151a;
+  --ehr-input-border: #4a5663;
+  --ehr-input-focus-border: #5b9bd5;
+  --ehr-input-focus-ring: rgba(91, 155, 213, 0.45);
+
+  --ehr-subheader-from: #2b2f36;
+  --ehr-subheader-to: #23272d;
+  --ehr-toolbar-from: #262a30;
+  --ehr-toolbar-to: #1f2227;
+  --ehr-toolbar-hover: #32404f;
+
+  --ehr-th-from: #2b3037;
+  --ehr-th-to: #23272e;
+
+  --ehr-row-alt: #1f242b;
+  --ehr-row-hover: #2b3949;
+  --ehr-row-selected: #2c5c9e;
+  --ehr-row-selected-text: #ffffff;
+
+  --ehr-alert-critical-bg: #3a1b1b;
+  --ehr-alert-critical-border: #a33a3a;
+  --ehr-alert-critical-text: #ff9b9b;
+  --ehr-alert-warning-bg: #3a3116;
+  --ehr-alert-warning-border: #a8871f;
+  --ehr-alert-warning-text: #f2cc73;
+  --ehr-alert-info-bg: #16304a;
+  --ehr-alert-info-border: #2f6fae;
+  --ehr-alert-info-text: #a5cdf2;
+  --ehr-alert-success-bg: #1b3526;
+  --ehr-alert-success-text: #93dfae;
+  --ehr-alert-error-bg: #3a1b1b;
+  --ehr-alert-error-text: #ff9b9b;
+
+  color-scheme: dark;
+}
+
 body {
   font-size: 11px;
-  background-color: #d4d0c8;
+  background-color: var(--ehr-desktop);
+  color: var(--ehr-text);
 }
 
 input, select, textarea, button {
@@ -31,73 +172,75 @@ table {
 }
 
 th {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e8e8e8 100%);
-  border: 1px solid #999;
+  background: linear-gradient(to bottom, var(--ehr-th-from) 0%, var(--ehr-th-to) 100%);
+  border: 1px solid var(--ehr-border);
   font-weight: 600;
 }
 
 td {
-  border: 1px solid #ccc;
+  border: 1px solid var(--ehr-border-soft);
 }
 
 .ehr-panel {
-  background: #f5f5f5;
-  border: 1px solid #999;
-  box-shadow: inset 1px 1px 0 #fff, 1px 1px 2px rgba(0,0,0,0.1);
+  background: var(--ehr-panel);
+  border: 1px solid var(--ehr-border);
+  box-shadow: inset 1px 1px 0 var(--ehr-bevel-light), 1px 1px 2px var(--ehr-shadow);
 }
 
 .ehr-button {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
-  border: 1px solid #888;
+  background: linear-gradient(to bottom, var(--ehr-button-from) 0%, var(--ehr-button-to) 100%);
+  border: 1px solid var(--ehr-border-strong);
   padding: 2px 8px;
   font-size: 11px;
   cursor: pointer;
-  box-shadow: 1px 1px 0 #fff inset, -1px -1px 0 #999 inset;
+  color: var(--ehr-text);
+  box-shadow: 1px 1px 0 var(--ehr-bevel-light) inset, -1px -1px 0 var(--ehr-bevel-dark) inset;
 }
 
 .ehr-button:hover {
-  background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
+  background: linear-gradient(to bottom, var(--ehr-button-hover-from) 0%, var(--ehr-button-hover-to) 100%);
 }
 
 .ehr-button:active {
-  background: linear-gradient(to bottom, #d8d8d8 0%, #e8e8e8 100%);
-  box-shadow: -1px -1px 0 #fff inset, 1px 1px 0 #999 inset;
+  background: linear-gradient(to bottom, var(--ehr-button-active-from) 0%, var(--ehr-button-active-to) 100%);
+  box-shadow: -1px -1px 0 var(--ehr-bevel-light) inset, 1px 1px 0 var(--ehr-bevel-dark) inset;
 }
 
 .ehr-button-primary {
-  background: linear-gradient(to bottom, #4a90d9 0%, #2a5db0 100%);
-  border: 1px solid #1a4080;
+  background: linear-gradient(to bottom, var(--ehr-button-primary-from) 0%, var(--ehr-button-primary-to) 100%);
+  border: 1px solid var(--ehr-button-primary-border);
   color: white;
 }
 
 .ehr-button-primary:hover {
-  background: linear-gradient(to bottom, #5aa0e9 0%, #3a6dc0 100%);
+  background: linear-gradient(to bottom, var(--ehr-button-primary-hover-from) 0%, var(--ehr-button-primary-hover-to) 100%);
 }
 
 .ehr-input {
-  border: 1px solid #7f9db9;
+  border: 1px solid var(--ehr-input-border);
   padding: 2px 4px;
-  background: white;
+  background: var(--ehr-input-bg);
+  color: var(--ehr-text);
   font-size: 11px;
 }
 
 .ehr-input:focus {
   outline: none;
-  border-color: #4a90d9;
-  box-shadow: 0 0 2px rgba(74, 144, 217, 0.5);
+  border-color: var(--ehr-input-focus-border);
+  box-shadow: 0 0 2px var(--ehr-input-focus-ring);
 }
 
 .ehr-fieldset {
-  border: 1px solid #999;
+  border: 1px solid var(--ehr-border);
   padding: 8px;
   margin: 4px 0;
-  background: #fafafa;
+  background: var(--ehr-surface-alt);
 }
 
 .ehr-fieldset legend {
   font-weight: 600;
   padding: 0 4px;
-  color: #333;
+  color: var(--ehr-text);
 }
 
 .ehr-checkbox {
@@ -105,24 +248,24 @@ td {
 }
 
 .ehr-label {
-  color: #333;
+  color: var(--ehr-text);
   font-size: 11px;
 }
 
 .ehr-header {
-  background: linear-gradient(to bottom, #6699cc 0%, #336699 100%);
-  color: white;
+  background: linear-gradient(to bottom, var(--ehr-titlebar-from) 0%, var(--ehr-titlebar-to) 100%);
+  color: var(--ehr-titlebar-text);
   padding: 4px 8px;
   font-weight: 600;
-  border-bottom: 1px solid #1a4080;
+  border-bottom: 1px solid var(--ehr-titlebar-border);
 }
 
 .ehr-subheader {
-  background: linear-gradient(to bottom, #e8e8e8 0%, #d0d0d0 100%);
-  color: #333;
+  background: linear-gradient(to bottom, var(--ehr-subheader-from) 0%, var(--ehr-subheader-to) 100%);
+  color: var(--ehr-text);
   padding: 2px 6px;
   font-weight: 600;
-  border-bottom: 1px solid #999;
+  border-bottom: 1px solid var(--ehr-border);
   font-size: 10px;
 }
 
@@ -132,25 +275,25 @@ td {
 }
 
 .ehr-tree-item:hover {
-  background: #e0e8f0;
+  background: var(--ehr-toolbar-hover);
 }
 
 .ehr-tree-item.selected {
-  background: #316ac5;
-  color: white;
+  background: var(--ehr-row-selected);
+  color: var(--ehr-row-selected-text);
 }
 
 .ehr-status-bar {
-  background: #ece9d8;
-  border-top: 1px solid #fff;
+  background: var(--ehr-chrome);
+  border-top: 1px solid var(--ehr-bevel-light);
   padding: 2px 8px;
   font-size: 10px;
-  color: #333;
+  color: var(--ehr-text);
 }
 
 .ehr-tab {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
-  border: 1px solid #888;
+  background: linear-gradient(to bottom, var(--ehr-button-from) 0%, var(--ehr-button-to) 100%);
+  border: 1px solid var(--ehr-border-strong);
   border-bottom: none;
   padding: 3px 12px;
   margin-right: 2px;
@@ -159,53 +302,54 @@ td {
 }
 
 .ehr-tab.active {
-  background: #fff;
-  border-bottom: 1px solid #fff;
+  background: var(--ehr-surface);
+  border-bottom: 1px solid var(--ehr-surface);
   margin-bottom: -1px;
   position: relative;
   z-index: 1;
 }
 
 .ehr-tab-content {
-  border: 1px solid #888;
-  background: #fff;
+  border: 1px solid var(--ehr-border-strong);
+  background: var(--ehr-surface);
   padding: 8px;
 }
 
 .ehr-grid-row:nth-child(even) {
-  background: #f0f4f8;
+  background: var(--ehr-row-alt);
 }
 
 .ehr-grid-row:hover {
-  background: #d0e0f0;
+  background: var(--ehr-row-hover);
 }
 
 .ehr-grid-row.selected {
-  background: #316ac5;
-  color: white;
+  background: var(--ehr-row-selected);
+  color: var(--ehr-row-selected-text);
 }
 
 .ehr-alert-critical {
-  background: #ffcccc;
-  border: 1px solid #cc0000;
-  color: #990000;
+  background: var(--ehr-alert-critical-bg);
+  border: 1px solid var(--ehr-alert-critical-border);
+  color: var(--ehr-alert-critical-text);
 }
 
 .ehr-alert-warning {
-  background: #fff3cd;
-  border: 1px solid #cc9900;
-  color: #664d00;
+  background: var(--ehr-alert-warning-bg);
+  border: 1px solid var(--ehr-alert-warning-border);
+  color: var(--ehr-alert-warning-text);
 }
 
 .ehr-alert-info {
-  background: #cce5ff;
-  border: 1px solid #0066cc;
-  color: #004085;
+  background: var(--ehr-alert-info-bg);
+  border: 1px solid var(--ehr-alert-info-border);
+  color: var(--ehr-alert-info-text);
 }
 
 .ehr-toolbar {
-  background: linear-gradient(to bottom, #f5f5f5 0%, #e5e5e5 100%);
-  border-bottom: 1px solid #999;
+  background: linear-gradient(to bottom, var(--ehr-toolbar-from) 0%, var(--ehr-toolbar-to) 100%);
+  border-bottom: 1px solid var(--ehr-border);
+  color: var(--ehr-text);
   padding: 2px 4px;
 }
 
@@ -217,22 +361,92 @@ td {
 }
 
 .ehr-toolbar-button:hover {
-  background: #e0e8f0;
-  border: 1px solid #999;
+  background: var(--ehr-toolbar-hover);
+  border: 1px solid var(--ehr-border);
 }
 
 .ehr-toolbar-button-active {
-  background: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
-  border: 1px solid #888;
-  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.15);
+  background: linear-gradient(to bottom, var(--ehr-button-hover-from) 0%, var(--ehr-button-hover-to) 100%);
+  border: 1px solid var(--ehr-border-strong);
+  box-shadow: inset 1px 1px 2px var(--ehr-shadow);
 }
 
 .ehr-splitter {
-  background: #d4d0c8;
+  background: var(--ehr-desktop);
   cursor: col-resize;
   width: 4px;
 }
 
 .ehr-splitter:hover {
-  background: #b0b0b0;
+  background: var(--ehr-border);
 }
+
+/*
+ * Dark palette remap for the literal Tailwind color utilities used throughout
+ * the clinical screens, so the legacy EHR markup inverts without per-element
+ * dark: variants.
+ */
+.dark .bg-white { background-color: var(--ehr-surface); }
+.dark .bg-gray-50 { background-color: var(--ehr-surface-alt); }
+.dark .bg-gray-100 { background-color: #262a30; }
+.dark .bg-gray-200 { background-color: #2d323a; }
+.dark .bg-gray-300 { background-color: #353b43; }
+.dark .bg-gray-600 { background-color: #4a515a; }
+.dark .bg-blue-100 { background-color: #22384f; }
+.dark .bg-red-50 { background-color: #351d1d; }
+.dark .bg-yellow-100 { background-color: #3a3116; }
+.dark .bg-yellow-400 { background-color: #b08c1a; }
+
+.dark .hover\:bg-white:hover { background-color: #23272e; }
+.dark .hover\:bg-gray-50:hover { background-color: #262a30; }
+.dark .hover\:bg-gray-100:hover { background-color: #2b3037; }
+.dark .hover\:bg-gray-200:hover { background-color: #333941; }
+.dark .hover\:bg-blue-50:hover { background-color: #22384f; }
+.dark .hover\:bg-blue-100:hover { background-color: #2a4463; }
+
+.dark .text-gray-900 { color: #e6eaef; }
+.dark .text-gray-800 { color: #dde2e8; }
+.dark .text-gray-700 { color: #ccd2da; }
+.dark .text-gray-600 { color: #b0b8c2; }
+.dark .text-gray-500 { color: #98a1ac; }
+.dark .text-gray-400 { color: #858e99; }
+.dark .text-gray-200 { color: #d4d9df; }
+
+.dark .border-white { color: inherit; border-color: var(--ehr-border-strong); }
+.dark .border-gray-200 { border-color: #2f343b; }
+.dark .border-gray-300 { border-color: #363c44; }
+.dark .border-gray-400 { border-color: #424953; }
+.dark .border-gray-500 { border-color: #4c545e; }
+.dark .border-gray-600 { border-color: #565f6a; }
+.dark .border-gray-700 { border-color: #606974; }
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #2f343b; }
+
+.dark .text-red-500 { color: #ff8f8f; }
+.dark .text-red-600 { color: #ff8080; }
+.dark .text-red-700 { color: #ff9494; }
+.dark .text-red-800 { color: #ffa8a8; }
+.dark .text-red-900 { color: #ffbcbc; }
+.dark .hover\:text-red-800:hover { color: #ffbcbc; }
+.dark .text-green-600 { color: #64d68a; }
+.dark .text-green-700 { color: #74dd97; }
+.dark .text-green-800 { color: #8ce5aa; }
+.dark .text-yellow-700 { color: #eec45c; }
+.dark .text-yellow-800 { color: #f2cf76; }
+.dark .text-amber-600 { color: #e8b44a; }
+.dark .text-amber-700 { color: #edc267; }
+.dark .text-orange-500 { color: #f79d5c; }
+.dark .text-orange-600 { color: #f9a869; }
+.dark .text-orange-800 { color: #fbc08f; }
+.dark .text-blue-500 { color: #6fb0f0; }
+.dark .text-blue-600 { color: #7cb8f2; }
+.dark .text-blue-800 { color: #9ccbf6; }
+.dark .text-purple-500 { color: #b18ce8; }
+.dark .text-purple-600 { color: #bb9aec; }
+.dark .text-purple-800 { color: #cdb3f2; }
+.dark .border-red-200 { border-color: #5a2a2a; }
+.dark .border-red-300 { border-color: #6a3333; }
+.dark .border-red-500 { border-color: #8a4040; }
+.dark .border-green-300 { border-color: #2f6b45; }
+.dark .border-yellow-300 { border-color: #6d5a20; }
+.dark .border-blue-300 { border-color: #2f5680; }
+.dark .border-blue-400 { border-color: #3a6394; }

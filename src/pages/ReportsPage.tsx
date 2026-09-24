@@ -199,7 +199,7 @@ export default function ReportsPage() {
               <div key={category} className="border-b border-gray-300">
                 <div
                   onClick={() => toggleCategory(category)}
-                  className="ehr-section-header px-2 py-1 cursor-pointer flex items-center justify-between text-[11px] border-b border-gray-400"
+                  className="ehr-section-bar px-2 py-1 cursor-pointer flex items-center justify-between text-[11px] border-b border-gray-400"
                 >
                   <div className="flex items-center space-x-2">
                     <span className="w-4 h-4 border border-gray-500 bg-white flex items-center justify-center text-[10px] font-bold">

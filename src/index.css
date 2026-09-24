@@ -592,6 +592,10 @@ td {
   background: linear-gradient(to bottom, #ffffff 0%, #f0f0f0 100%);
 }
 
+.ehr-section-bar {
+  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
+}
+
 .ehr-table-head {
   background: linear-gradient(to bottom, #f0f0f0 0%, #e0e0e0 100%);
 }
@@ -619,12 +623,14 @@ td {
   color: #664d00;
 }
 
-.dark .ehr-section-header {
+.dark .ehr-section-header,
+.dark .ehr-section-bar {
   background: linear-gradient(to bottom, #303036 0%, #26262a 100%);
   color: #dcdcdc;
 }
 
-.dark .ehr-section-header:hover {
+.dark .ehr-section-header:hover,
+.dark .ehr-section-bar:hover {
   background: linear-gradient(to bottom, #3a3a41 0%, #2e2e33 100%);
 }
 

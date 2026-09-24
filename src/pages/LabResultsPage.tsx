@@ -115,9 +115,16 @@ export default function LabResultsPage() {
   const getStatusStyle = (status: LabResult['status']) => {
     switch (status) {
       case 'critical':
-        return { background: '#ffcccc', color: '#990000', fontWeight: 'bold' };
+        return {
+          background: 'var(--ehr-alert-critical-bg)',
+          color: 'var(--ehr-alert-critical-text)',
+          fontWeight: 'bold',
+        };
       case 'abnormal':
-        return { background: '#fff3cd', color: '#664d00' };
+        return {
+          background: 'var(--ehr-alert-warning-bg)',
+          color: 'var(--ehr-alert-warning-text)',
+        };
       default:
         return {};
     }

@@ -200,7 +200,7 @@ export default function ReportsPage() {
                 <div
                   onClick={() => toggleCategory(category)}
                   className="px-2 py-1 bg-gray-100 hover:bg-gray-200 cursor-pointer flex items-center justify-between text-[11px] border-b border-gray-400"
-                  style={{ background: 'linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%)' }}
+                  style={{ background: 'linear-gradient(to bottom, var(--ehr-button-from) 0%, var(--ehr-button-to) 100%)', color: 'var(--ehr-text)' }}
                 >
                   <div className="flex items-center space-x-2">
                     <span className="w-4 h-4 border border-gray-500 bg-white flex items-center justify-center text-[10px] font-bold">

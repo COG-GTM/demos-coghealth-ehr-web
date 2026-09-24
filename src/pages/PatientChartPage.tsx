@@ -118,7 +118,7 @@ export default function PatientChartPage() {
   ];
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col ehr-desktop">
       <PatientBanner patient={patient} allergies={allergies} />
       
       {/* Toolbar */}

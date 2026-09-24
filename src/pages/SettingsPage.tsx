@@ -109,7 +109,10 @@ export default function SettingsPage() {
   ];
 
   const handleSave = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ profile, notifications, appearance }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ profile, notifications, appearance: { ...appearance, theme } })
+    );
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -404,9 +407,9 @@ export default function SettingsPage() {
                           setTheme(option);
                           setAppearance({ ...appearance, theme: option });
                         }}
-                        className={`p-2 border text-center text-[11px] ${
+                        className={`ehr-theme-option p-2 border text-center text-[11px] ${
                           theme === option
-                            ? 'border-gray-600 bg-white'
+                            ? 'ehr-theme-option-selected border-gray-600 bg-white'
                             : 'border-gray-400 bg-gray-100 hover:bg-gray-50'
                         }`}
                       >

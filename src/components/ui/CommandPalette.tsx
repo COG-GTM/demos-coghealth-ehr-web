@@ -16,7 +16,7 @@ import {
   Users,
 } from 'lucide-react';
 import { logAuditEvent, logPatientAccess, logPrint } from '../../services/auditService';
-import { scoreCommand } from './fuzzyScore';
+import { SUBSTRING_SCORE_FLOOR, scoreCommand } from './fuzzyScore';
 
 export interface CommandPalettePatient {
   id: number;
@@ -164,9 +164,13 @@ export default function CommandPalette({
       return [...recentCommands, ...rest];
     }
 
-    return commands
+    const scored = commands
       .map((cmd) => ({ cmd, score: scoreCommand(`${cmd.label} ${cmd.keywords}`, query.trim()) }))
-      .filter(({ score }) => score >= 0)
+      .filter(({ score }) => score >= 0);
+    const hasLiteralMatch = scored.some(({ score }) => score >= SUBSTRING_SCORE_FLOOR);
+
+    return scored
+      .filter(({ score }) => !hasLiteralMatch || score >= SUBSTRING_SCORE_FLOOR)
       .sort((a, b) => b.score - a.score)
       .map(({ cmd }) => cmd);
   }, [commands, query, recent]);

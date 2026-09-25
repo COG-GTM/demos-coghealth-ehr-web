@@ -1,3 +1,5 @@
+export const SUBSTRING_SCORE_FLOOR = 500;
+
 export function scoreCommand(haystack: string, query: string): number {
   if (!query) return 0;
   const target = haystack.toLowerCase();
@@ -5,7 +7,7 @@ export function scoreCommand(haystack: string, query: string): number {
 
   const direct = target.indexOf(needle);
   if (direct === 0) return 1000;
-  if (direct > 0) return 800 - direct;
+  if (direct > 0) return Math.max(SUBSTRING_SCORE_FLOOR, 800 - direct);
 
   let score = 0;
   let cursor = 0;

@@ -43,7 +43,7 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           {/* Title bar */}
           <div 
             className="flex items-center justify-between px-2 py-1"
-            style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
+            style={{ background: 'linear-gradient(to bottom, var(--ehr-titlebar-from) 0%, var(--ehr-titlebar-to) 100%)' }}
           >
             <span className="text-white font-semibold text-[11px]">{title}</span>
             <button 
@@ -128,10 +128,10 @@ interface AlertDialogProps {
 
 export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: AlertDialogProps) {
   const bgColors = {
-    info: '#cce5ff',
-    success: '#d4edda',
-    warning: '#fff3cd',
-    error: '#f8d7da',
+    info: 'var(--ehr-info-bg)',
+    success: 'var(--ehr-success-bg)',
+    warning: 'var(--ehr-warning-bg)',
+    error: 'var(--ehr-critical-bg)',
   };
   
   return (

@@ -13,6 +13,7 @@ import {
   Search,
   Lock,
   Shield,
+  Command,
   FlaskConical,
   Activity
 } from 'lucide-react';
@@ -27,6 +28,7 @@ import SettingsPage from './pages/SettingsPage';
 import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
+import CommandPalette from './components/ui/CommandPalette';
 import { logLogout } from './services/auditService';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
@@ -45,9 +47,10 @@ interface NavigationProps {
   onSessionWarning: () => void;
   onSessionExpired: () => void;
   onLogout: () => void;
+  onOpenCommandPalette: () => void;
 }
 
-function Navigation({ onSessionWarning, onSessionExpired, onLogout }: NavigationProps) {
+function Navigation({ onSessionWarning, onSessionExpired, onLogout, onOpenCommandPalette }: NavigationProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -172,6 +175,16 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
           </div>
         </div>
         <div className="flex items-center space-x-3 text-[10px]">
+          <button
+            onClick={onOpenCommandPalette}
+            className="flex items-center space-x-1 border border-blue-400 bg-blue-900/50 px-1.5 py-0.5 text-blue-100 hover:text-white"
+            data-testid="command-palette-trigger"
+          >
+            <Command className="w-3 h-3" />
+            <span>Quick Actions</span>
+            <span className="text-blue-300">Ctrl+K</span>
+          </button>
+          <span className="text-blue-300">|</span>
           <span className="text-blue-100">Springfield Medical Center</span>
           <span className="text-blue-300">|</span>
           <div className="flex items-center space-x-1">
@@ -256,10 +269,48 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   );
 }
 
+interface CommandPaletteHostProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onLock: () => void;
+}
+
+function CommandPaletteHost({ isOpen, onClose, onLock }: CommandPaletteHostProps) {
+  const navigate = useNavigate();
+
+  const handleNavigate = useCallback((path: string) => navigate(path), [navigate]);
+
+  if (!isOpen) return null;
+
+  return (
+    <CommandPalette
+      onClose={onClose}
+      onNavigate={handleNavigate}
+      onLock={onLock}
+      patients={defaultPatientSearch}
+    />
+  );
+}
+
 function App() {
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSessionExpired, setShowSessionExpired] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const closePalette = useCallback(() => setPaletteOpen(false), []);
+  const openPalette = useCallback(() => setPaletteOpen(true), []);
 
   const handleSessionWarning = useCallback(() => {
     setShowSessionWarning(true);
@@ -285,7 +336,9 @@ function App() {
           onSessionWarning={handleSessionWarning}
           onSessionExpired={handleSessionExpired}
           onLogout={handleLogout}
+          onOpenCommandPalette={openPalette}
         />
+        <CommandPaletteHost isOpen={paletteOpen} onClose={closePalette} onLock={handleLogout} />
         <main className="flex-1 overflow-hidden">
           <Routes>
             <Route path="/" element={<DashboardPage />} />

@@ -38,7 +38,6 @@ interface Command {
 }
 
 interface CommandPaletteProps {
-  isOpen: boolean;
   onClose: () => void;
   onNavigate: (path: string) => void;
   onLock: () => void;
@@ -63,7 +62,6 @@ function pushRecent(commandId: string): void {
 }
 
 export default function CommandPalette({
-  isOpen,
   onClose,
   onNavigate,
   onLock,
@@ -71,6 +69,7 @@ export default function CommandPalette({
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
+  const [recent] = useState<string[]>(getRecent);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -156,8 +155,6 @@ export default function CommandPalette({
     return [...actionCommands, ...navCommands, ...patientCommands];
   }, [onLock, onNavigate, patients]);
 
-  const [recent, setRecent] = useState<string[]>([]);
-
   const results = useMemo(() => {
     if (!query.trim()) {
       const recentCommands = recent
@@ -188,27 +185,20 @@ export default function CommandPalette({
   }, [query, recent, results]);
 
   useEffect(() => {
-    if (isOpen) {
-      setQuery('');
-      setActiveIndex(0);
-      setRecent(getRecent());
-      window.setTimeout(() => inputRef.current?.focus(), 0);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [query]);
+    inputRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     listRef.current?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
   }, [activeIndex, results]);
 
-  if (!isOpen) return null;
+  const handleQueryChange = (value: string) => {
+    setQuery(value);
+    setActiveIndex(0);
+  };
 
   const runCommand = (command: Command) => {
     pushRecent(command.id);
-    setRecent(getRecent());
     onClose();
     command.run();
   };
@@ -251,7 +241,7 @@ export default function CommandPalette({
           <input
             ref={inputRef}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleQueryChange(e.target.value)}
             placeholder="Search patients, pages and actions..."
             className="w-full text-[12px] text-gray-800 placeholder-gray-400 focus:outline-none"
             data-testid="command-palette-input"

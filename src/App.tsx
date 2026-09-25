@@ -280,9 +280,10 @@ function CommandPaletteHost({ isOpen, onClose, onLock }: CommandPaletteHostProps
 
   const handleNavigate = useCallback((path: string) => navigate(path), [navigate]);
 
+  if (!isOpen) return null;
+
   return (
     <CommandPalette
-      isOpen={isOpen}
       onClose={onClose}
       onNavigate={handleNavigate}
       onLock={onLock}

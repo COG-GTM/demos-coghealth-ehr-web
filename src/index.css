@@ -384,6 +384,54 @@ td {
 .dark .text-gray-800 { color: var(--ehr-text); }
 .dark .text-gray-900 { color: var(--ehr-text); }
 
+.dark .bg-gray-300 { background-color: var(--ehr-surface-raised); }
+
+.dark .from-\[\#f8f8f8\] { --tw-gradient-from: var(--ehr-surface-alt); }
+.dark .from-\[\#f0f0f0\] { --tw-gradient-from: var(--ehr-surface-raised); }
+.dark .from-\[\#fff\] { --tw-gradient-from: var(--ehr-hover); }
+.dark .to-\[\#e8e8e8\] { --tw-gradient-to: var(--ehr-surface); }
+.dark .to-\[\#e0e0e0\] { --tw-gradient-to: var(--ehr-surface); }
+.dark .to-\[\#f0f0f0\] { --tw-gradient-to: var(--ehr-surface-raised); }
+.dark .bg-gradient-to-b.from-\[\#f8f8f8\] {
+  background-image: linear-gradient(to bottom, var(--ehr-surface-alt), var(--ehr-surface));
+}
+.dark .bg-gradient-to-b.from-\[\#f0f0f0\] {
+  background-image: linear-gradient(to bottom, var(--ehr-surface-raised), var(--ehr-surface));
+}
+.dark .bg-gradient-to-b.hover\:from-\[\#fff\]:hover {
+  background-image: linear-gradient(to bottom, var(--ehr-hover), var(--ehr-surface-raised));
+}
+
+.dark .text-red-500,
+.dark .text-red-600,
+.dark .text-red-700,
+.dark .text-red-800,
+.dark .text-red-900 { color: var(--ehr-critical-text); }
+.dark .text-green-600,
+.dark .text-green-700,
+.dark .text-green-800 { color: var(--ehr-success-text); }
+.dark .text-yellow-700,
+.dark .text-yellow-800,
+.dark .text-amber-600,
+.dark .text-amber-700 { color: var(--ehr-warning-text); }
+.dark .text-blue-500,
+.dark .text-blue-600,
+.dark .text-blue-800 { color: var(--ehr-info-text); }
+.dark .text-orange-500,
+.dark .text-orange-600,
+.dark .text-orange-800 { color: #f0b67a; }
+.dark .text-purple-500,
+.dark .text-purple-600,
+.dark .text-purple-800 { color: #c9aef0; }
+
+.dark .border-red-200,
+.dark .border-red-300,
+.dark .border-red-500 { border-color: var(--ehr-critical-border); }
+.dark .border-green-300 { border-color: var(--ehr-success-border); }
+.dark .border-yellow-300 { border-color: var(--ehr-warning-border); }
+.dark .border-blue-300,
+.dark .border-blue-400 { border-color: var(--ehr-info-border); }
+
 .dark .border-gray-200 { border-color: var(--ehr-border-light); }
 .dark .border-gray-300 { border-color: var(--ehr-border-light); }
 .dark .border-gray-400 { border-color: var(--ehr-border); }

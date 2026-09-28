@@ -9,9 +9,9 @@ export function LoadingOverlay({ isLoading, text = 'Loading...' }: LoadingOverla
   return (
     <div 
       className="absolute inset-0 z-40 flex items-center justify-center pointer-events-auto"
-      style={{ backgroundColor: 'rgba(128, 128, 128, 0.5)' }}
+      style={{ backgroundColor: 'var(--ehr-overlay)' }}
     >
-      <div className="flex flex-col items-center bg-[#ece9d8] border-2 border-gray-400 px-6 py-4 shadow-md" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+      <div className="flex flex-col items-center bg-[var(--ehr-window)] border-2 border-gray-400 px-6 py-4 shadow-md" style={{ boxShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
         <svg
           width="32"
           height="32"

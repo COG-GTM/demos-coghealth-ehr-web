@@ -99,7 +99,7 @@ export default function PatientSearch({ onSelectPatient }: PatientSearchProps) {
               <button
                 key={patient.id}
                 onClick={() => onSelectPatient(patient)}
-                className="w-full px-3 py-2 flex items-center justify-between hover:bg-[#e0e8f0] text-left text-[11px]"
+                className="w-full px-3 py-2 flex items-center justify-between hover:bg-[var(--ehr-hover)] text-left text-[11px]"
               >
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-gray-200 flex items-center justify-center border border-gray-400">

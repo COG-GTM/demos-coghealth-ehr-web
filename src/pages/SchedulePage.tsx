@@ -274,7 +274,7 @@ export default function SchedulePage() {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col" style={{ background: 'var(--ehr-desktop)' }}>
       {/* Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-1">
@@ -365,7 +365,7 @@ export default function SchedulePage() {
                       apt.status === 'FINISHED' ? 'opacity-50' : 
                       idx % 2 === 1 ? 'bg-gray-50' : ''
                     }`}
-                    style={isSelected ? { background: '#316ac5', color: 'white' } : undefined}
+                    style={isSelected ? { background: 'var(--ehr-selected)', color: 'white' } : undefined}
                   >
                     <td className="px-1 py-1">
                       <div className="font-semibold">{formatTime(apt.appointmentTime)}</div>
@@ -373,7 +373,7 @@ export default function SchedulePage() {
                     </td>
                     <td className="px-1 py-1">
                       <div className="font-semibold">{apt.patientName}</div>
-                      <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: '#666' }}>
+                      <div className="text-[10px]" style={isSelected ? { color: 'var(--ehr-selected-muted-text)' } : { color: 'var(--ehr-text-muted)' }}>
                         {apt.patientMrn} • {apt.patientAge}{apt.patientGender}
                       </div>
                       <div className="flex space-x-0.5 mt-0.5">
@@ -444,7 +444,7 @@ export default function SchedulePage() {
         </div>
 
         {/* Detail Panel */}
-        <div className="w-80 flex flex-col overflow-hidden" style={{ background: '#ece9d8' }}>
+        <div className="w-80 flex flex-col overflow-hidden" style={{ background: 'var(--ehr-window)' }}>
           {selectedAppointment ? (
             <>
               {/* Patient Header */}

@@ -115,9 +115,9 @@ export default function LabResultsPage() {
   const getStatusStyle = (status: LabResult['status']) => {
     switch (status) {
       case 'critical':
-        return { background: '#ffcccc', color: '#990000', fontWeight: 'bold' };
+        return { background: 'var(--ehr-critical-bg)', color: 'var(--ehr-critical-text)', fontWeight: 'bold' };
       case 'abnormal':
-        return { background: '#fff3cd', color: '#664d00' };
+        return { background: 'var(--ehr-warning-bg)', color: 'var(--ehr-warning-text)' };
       default:
         return {};
     }
@@ -231,7 +231,7 @@ export default function LabResultsPage() {
             filteredPanels.map(panel => (
               <div key={panel.id} className="border-b border-gray-300">
                 <div
-                  className="flex items-center justify-between px-2 py-1.5 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] cursor-pointer hover:from-[#fff] hover:to-[#f0f0f0]"
+                  className="flex items-center justify-between px-2 py-1.5 bg-gradient-to-b from-[var(--ehr-gradient-from)] to-[var(--ehr-gradient-mid)] cursor-pointer hover:from-[var(--ehr-gradient-hover-from)] hover:to-[var(--ehr-gradient-hover-to)]"
                   onClick={() => togglePanel(panel.id)}
                 >
                   <div className="flex items-center space-x-2">
@@ -264,7 +264,7 @@ export default function LabResultsPage() {
                 {expandedPanels.includes(panel.id) && (
                   <table className="w-full text-[11px]">
                     <thead>
-                      <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
+                      <tr className="bg-gradient-to-b from-[var(--ehr-table-head-from)] to-[var(--ehr-gradient-to)]">
                         <th className="text-left px-2 py-1 border-b border-gray-400 w-1/4">Test</th>
                         <th className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Result</th>
                         <th className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Units</th>
@@ -276,7 +276,7 @@ export default function LabResultsPage() {
                       {panel.results.map((result, idx) => (
                         <tr
                           key={result.id}
-                          className={`cursor-pointer hover:bg-[#e0e8f0] ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}`}
+                          className={`cursor-pointer hover:bg-[var(--ehr-hover)] ${idx % 2 === 0 ? 'bg-white' : 'bg-[var(--ehr-row-stripe)]'}`}
                           style={getStatusStyle(result.status)}
                           onClick={() => setSelectedResult(result)}
                         >

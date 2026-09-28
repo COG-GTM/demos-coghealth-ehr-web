@@ -315,7 +315,7 @@ export default function MedicationsPage() {
   };
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
+    <div className="h-full flex flex-col" style={{ background: 'var(--ehr-desktop)' }}>
       {/* Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
         <div className="flex items-center space-x-1">
@@ -446,7 +446,7 @@ export default function MedicationsPage() {
                         order.status === 'DISCONTINUED' || order.status === 'COMPLETED' ? 'opacity-50' : 
                         idx % 2 === 1 ? 'bg-gray-50' : ''
                       }`}
-                      style={isSelected ? { background: '#316ac5', color: 'white' } : undefined}
+                      style={isSelected ? { background: 'var(--ehr-selected)', color: 'white' } : undefined}
                     >
                       <td className="px-1 py-1">
                         <div className="flex items-center space-x-1">
@@ -457,7 +457,7 @@ export default function MedicationsPage() {
                           )}
                           <div>
                             <div className="font-semibold">{order.medicationName} {order.strength}</div>
-                            <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: '#666' }}>
+                            <div className="text-[10px]" style={isSelected ? { color: 'var(--ehr-selected-muted-text)' } : { color: 'var(--ehr-text-muted)' }}>
                               {order.form} • {order.orderNumber}
                             </div>
                           </div>
@@ -465,7 +465,7 @@ export default function MedicationsPage() {
                       </td>
                       <td className="px-1 py-1">
                         <div>{order.patientName}</div>
-                        <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: '#666' }}>{order.patientMrn}</div>
+                        <div className="text-[10px]" style={isSelected ? { color: 'var(--ehr-selected-muted-text)' } : { color: 'var(--ehr-text-muted)' }}>{order.patientMrn}</div>
                       </td>
                       <td className="px-1 py-1">
                         <div className="truncate max-w-[180px]">{order.sig}</div>
@@ -523,7 +523,7 @@ export default function MedicationsPage() {
         </div>
 
         {/* Detail Panel */}
-        <div className="w-80 flex flex-col overflow-hidden" style={{ background: '#ece9d8' }}>
+        <div className="w-80 flex flex-col overflow-hidden" style={{ background: 'var(--ehr-window)' }}>
           {selectedOrder ? (
             <>
               {/* Medication Header */}
@@ -817,7 +817,7 @@ function OrderRow({ order, selected, onSelect, idx }: { order: MedicationOrderEx
       className={`px-3 py-1 cursor-pointer flex items-center justify-between text-[11px] ${
         selected ? '' : idx % 2 === 1 ? 'bg-gray-50' : ''
       }`}
-      style={selected ? { background: '#316ac5', color: 'white' } : undefined}
+      style={selected ? { background: 'var(--ehr-selected)', color: 'white' } : undefined}
     >
       <div className="flex items-center space-x-2">
         <div className="w-6">
@@ -825,7 +825,7 @@ function OrderRow({ order, selected, onSelect, idx }: { order: MedicationOrderEx
         </div>
         <div>
           <div className="font-semibold">{order.medicationName} {order.strength}</div>
-          <div style={selected ? { color: '#ccc' } : { color: '#666' }}>{order.sig}</div>
+          <div style={selected ? { color: 'var(--ehr-selected-muted-text)' } : { color: 'var(--ehr-text-muted)' }}>{order.sig}</div>
         </div>
       </div>
       <div className="flex items-center space-x-2">

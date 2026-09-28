@@ -42,6 +42,7 @@ const defaultProblems: Problem[] = [
 ];
 const defaultMedications: Medication[] = [
   { id: 1, name: 'Metformin HCl ER', dose: '500mg', sig: 'Take 1 tablet by mouth twice daily', status: 'Active', refills: '2/3' },
+  { id: 2, name: 'Lisinopril', dose: '10mg', sig: 'Take 1 tablet by mouth once daily', status: 'Active', refills: '4/5' },
 ];
 const defaultAllergies: Allergy[] = [
   { id: 1, allergen: 'Penicillin', reaction: 'Rash', severity: 'Moderate', type: 'Drug' },
@@ -455,6 +456,7 @@ export default function PatientChartPage() {
         patientName={`${patient.lastName}, ${patient.firstName}`}
         patientMrn={patient.mrn}
         patientAllergies={allergies.map(a => a.allergen)}
+        currentMedications={medications.filter(m => m.status === 'Active').map(m => m.name)}
         onSubmit={(rx) => {
           console.log('New Rx:', rx);
           setShowRxDialog(false);

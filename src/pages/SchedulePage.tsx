@@ -815,6 +815,7 @@ export default function SchedulePage() {
         patientName={selectedAppointment?.patientName}
         patientMrn={selectedAppointment?.patientMrn}
         patientAllergies={selectedAppointment?.flags.includes('allergy') ? ['Penicillin', 'Sulfa'] : []}
+        currentMedications={selectedAppointment?.medications?.map(m => m.name) ?? []}
         onSubmit={(rx) => {
           setShowAlert({ title: 'Prescription Sent', message: `${rx.medication} ${rx.strength} has been sent to ${rx.pharmacy}.`, type: 'success' });
         }}

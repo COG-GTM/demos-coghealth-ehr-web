@@ -12,6 +12,7 @@ export type AuditEventType =
   | 'NOTE_CREATE'
   | 'NOTE_SIGN'
   | 'PRESCRIPTION_CREATE'
+  | 'CDS_ALERT_OVERRIDE'
   | 'SETTINGS_CHANGE'
   | 'FAILED_LOGIN';
 
@@ -151,6 +152,20 @@ export function logPrescription(patientId: string, medication: string): void {
     patientId,
     action: 'Prescription created',
     details: medication,
+  });
+}
+
+export function logSafetyOverride(
+  patientMrn: string | undefined,
+  medication: string,
+  alertTitles: string[],
+  reason: string
+): void {
+  logAuditEvent('CDS_ALERT_OVERRIDE', {
+    patientMrn,
+    resourceType: 'Prescription',
+    action: 'Medication safety alert overridden',
+    details: `${medication} - Alerts: ${alertTitles.join('; ')} - Reason: ${reason}`,
   });
 }
 

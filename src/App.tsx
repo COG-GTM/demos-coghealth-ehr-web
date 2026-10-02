@@ -14,7 +14,8 @@ import {
   Lock,
   Shield,
   FlaskConical,
-  Activity
+  Activity,
+  Zap
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
@@ -28,18 +29,13 @@ import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
 import { logLogout } from './services/auditService';
+import { CommandPalette } from './components/command/CommandPalette';
+import { demoPatients } from './services/demoPatients';
+import { addRecentPatient } from './services/recentPatients';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
 
-const defaultPatientSearch = [
-  { id: 1, name: 'Smith, John', mrn: 'MRN001234', dob: '03/15/1965' },
-  { id: 2, name: 'Johnson, Sarah', mrn: 'MRN001235', dob: '07/22/1978' },
-  { id: 3, name: 'Williams, Michael', mrn: 'MRN001236', dob: '11/08/1952' },
-  { id: 4, name: 'Brown, Emily', mrn: 'MRN001237', dob: '04/30/1989' },
-  { id: 5, name: 'Davis, Robert', mrn: 'MRN001238', dob: '08/20/1945' },
-  { id: 6, name: 'Martinez, Maria', mrn: 'MRN001240', dob: '12/05/1970' },
-];
 
 interface NavigationProps {
   onSessionWarning: () => void;
@@ -52,9 +48,23 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
-  const [searchResults, setSearchResults] = useState<typeof defaultPatientSearch>([]);
+  const [searchResults, setSearchResults] = useState<typeof demoPatients>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [sessionTime, setSessionTime] = useState(SESSION_TIMEOUT_MS);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const handleShortcut = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen(open => !open);
+      }
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
+
+  const closePalette = useCallback(() => setPaletteOpen(false), []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -90,7 +100,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   const handleSearch = (query: string) => {
     setGlobalSearch(query);
     if (query.length >= 2) {
-      const results = defaultPatientSearch.filter(p =>
+      const results = demoPatients.filter(p =>
         p.name.toLowerCase().includes(query.toLowerCase()) ||
         p.mrn.toLowerCase().includes(query.toLowerCase())
       );
@@ -102,10 +112,11 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     }
   };
 
-  const selectPatient = (patientId: number) => {
+  const selectPatient = (patient: (typeof demoPatients)[number]) => {
     setGlobalSearch('');
     setShowSearchDropdown(false);
-    navigate(`/patients/${patientId}`);
+    addRecentPatient(patient);
+    navigate(`/patients/${patient.id}`);
   };
 
   const formatSessionTime = () => {
@@ -155,7 +166,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
                 {searchResults.map((patient) => (
                   <div
                     key={patient.id}
-                    onClick={() => selectPatient(patient.id)}
+                    onClick={() => selectPatient(patient)}
                     className="px-2 py-1.5 hover:bg-blue-100 cursor-pointer text-[11px] text-gray-800 border-b border-gray-200"
                   >
                     <div className="font-semibold">{patient.name}</div>
@@ -170,6 +181,15 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
               </div>
             )}
           </div>
+          <button
+            onClick={() => setPaletteOpen(true)}
+            title="Quick Launch (Ctrl+K)"
+            className="flex items-center space-x-1 bg-blue-900/50 border border-blue-400 text-blue-100 hover:text-white hover:border-white text-[10px] px-1.5 py-0.5"
+          >
+            <Zap className="w-3 h-3" />
+            <span>Quick Launch</span>
+            <kbd className="ml-1 px-1 bg-blue-800 border border-blue-400 text-[9px] font-sans">Ctrl+K</kbd>
+          </button>
         </div>
         <div className="flex items-center space-x-3 text-[10px]">
           <span className="text-blue-100">Springfield Medical Center</span>
@@ -252,6 +272,8 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
           </div>
         </div>
       )}
+
+      <CommandPalette isOpen={paletteOpen} onClose={closePalette} pages={navItems} onLogout={onLogout} />
     </>
   );
 }

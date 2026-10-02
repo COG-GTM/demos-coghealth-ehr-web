@@ -45,14 +45,14 @@ const CATEGORY_LABELS: Record<CommandCategory, string> = {
   action: 'Actions',
 };
 
-function HighlightedText({ text, indices }: { text: string; indices: number[] }) {
+function HighlightedText({ text, indices, active }: { text: string; indices: number[]; active: boolean }) {
   if (indices.length === 0) return <>{text}</>;
   const marked = new Set(indices);
   return (
     <>
       {text.split('').map((ch, i) =>
         marked.has(i) ? (
-          <span key={i} className="font-bold underline decoration-[#316ac5]">{ch}</span>
+          <span key={i} className={`font-bold underline ${active ? 'decoration-white' : 'decoration-[#316ac5]'}`}>{ch}</span>
         ) : (
           <span key={i}>{ch}</span>
         )
@@ -239,7 +239,7 @@ function QuickLaunchWindow({ onClose, patients, navItems, onLogout }: Omit<Quick
                   >
                     <Icon className={`w-3.5 h-3.5 mr-2 flex-shrink-0 ${active ? 'text-white' : 'text-[#336699]'}`} />
                     <span className="flex-1 truncate">
-                      <HighlightedText text={cmd.item.title} indices={cmd.titleIndices} />
+                      <HighlightedText text={cmd.item.title} indices={cmd.titleIndices} active={active} />
                       {cmd.item.subtitle && (
                         <span className={`ml-2 text-[10px] ${active ? 'text-blue-100' : 'text-gray-500'}`}>
                           {cmd.item.subtitle}

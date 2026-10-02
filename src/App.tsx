@@ -14,7 +14,8 @@ import {
   Lock,
   Shield,
   FlaskConical,
-  Activity
+  Activity,
+  Zap
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
@@ -27,7 +28,9 @@ import SettingsPage from './pages/SettingsPage';
 import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
+import { QuickLaunch, type QuickLaunchNavItem } from './components/ui/QuickLaunch';
 import { logLogout } from './services/auditService';
+import { recordRecentPatient } from './services/recentPatientsService';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
@@ -41,13 +44,25 @@ const defaultPatientSearch = [
   { id: 6, name: 'Martinez, Maria', mrn: 'MRN001240', dob: '12/05/1970' },
 ];
 
+const navItems: QuickLaunchNavItem[] = [
+  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/patients', icon: Users, label: 'Patients' },
+  { path: '/schedule', icon: Calendar, label: 'Schedule' },
+  { path: '/labs', icon: FlaskConical, label: 'Lab Results' },
+  { path: '/vitals', icon: Activity, label: 'Vitals' },
+  { path: '/medications', icon: Pill, label: 'Medications' },
+  { path: '/reports', icon: FileText, label: 'Reports' },
+  { path: '/settings', icon: Settings, label: 'Settings' },
+];
+
 interface NavigationProps {
   onSessionWarning: () => void;
   onSessionExpired: () => void;
   onLogout: () => void;
+  onOpenQuickLaunch: () => void;
 }
 
-function Navigation({ onSessionWarning, onSessionExpired, onLogout }: NavigationProps) {
+function Navigation({ onSessionWarning, onSessionExpired, onLogout, onOpenQuickLaunch }: NavigationProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -105,6 +120,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   const selectPatient = (patientId: number) => {
     setGlobalSearch('');
     setShowSearchDropdown(false);
+    recordRecentPatient(patientId);
     navigate(`/patients/${patientId}`);
   };
 
@@ -113,17 +129,6 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     const secs = Math.floor((sessionTime % 60000) / 1000);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-
-  const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/patients', icon: Users, label: 'Patients' },
-    { path: '/schedule', icon: Calendar, label: 'Schedule' },
-    { path: '/labs', icon: FlaskConical, label: 'Lab Results' },
-    { path: '/vitals', icon: Activity, label: 'Vitals' },
-    { path: '/medications', icon: Pill, label: 'Medications' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
-  ];
 
   return (
     <>
@@ -170,6 +175,15 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
               </div>
             )}
           </div>
+          <button
+            onClick={onOpenQuickLaunch}
+            title="Quick Launch (Ctrl+K)"
+            className="flex items-center bg-blue-900/50 border border-blue-400 text-blue-100 hover:text-white hover:border-white text-[10px] px-1.5 py-0.5"
+          >
+            <Zap className="w-3 h-3 mr-1 text-yellow-300" />
+            Quick Launch
+            <kbd className="ml-1.5 px-1 bg-blue-800 border border-blue-400 text-[9px] font-sans">Ctrl+K</kbd>
+          </button>
         </div>
         <div className="flex items-center space-x-3 text-[10px]">
           <span className="text-blue-100">Springfield Medical Center</span>
@@ -260,6 +274,21 @@ function App() {
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSessionExpired, setShowSessionExpired] = useState(false);
+  const [showQuickLaunch, setShowQuickLaunch] = useState(false);
+
+  useEffect(() => {
+    const handleShortcut = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowQuickLaunch(open => !open);
+      }
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
+
+  const openQuickLaunch = useCallback(() => setShowQuickLaunch(true), []);
+  const closeQuickLaunch = useCallback(() => setShowQuickLaunch(false), []);
 
   const handleSessionWarning = useCallback(() => {
     setShowSessionWarning(true);
@@ -285,6 +314,7 @@ function App() {
           onSessionWarning={handleSessionWarning}
           onSessionExpired={handleSessionExpired}
           onLogout={handleLogout}
+          onOpenQuickLaunch={openQuickLaunch}
         />
         <main className="flex-1 overflow-hidden">
           <Routes>
@@ -320,6 +350,14 @@ function App() {
             <span className="text-gray-500">CogHealth EHR v4.2.1 - For Demo Use Only</span>
           </div>
         </div>
+
+        <QuickLaunch
+          isOpen={showQuickLaunch}
+          onClose={closeQuickLaunch}
+          patients={defaultPatientSearch}
+          navItems={navItems}
+          onLogout={handleLogout}
+        />
 
         {/* Session Warning Dialog */}
         <ConfirmDialog

@@ -13,6 +13,7 @@ export type AuditEventType =
   | 'NOTE_SIGN'
   | 'PRESCRIPTION_CREATE'
   | 'SETTINGS_CHANGE'
+  | 'CLINICAL_ESCALATION'
   | 'FAILED_LOGIN';
 
 export interface AuditEvent {

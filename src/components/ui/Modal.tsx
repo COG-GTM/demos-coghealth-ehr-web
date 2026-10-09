@@ -10,6 +10,11 @@ interface ModalProps {
   footer?: ReactNode;
 }
 
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// Open dialogs, topmost last; only the topmost one handles Escape/Tab.
+const openDialogs: HTMLElement[] = [];
+
 const widthClasses = {
   sm: 'w-80',
   md: 'w-[480px]',
@@ -20,29 +25,53 @@ const widthClasses = {
 export function Modal({ isOpen, onClose, title, children, width = 'md', footer }: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
-    if (!isOpen) return;
+    const dialog = dialogRef.current;
+    if (!isOpen || !dialog) return;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    dialogRef.current?.focus();
+    openDialogs.push(dialog);
+    dialog.focus();
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (openDialogs[openDialogs.length - 1] !== dialog) return;
+      if (e.key === 'Escape') {
+        onCloseRef.current();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (focusable.length === 0) {
+        e.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      const inside = active instanceof Node && dialog.contains(active);
+      if (e.shiftKey && (!inside || active === first || active === dialog)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (!inside || active === last)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
     return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      openDialogs.splice(openDialogs.indexOf(dialog), 1);
+      if (openDialogs.length === 0) document.body.style.overflow = '';
       if (opener?.isConnected) opener.focus();
     };
   }, [isOpen]);
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

@@ -10,8 +10,8 @@ describe('problemPriorityFlag', () => {
     expect(problemPriorityFlag(priority)).toEqual({ code, label });
   });
 
-  it('falls back to low priority for unknown values', () => {
-    expect(problemPriorityFlag('unknown')).toEqual({ code: 'L', label: 'Low priority' });
+  it.each(['unknown', 'constructor', '__proto__', 'toString'])('falls back to low priority for %p', (priority) => {
+    expect(problemPriorityFlag(priority)).toEqual({ code: 'L', label: 'Low priority' });
   });
 });
 
@@ -27,7 +27,7 @@ describe('labResultFlag', () => {
     expect(labResultFlag(status)).toEqual({ code, label });
   });
 
-  it.each(['Normal', '', 'Pending'])('returns no flag for %p', (status) => {
+  it.each(['Normal', '', 'Pending', 'constructor', '__proto__', 'hasOwnProperty'])('returns no flag for %p', (status) => {
     expect(labResultFlag(status)).toBeNull();
   });
 

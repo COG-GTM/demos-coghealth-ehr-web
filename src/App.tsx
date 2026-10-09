@@ -124,6 +124,8 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
     : undefined;
 
   const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    // Let IMEs use Enter/arrows to confirm and pick candidates (Safari reports keyCode 229).
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
     switch (e.key) {
       case 'ArrowDown':
       case 'ArrowUp':

@@ -286,9 +286,11 @@ export default function PatientSearchPage() {
           </button>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-gray-600">Search:</span>
+          <label htmlFor="patient-search-input" className="text-gray-600">Search:</label>
           <input
+            id="patient-search-input"
             type="text"
+            aria-label="Search patients"
             placeholder="Name, MRN, DOB, Phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -569,6 +571,8 @@ export default function PatientSearchPage() {
                               key={flag}
                               className={`px-0.5 py-0 text-[9px] font-medium ${isSelected ? 'bg-white/30 text-white' : `${flagConfig[flag].bg} ${flagConfig[flag].color}`}`}
                               title={flagConfig[flag].label}
+                              role="img"
+                              aria-label={flagConfig[flag].label}
                             >
                               {flag === 'FALL_RISK' && <AlertTriangle className="w-2.5 h-2.5 inline" />}
                               {flag === 'ALLERGY' && <AlertCircle className="w-2.5 h-2.5 inline" />}
@@ -578,7 +582,14 @@ export default function PatientSearchPage() {
                               {flag === 'DIFFICULT_IV' && 'IV'}
                             </span>
                           ))}
-                          {patient.flags.length > 3 && <span className="text-[9px]">+{patient.flags.length - 3}</span>}
+                          {patient.flags.length > 3 && (
+                            <span className="text-[9px]" title={patient.flags.slice(3).map((f) => flagConfig[f].label).join(', ')}>
+                              <span aria-hidden="true">+{patient.flags.length - 3}</span>
+                              <span className="sr-only">
+                                {`, ${patient.flags.slice(3).map((f) => flagConfig[f].label).join(', ')}`}
+                              </span>
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-1 py-0.5 font-mono">{patient.mrn}</td>
@@ -635,8 +646,13 @@ export default function PatientSearchPage() {
           <div className="w-72 flex flex-col border-l border-gray-500" style={{ background: '#f5f5f5' }}>
             <div className="ehr-header text-xs flex items-center justify-between">
               <span>Patient Details</span>
-              <button onClick={() => setSelectedPatient(null)} className="text-white/80 hover:text-white">
-                <X className="w-3.5 h-3.5" />
+              <button
+                type="button"
+                onClick={() => setSelectedPatient(null)}
+                aria-label="Close patient details"
+                className="text-white/80 hover:text-white"
+              >
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
             <div className="flex-1 overflow-auto">

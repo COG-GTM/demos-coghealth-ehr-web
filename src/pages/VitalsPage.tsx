@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import type { VitalReading } from '../types';
+import { assessVital, statusLabel, statusMarker, type VitalAssessment } from '../utils/vitalStatus';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -27,6 +28,22 @@ const defaultVitals: VitalReading[] = [
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
 
+function StatusIndicator({ assessment }: { assessment: VitalAssessment }) {
+  const marker = statusMarker(assessment);
+  if (!marker) return null;
+  const label = statusLabel(assessment);
+  return (
+    <>
+      {assessment.status === 'critical' ? (
+        <AlertTriangle role="img" aria-label={label} className="w-3 h-3 inline ml-0.5" />
+      ) : (
+        <span className="sr-only">{label}</span>
+      )}
+      <span aria-hidden="true" className="ml-0.5 text-[9px] font-bold">{marker}</span>
+    </>
+  );
+}
+
 export default function VitalsPage() {
   const [vitals] = useState<VitalReading[]>(defaultVitals);
   const [selectedReading, setSelectedReading] = useState<VitalReading | null>(null);
@@ -34,16 +51,8 @@ export default function VitalsPage() {
   const [dateRange, setDateRange] = useState<'24h' | '48h' | '7d' | '30d'>('48h');
   const [selectedPatient] = useState(patientInfo);
 
-  const getValueStatus = (key: string, value: number | undefined) => {
-    if (value === undefined) return 'normal';
-    const vital = vitalSigns.find(v => v.key === key);
-    if (!vital) return 'normal';
-    
-    if (vital.criticalLow && value <= vital.criticalLow) return 'critical';
-    if (vital.criticalHigh && value >= vital.criticalHigh) return 'critical';
-    if (value < vital.normalRange.min || value > vital.normalRange.max) return 'abnormal';
-    return 'normal';
-  };
+  const getValueStatus = (key: string, value: number | undefined) =>
+    assessVital(vitalSigns.find(v => v.key === key), value);
 
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -71,14 +80,14 @@ export default function VitalsPage() {
     const isGoodUp = vital === 'spo2';
     const isGoodDown = ['systolic', 'diastolic', 'heartRate', 'temperature', 'respiratoryRate', 'painLevel'].includes(vital);
     
-    if (trend === 'stable') return <Minus className="w-3 h-3 text-gray-400 inline ml-0.5" />;
+    if (trend === 'stable') return <Minus role="img" aria-label="Stable" className="w-3 h-3 text-gray-400 inline ml-0.5" />;
     if (trend === 'up') {
       const color = isGoodUp ? 'text-green-600' : isGoodDown ? 'text-red-600' : 'text-gray-600';
-      return <TrendingUp className={`w-3 h-3 ${color} inline ml-0.5`} />;
+      return <TrendingUp role="img" aria-label="Trending up" className={`w-3 h-3 ${color} inline ml-0.5`} />;
     }
     if (trend === 'down') {
       const color = isGoodDown ? 'text-green-600' : isGoodUp ? 'text-red-600' : 'text-gray-600';
-      return <TrendingDown className={`w-3 h-3 ${color} inline ml-0.5`} />;
+      return <TrendingDown role="img" aria-label="Trending down" className={`w-3 h-3 ${color} inline ml-0.5`} />;
     }
     return null;
   };
@@ -104,7 +113,7 @@ export default function VitalsPage() {
     const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
 
     return (
-      <svg width={width} height={height} className="inline-block ml-1">
+      <svg width={width} height={height} className="inline-block ml-1" aria-hidden="true">
         <polyline
           points={points}
           fill="none"
@@ -159,9 +168,17 @@ export default function VitalsPage() {
             </select>
           </div>
           <div className="flex items-center space-x-2 text-[10px]">
-            <span className="flex items-center"><span className="w-2 h-2 bg-green-500 inline-block mr-1"></span>Normal</span>
-            <span className="flex items-center"><span className="w-2 h-2 bg-yellow-400 inline-block mr-1"></span>Abnormal</span>
-            <span className="flex items-center"><span className="w-2 h-2 bg-red-500 inline-block mr-1"></span>Critical</span>
+            <span className="flex items-center">
+              <span aria-hidden="true" className="w-3 h-3 inline-block mr-1 border border-gray-400 bg-white"></span>Normal
+            </span>
+            <span className="flex items-center">
+              <span aria-hidden="true" className="inline-flex items-center px-1 mr-1 border border-gray-400 font-bold" style={getStatusStyle('abnormal')}>H / L</span>Abnormal (high / low)
+            </span>
+            <span className="flex items-center">
+              <span aria-hidden="true" className="inline-flex items-center px-1 mr-1 border border-gray-400" style={getStatusStyle('critical')}>
+                <AlertTriangle className="w-3 h-3 mr-0.5" />HH / LL
+              </span>Critical (high / low)
+            </span>
           </div>
         </div>
 
@@ -194,20 +211,20 @@ export default function VitalsPage() {
                   </td>
                   {vitals.map((reading, readingIdx) => {
                     const value = reading[vital.key] as number | undefined;
-                    const status = getValueStatus(vital.key, value);
+                    const assessment = getValueStatus(vital.key, value);
                     const trend = getTrend(vital.key, readingIdx);
                     
                     return (
                       <td
                         key={reading.id}
                         className="px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0]"
-                        style={getStatusStyle(status)}
+                        style={getStatusStyle(assessment.status)}
                         onClick={() => setSelectedReading(reading)}
                       >
                         {value !== undefined ? (
                           <span className="font-mono">
-                            {status === 'critical' && <AlertTriangle className="w-3 h-3 inline mr-0.5" />}
                             {vital.key === 'temperature' ? value.toFixed(1) : value}
+                            <StatusIndicator assessment={assessment} />
                             <TrendIcon trend={trend} vital={vital.key} />
                           </span>
                         ) : (
@@ -272,12 +289,13 @@ export default function VitalsPage() {
               <div className="grid grid-cols-2 gap-2 text-[11px]">
                 {vitalSigns.map(vital => {
                   const value = selectedReading[vital.key] as number | undefined;
-                  const status = getValueStatus(vital.key, value);
+                  const assessment = getValueStatus(vital.key, value);
                   return (
-                    <div key={vital.key} className="flex justify-between" style={getStatusStyle(status)}>
+                    <div key={vital.key} className="flex justify-between" style={getStatusStyle(assessment.status)}>
                       <span className="text-gray-600">{vital.name}:</span>
                       <span className="font-mono font-semibold">
                         {value !== undefined ? (vital.key === 'temperature' ? value.toFixed(1) : value) : '-'} {vital.unit}
+                        <StatusIndicator assessment={assessment} />
                       </span>
                     </div>
                   );

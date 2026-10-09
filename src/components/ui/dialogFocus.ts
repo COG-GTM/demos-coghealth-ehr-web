@@ -32,39 +32,62 @@ export function getTrapTarget<T>(focusables: readonly T[], active: T | null, shi
   return index === -1 || active === last ? first : null;
 }
 
-const openDialogs: HTMLElement[] = [];
+interface OpenDialog {
+  dialog: HTMLElement;
+  root: HTMLElement;
+}
 
-export function registerOpenDialog(dialog: HTMLElement): () => void {
-  openDialogs.push(dialog);
+const openDialogs: OpenDialog[] = [];
+const hiddenByUs = new Map<HTMLElement, string | null>();
+
+/**
+ * Makes every child of <body> except the topmost dialog's root inert and
+ * hidden from assistive tech, and restores elements that no longer need it.
+ * Recomputed from the whole stack so the result does not depend on the order
+ * in which dialogs open or close.
+ */
+function syncBackground(): void {
+  if (typeof document === 'undefined') return;
+  const topRoot = openDialogs[openDialogs.length - 1]?.root;
+  const shouldHide = new Set<HTMLElement>();
+  if (topRoot) {
+    for (const child of Array.from(document.body.children)) {
+      if (!(child instanceof HTMLElement) || child === topRoot) continue;
+      if (child.tagName === 'SCRIPT' || child.tagName === 'STYLE') continue;
+      if (child.inert && !hiddenByUs.has(child)) continue;
+      shouldHide.add(child);
+    }
+  }
+  for (const [el, ariaHidden] of hiddenByUs) {
+    if (shouldHide.has(el)) continue;
+    el.inert = false;
+    if (ariaHidden === null) el.removeAttribute('aria-hidden');
+    else el.setAttribute('aria-hidden', ariaHidden);
+    hiddenByUs.delete(el);
+  }
+  for (const el of shouldHide) {
+    if (hiddenByUs.has(el)) continue;
+    hiddenByUs.set(el, el.getAttribute('aria-hidden'));
+    el.inert = true;
+    el.setAttribute('aria-hidden', 'true');
+  }
+}
+
+/**
+ * Registers an open modal. `root` is its direct child of <body> (the portal
+ * overlay); everything else under <body> is made inert until it is released.
+ */
+export function registerOpenDialog(dialog: HTMLElement, root: HTMLElement): () => void {
+  const entry = { dialog, root };
+  openDialogs.push(entry);
+  syncBackground();
   return () => {
-    const index = openDialogs.lastIndexOf(dialog);
+    const index = openDialogs.lastIndexOf(entry);
     if (index !== -1) openDialogs.splice(index, 1);
+    syncBackground();
   };
 }
 
 export function isTopmostDialog(dialog: HTMLElement): boolean {
-  return openDialogs[openDialogs.length - 1] === dialog;
-}
-
-/**
- * Makes every other child of <body> inert and hidden from assistive tech while
- * the modal (rendered as a direct child of <body>) is open. Returns a function
- * that undoes only the changes made by this call.
- */
-export function hideBackground(modalRoot: HTMLElement): () => void {
-  const changed: Array<{ el: HTMLElement; ariaHidden: string | null }> = [];
-  for (const child of Array.from(document.body.children)) {
-    if (!(child instanceof HTMLElement) || child === modalRoot || child.inert) continue;
-    if (child.tagName === 'SCRIPT' || child.tagName === 'STYLE') continue;
-    changed.push({ el: child, ariaHidden: child.getAttribute('aria-hidden') });
-    child.inert = true;
-    child.setAttribute('aria-hidden', 'true');
-  }
-  return () => {
-    for (const { el, ariaHidden } of changed) {
-      el.inert = false;
-      if (ariaHidden === null) el.removeAttribute('aria-hidden');
-      else el.setAttribute('aria-hidden', ariaHidden);
-    }
-  };
+  return openDialogs[openDialogs.length - 1]?.dialog === dialog;
 }

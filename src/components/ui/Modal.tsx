@@ -4,7 +4,6 @@ import { X } from 'lucide-react';
 import {
   getFocusableElements,
   getTrapTarget,
-  hideBackground,
   isTopmostDialog,
   registerOpenDialog,
 } from './dialogFocus';
@@ -56,8 +55,7 @@ export function Modal({
     if (!isOpen || !overlay || !dialog) return;
 
     const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const unregister = registerOpenDialog(dialog);
-    const restoreBackground = hideBackground(overlay);
+    const unregister = registerOpenDialog(dialog, overlay);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -92,7 +90,6 @@ export function Modal({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       unregister();
-      restoreBackground();
       document.body.style.overflow = previousOverflow;
       if (previouslyFocused?.isConnected) previouslyFocused.focus();
     };

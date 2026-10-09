@@ -87,8 +87,8 @@ describe('open dialog stack', () => {
   test('only the most recently opened dialog handles keys', () => {
     const outer = {} as HTMLElement;
     const inner = {} as HTMLElement;
-    const releaseOuter = registerOpenDialog(outer);
-    const releaseInner = registerOpenDialog(inner);
+    const releaseOuter = registerOpenDialog(outer, outer);
+    const releaseInner = registerOpenDialog(inner, inner);
     expect(isTopmostDialog(inner)).toBe(true);
     expect(isTopmostDialog(outer)).toBe(false);
     releaseInner();

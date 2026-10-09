@@ -217,55 +217,57 @@ export default function ReportsPage() {
                     </span>
                   </button>
                 </h2>
-                {expanded && (
-                  <table id={panelId} className="w-full text-[11px]">
-                    <thead>
-                      <tr>
-                        <th className="px-2 py-1 text-left">Report Name</th>
-                        <th className="px-2 py-1 text-left">Description</th>
-                        <th className="px-2 py-1 text-left w-20">Frequency</th>
-                        <th className="px-2 py-1 text-left w-32">Last Run</th>
-                        <th className="px-2 py-1 text-center w-24">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {reports.map((report, idx) => (
-                        <tr key={report.id} className={`hover:bg-blue-50 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                          <td className="px-2 py-1.5 font-medium">{report.name}</td>
-                          <td className="px-2 py-1.5 text-gray-600">{report.description}</td>
-                          <td className="px-2 py-1.5 capitalize">{report.frequency}</td>
-                          <td className="px-2 py-1.5 text-gray-500">
-                            {report.lastRun && (
-                              <span className="flex items-center">
-                                <Calendar className="w-3 h-3 mr-1" />
-                                {formatDate(report.lastRun)}
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-2 py-1.5 text-center">
-                            <button 
-                              type="button"
-                              className="ehr-button text-[9px] px-1.5 py-0.5 mr-1"
-                              aria-label={`Download ${report.name}`}
-                              title="Download"
-                              onClick={() => setShowAlert({ title: 'Download', message: `${report.name} has been downloaded as PDF.`, type: 'success' })}
-                            >
-                              <Download className="w-3 h-3 inline" aria-hidden="true" />
-                            </button>
-                            <button 
-                              type="button"
-                              className="ehr-button ehr-button-primary text-[9px] px-1.5 py-0.5"
-                              aria-label={`Run ${report.name}`}
-                              onClick={() => setShowAlert({ title: 'Report Running', message: `${report.name} is now running. Results will be available shortly.`, type: 'info' })}
-                            >
-                              <Play className="w-3 h-3 inline mr-0.5" aria-hidden="true" /> Run
-                            </button>
-                          </td>
+                <div id={panelId}>
+                  {expanded && (
+                    <table className="w-full text-[11px]">
+                      <thead>
+                        <tr>
+                          <th className="px-2 py-1 text-left">Report Name</th>
+                          <th className="px-2 py-1 text-left">Description</th>
+                          <th className="px-2 py-1 text-left w-20">Frequency</th>
+                          <th className="px-2 py-1 text-left w-32">Last Run</th>
+                          <th className="px-2 py-1 text-center w-24">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+                      </thead>
+                      <tbody>
+                        {reports.map((report, idx) => (
+                          <tr key={report.id} className={`hover:bg-blue-50 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                            <td className="px-2 py-1.5 font-medium">{report.name}</td>
+                            <td className="px-2 py-1.5 text-gray-600">{report.description}</td>
+                            <td className="px-2 py-1.5 capitalize">{report.frequency}</td>
+                            <td className="px-2 py-1.5 text-gray-500">
+                              {report.lastRun && (
+                                <span className="flex items-center">
+                                  <Calendar className="w-3 h-3 mr-1" />
+                                  {formatDate(report.lastRun)}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-2 py-1.5 text-center">
+                              <button 
+                                type="button"
+                                className="ehr-button text-[9px] px-1.5 py-0.5 mr-1"
+                                aria-label={`Download ${report.name}`}
+                                title="Download"
+                                onClick={() => setShowAlert({ title: 'Download', message: `${report.name} has been downloaded as PDF.`, type: 'success' })}
+                              >
+                                <Download className="w-3 h-3 inline" aria-hidden="true" />
+                              </button>
+                              <button 
+                                type="button"
+                                className="ehr-button ehr-button-primary text-[9px] px-1.5 py-0.5"
+                                aria-label={`Run ${report.name}`}
+                                onClick={() => setShowAlert({ title: 'Report Running', message: `${report.name} is now running. Results will be available shortly.`, type: 'info' })}
+                              >
+                                <Play className="w-3 h-3 inline mr-0.5" aria-hidden="true" /> Run
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
               </div>
             );
           })}

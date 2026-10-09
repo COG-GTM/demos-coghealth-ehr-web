@@ -14,11 +14,11 @@ describe('ReportsPage category headers', () => {
     }
   });
 
-  it('points aria-controls at the rendered report table', () => {
+  it('points aria-controls at a panel that contains the report table', () => {
     for (const attrs of headers) {
       const id = /aria-controls="([^"]+)"/.exec(attrs)?.[1];
       expect(id).toBeDefined();
-      expect(html).toContain(`<table id="${id}"`);
+      expect(html).toContain(`<div id="${id}"><table`);
     }
   });
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
@@ -25,6 +26,7 @@ import type { MedicationOrderStatus } from '../types';
 import { AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
+import { describeMedicationAlerts, hasMedicationAlerts } from '../utils/medicationAlerts';
 
 interface MedicationOrderExtended {
   id: number;
@@ -289,7 +291,7 @@ export default function MedicationsPage() {
     active: defaultMedicationOrders.filter(o => o.status === 'ACTIVE').length,
     pending: defaultMedicationOrders.filter(o => o.status === 'PENDING').length,
     controlled: defaultMedicationOrders.filter(o => o.controlled && o.status === 'ACTIVE').length,
-    withAlerts: defaultMedicationOrders.filter(o => o.interactions.length > 0 || o.allergies.length > 0 || o.renalDoseAlert || o.geriatricAlert).length,
+    withAlerts: defaultMedicationOrders.filter(hasMedicationAlerts).length,
   };
 
   const togglePatient = (mrn: string) => {
@@ -394,27 +396,28 @@ export default function MedicationsPage() {
             <div>
               {Object.entries(ordersByPatient).map(([mrn, { patient, orders }]) => (
                 <div key={mrn} className="border-b border-gray-300">
-                  <div
+                  <button
+                    type="button"
                     onClick={() => togglePatient(mrn)}
-                    className="px-2 py-1 bg-gray-100 hover:bg-gray-200 cursor-pointer flex items-center justify-between text-[11px]"
+                    aria-expanded={expandedPatients.has(mrn)}
+                    aria-controls={`med-patient-${mrn}`}
+                    className="ehr-focusable w-full text-left px-2 py-1 bg-gray-100 hover:bg-gray-200 cursor-pointer flex items-center justify-between text-[11px]"
                   >
-                    <div className="flex items-center space-x-2">
-                      <span className="w-4 h-4 border border-gray-500 bg-white flex items-center justify-center text-[10px] font-bold">
+                    <span className="flex items-center space-x-2">
+                      <span aria-hidden="true" className="w-4 h-4 border border-gray-500 bg-white flex items-center justify-center text-[10px] font-bold">
                         {expandedPatients.has(mrn) ? '-' : '+'}
                       </span>
                       <span className="font-semibold">{patient.name}</span>
                       <span className="text-gray-500">{patient.mrn}</span>
                       <span className="text-gray-400">DOB: {patient.dob}</span>
-                    </div>
+                    </span>
                     <span className="text-gray-500">{orders.length} meds</span>
+                  </button>
+                  <div id={`med-patient-${mrn}`} role="group" aria-label={`${patient.name} medication orders`}>
+                    {expandedPatients.has(mrn) && orders.map((order, idx) => (
+                      <OrderRow key={order.id} order={order} selected={selectedOrder?.id === order.id} onSelect={() => setSelectedOrder(order)} idx={idx} />
+                    ))}
                   </div>
-                  {expandedPatients.has(mrn) && (
-                    <div>
-                      {orders.map((order, idx) => (
-                        <OrderRow key={order.id} order={order} selected={selectedOrder?.id === order.id} onSelect={() => setSelectedOrder(order)} idx={idx} />
-                      ))}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -434,7 +437,8 @@ export default function MedicationsPage() {
               <tbody>
                 {filteredOrders.map((order, idx) => {
                   const status = statusConfig[order.status];
-                  const hasAlerts = order.interactions.length > 0 || order.allergies.length > 0 || order.renalDoseAlert || order.geriatricAlert;
+                  const hasAlerts = hasMedicationAlerts(order);
+                  const alertsId = `med-alerts-${order.id}`;
                   const isSelected = selectedOrder?.id === order.id;
                   
                   return (
@@ -456,7 +460,15 @@ export default function MedicationsPage() {
                             </span>
                           )}
                           <div>
-                            <div className="font-semibold">{order.medicationName} {order.strength}</div>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedOrder(order)}
+                              aria-pressed={isSelected}
+                              aria-describedby={alertsId}
+                              className="ehr-focusable font-semibold text-left cursor-pointer"
+                            >
+                              {order.medicationName} {order.strength}
+                            </button>
                             <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: '#666' }}>
                               {order.form} • {order.orderNumber}
                             </div>
@@ -484,20 +496,23 @@ export default function MedicationsPage() {
                         </span>
                       </td>
                       <td className="px-1 py-1 text-center">
+                        <span id={alertsId} className="sr-only">{describeMedicationAlerts(order)}</span>
                         {hasAlerts ? (
-                          <div className="flex items-center justify-center space-x-0.5">
+                          <div aria-hidden="true" className="flex items-center justify-center space-x-0.5">
                             {order.interactions.length > 0 && <AlertTriangle className={`w-3 h-3 ${isSelected ? 'text-yellow-200' : 'text-red-500'}`} />}
                             {order.allergies.length > 0 && <Ban className={`w-3 h-3 ${isSelected ? 'text-orange-200' : 'text-orange-500'}`} />}
                             {order.renalDoseAlert && <Zap className={`w-3 h-3 ${isSelected ? 'text-purple-200' : 'text-purple-500'}`} />}
                             {order.geriatricAlert && <User className={`w-3 h-3 ${isSelected ? 'text-blue-200' : 'text-blue-500'}`} />}
+                            {order.duplicateTherapy && <AlertCircle className={`w-3 h-3 ${isSelected ? 'text-red-200' : 'text-red-600'}`} />}
                           </div>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span aria-hidden="true" className="text-gray-400">-</span>
                         )}
                       </td>
                       <td className="px-1 py-1 text-center">
                         {order.status === 'PENDING' && (
                           <button 
+                            aria-describedby={alertsId}
                             onClick={(e) => { e.stopPropagation(); setShowAlert({ title: 'Order Signed', message: `${order.medicationName} ${order.strength} has been signed and sent to pharmacy.`, type: 'success' }); }}
                             className="ehr-button text-[9px] px-1 py-0" 
                             style={{ background: 'linear-gradient(to bottom, #66cc66 0%, #339933 100%)', color: 'white', border: '1px solid #206020' }}
@@ -507,6 +522,7 @@ export default function MedicationsPage() {
                         )}
                         {order.status === 'ACTIVE' && (
                           <button 
+                            aria-describedby={alertsId}
                             onClick={(e) => { e.stopPropagation(); setShowAlert({ title: 'Renewal Sent', message: `Renewal request for ${order.medicationName} has been sent to pharmacy.`, type: 'success' }); }}
                             className="ehr-button text-[9px] px-1 py-0"
                           >
@@ -523,7 +539,10 @@ export default function MedicationsPage() {
         </div>
 
         {/* Detail Panel */}
-        <div className="w-80 flex flex-col overflow-hidden" style={{ background: '#ece9d8' }}>
+        <section aria-label="Medication order details" className="w-80 flex flex-col overflow-hidden" style={{ background: '#ece9d8' }}>
+          <div role="status" aria-live="polite" className="sr-only">
+            {selectedOrder && `${selectedOrder.medicationName} ${selectedOrder.strength} for ${selectedOrder.patientName} selected. ${describeMedicationAlerts(selectedOrder)}`}
+          </div>
           {selectedOrder ? (
             <>
               {/* Medication Header */}
@@ -573,70 +592,68 @@ export default function MedicationsPage() {
 
                 {/* Prescription Details */}
                 <div className="ehr-panel">
-                  <div 
-                    className="ehr-header flex items-center justify-between cursor-pointer text-[11px]"
-                    onClick={() => togglePanel('details')}
+                  <PanelToggle
+                    panelId="med-panel-details"
+                    expanded={expandedPanels.details}
+                    onToggle={() => togglePanel('details')}
+                    className="ehr-header"
                   >
-                    <div className="flex items-center">
-                      <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
-                        {expandedPanels.details ? '-' : '+'}
-                      </span>
-                      <FileText className="w-3 h-3 mr-1" /> Rx Details
-                    </div>
-                  </div>
-                  {expandedPanels.details && (
-                    <div className="bg-white p-2">
-                      <div className="p-1.5 bg-gray-100 border border-gray-300 mb-2">
-                        <div className="text-[9px] text-gray-500 uppercase">Sig</div>
-                        <div className="text-[11px]">{selectedOrder.sig}</div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
-                        <div className="flex justify-between"><span className="text-gray-500">Dose:</span><span className="font-medium">{selectedOrder.dose}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500">Route:</span><span className="font-medium">{selectedOrder.route}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500">Freq:</span><span className="font-medium">{selectedOrder.frequency}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500">Qty:</span><span className="font-medium">{selectedOrder.quantity}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-500">Days:</span><span className="font-medium">{selectedOrder.daysSupply}</span></div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Refills:</span>
-                          <span className={`font-medium ${selectedOrder.refillsRemaining === 0 ? 'text-red-600' : ''}`}>
-                            {selectedOrder.refillsRemaining}/{selectedOrder.refills}
-                          </span>
+                    <FileText className="w-3 h-3 mr-1" /> Rx Details
+                  </PanelToggle>
+                  <div id="med-panel-details">
+                    {expandedPanels.details && (
+                      <div className="bg-white p-2">
+                        <div className="p-1.5 bg-gray-100 border border-gray-300 mb-2">
+                          <div className="text-[9px] text-gray-500 uppercase">Sig</div>
+                          <div className="text-[11px]">{selectedOrder.sig}</div>
                         </div>
-                        <div className="flex justify-between"><span className="text-gray-500">Start:</span><span className="font-medium">{formatDate(selectedOrder.startDate)}</span></div>
-                        {selectedOrder.endDate && <div className="flex justify-between"><span className="text-gray-500">End:</span><span className="font-medium">{formatDate(selectedOrder.endDate)}</span></div>}
-                        <div className="flex justify-between"><span className="text-gray-500">DAW:</span><span className="font-medium">{selectedOrder.dispenseAsWritten ? 'Yes' : 'No'}</span></div>
-                        {selectedOrder.prn && <div className="flex justify-between"><span className="text-gray-500">PRN:</span><span className="font-medium text-amber-600">{selectedOrder.prnReason}</span></div>}
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
+                          <div className="flex justify-between"><span className="text-gray-500">Dose:</span><span className="font-medium">{selectedOrder.dose}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-500">Route:</span><span className="font-medium">{selectedOrder.route}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-500">Freq:</span><span className="font-medium">{selectedOrder.frequency}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-500">Qty:</span><span className="font-medium">{selectedOrder.quantity}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-500">Days:</span><span className="font-medium">{selectedOrder.daysSupply}</span></div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Refills:</span>
+                            <span className={`font-medium ${selectedOrder.refillsRemaining === 0 ? 'text-red-600' : ''}`}>
+                              {selectedOrder.refillsRemaining}/{selectedOrder.refills}
+                            </span>
+                          </div>
+                          <div className="flex justify-between"><span className="text-gray-500">Start:</span><span className="font-medium">{formatDate(selectedOrder.startDate)}</span></div>
+                          {selectedOrder.endDate && <div className="flex justify-between"><span className="text-gray-500">End:</span><span className="font-medium">{formatDate(selectedOrder.endDate)}</span></div>}
+                          <div className="flex justify-between"><span className="text-gray-500">DAW:</span><span className="font-medium">{selectedOrder.dispenseAsWritten ? 'Yes' : 'No'}</span></div>
+                          {selectedOrder.prn && <div className="flex justify-between"><span className="text-gray-500">PRN:</span><span className="font-medium text-amber-600">{selectedOrder.prnReason}</span></div>}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 {/* Pharmacy */}
                 <div className="ehr-panel">
-                  <div 
-                    className="ehr-header flex items-center justify-between cursor-pointer text-[11px]"
-                    onClick={() => togglePanel('pharmacy')}
+                  <PanelToggle
+                    panelId="med-panel-pharmacy"
+                    expanded={expandedPanels.pharmacy}
+                    onToggle={() => togglePanel('pharmacy')}
+                    className="ehr-header"
                   >
-                    <div className="flex items-center">
-                      <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
-                        {expandedPanels.pharmacy ? '-' : '+'}
-                      </span>
-                      <Building2 className="w-3 h-3 mr-1" /> Pharmacy
-                    </div>
+                    <Building2 className="w-3 h-3 mr-1" /> Pharmacy
+                  </PanelToggle>
+                  <div id="med-panel-pharmacy">
+                    {expandedPanels.pharmacy && (
+                      <div className="bg-white p-2 text-[10px]">
+                        <div className="font-semibold">{selectedOrder.pharmacy}</div>
+                        <div className="flex items-center text-gray-600"><Phone className="w-3 h-3 mr-1" /> {selectedOrder.pharmacyPhone}</div>
+                        <div className="text-gray-400">NPI: {selectedOrder.pharmacyNpi}</div>
+                        {selectedOrder.lastFilled && (
+                          <div className="mt-1 pt-1 border-t border-gray-200">
+                            <div>Last Filled: <span className="font-medium">{formatDate(selectedOrder.lastFilled)}</span></div>
+                            {selectedOrder.nextRefillDate && <div>Next Refill: <span className="font-medium">{formatDate(selectedOrder.nextRefillDate)}</span></div>}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  {expandedPanels.pharmacy && (
-                    <div className="bg-white p-2 text-[10px]">
-                      <div className="font-semibold">{selectedOrder.pharmacy}</div>
-                      <div className="flex items-center text-gray-600"><Phone className="w-3 h-3 mr-1" /> {selectedOrder.pharmacyPhone}</div>
-                      <div className="text-gray-400">NPI: {selectedOrder.pharmacyNpi}</div>
-                      {selectedOrder.lastFilled && (
-                        <div className="mt-1 pt-1 border-t border-gray-200">
-                          <div>Last Filled: <span className="font-medium">{formatDate(selectedOrder.lastFilled)}</span></div>
-                          {selectedOrder.nextRefillDate && <div>Next Refill: <span className="font-medium">{formatDate(selectedOrder.nextRefillDate)}</span></div>}
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
 
                 {/* Formulary */}
@@ -650,69 +667,68 @@ export default function MedicationsPage() {
                 </div>
 
                 {/* Clinical Alerts */}
-                {(selectedOrder.interactions.length > 0 || selectedOrder.allergies.length > 0 || selectedOrder.renalDoseAlert || selectedOrder.geriatricAlert || selectedOrder.duplicateTherapy) && (
+                {hasMedicationAlerts(selectedOrder) && (
                   <div className="ehr-panel">
-                    <div 
-                      className="flex items-center justify-between cursor-pointer text-[11px] px-2 py-1"
+                    <PanelToggle
+                      panelId="med-panel-alerts"
+                      expanded={expandedPanels.alerts}
+                      onToggle={() => togglePanel('alerts')}
+                      className="px-2 py-1"
                       style={{ background: '#cc0000', color: 'white' }}
-                      onClick={() => togglePanel('alerts')}
                     >
-                      <div className="flex items-center">
-                        <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
-                          {expandedPanels.alerts ? '-' : '+'}
-                        </span>
-                        <ShieldAlert className="w-3 h-3 mr-1" /> Clinical Alerts
-                      </div>
+                      <ShieldAlert className="w-3 h-3 mr-1" /> Clinical Alerts
+                    </PanelToggle>
+                    <div id="med-panel-alerts">
+                      {expandedPanels.alerts && (
+                        <div className="bg-red-50 p-2 space-y-1.5">
+                          {selectedOrder.interactions.map((interaction, i) => (
+                            <div key={i} className="flex items-start space-x-1.5 text-[10px]">
+                              {getInteractionIcon(interaction.severity)}
+                              <div>
+                                <div className="font-semibold">Drug Interaction: {interaction.drug}</div>
+                                <div className="text-gray-600">{interaction.description}</div>
+                              </div>
+                            </div>
+                          ))}
+                          {selectedOrder.allergies.map((allergy, i) => (
+                            <div key={i} className="flex items-start space-x-1.5 text-[10px]">
+                              <Ban className="w-3 h-3 text-orange-600 mt-0.5" />
+                              <div>
+                                <div className="font-semibold text-orange-800">Allergy Alert</div>
+                                <div className="text-gray-600">{allergy}</div>
+                              </div>
+                            </div>
+                          ))}
+                          {selectedOrder.renalDoseAlert && (
+                            <div className="flex items-start space-x-1.5 text-[10px]">
+                              <Zap className="w-3 h-3 text-purple-600 mt-0.5" />
+                              <div>
+                                <div className="font-semibold text-purple-800">Renal Dosing</div>
+                                <div className="text-gray-600">{selectedOrder.renalDoseAlert}</div>
+                              </div>
+                            </div>
+                          )}
+                          {selectedOrder.geriatricAlert && (
+                            <div className="flex items-start space-x-1.5 text-[10px]">
+                              <User className="w-3 h-3 text-blue-600 mt-0.5" />
+                              <div>
+                                <div className="font-semibold text-blue-800">Geriatric Alert</div>
+                                <div className="text-gray-600">{selectedOrder.geriatricAlert}</div>
+                              </div>
+                            </div>
+                          )}
+                          {selectedOrder.duplicateTherapy && (
+                            <div className="flex items-start space-x-1.5 text-[10px]">
+                              <AlertCircle className="w-3 h-3 text-red-600 mt-0.5" />
+                              <div>
+                                <div className="font-semibold text-red-800">Override</div>
+                                <div className="text-gray-600">{selectedOrder.duplicateTherapy}</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {expandedPanels.alerts && (
-                      <div className="bg-red-50 p-2 space-y-1.5">
-                        {selectedOrder.interactions.map((interaction, i) => (
-                          <div key={i} className="flex items-start space-x-1.5 text-[10px]">
-                            {getInteractionIcon(interaction.severity)}
-                            <div>
-                              <div className="font-semibold">Drug Interaction: {interaction.drug}</div>
-                              <div className="text-gray-600">{interaction.description}</div>
-                            </div>
-                          </div>
-                        ))}
-                        {selectedOrder.allergies.map((allergy, i) => (
-                          <div key={i} className="flex items-start space-x-1.5 text-[10px]">
-                            <Ban className="w-3 h-3 text-orange-600 mt-0.5" />
-                            <div>
-                              <div className="font-semibold text-orange-800">Allergy Alert</div>
-                              <div className="text-gray-600">{allergy}</div>
-                            </div>
-                          </div>
-                        ))}
-                        {selectedOrder.renalDoseAlert && (
-                          <div className="flex items-start space-x-1.5 text-[10px]">
-                            <Zap className="w-3 h-3 text-purple-600 mt-0.5" />
-                            <div>
-                              <div className="font-semibold text-purple-800">Renal Dosing</div>
-                              <div className="text-gray-600">{selectedOrder.renalDoseAlert}</div>
-                            </div>
-                          </div>
-                        )}
-                        {selectedOrder.geriatricAlert && (
-                          <div className="flex items-start space-x-1.5 text-[10px]">
-                            <User className="w-3 h-3 text-blue-600 mt-0.5" />
-                            <div>
-                              <div className="font-semibold text-blue-800">Geriatric Alert</div>
-                              <div className="text-gray-600">{selectedOrder.geriatricAlert}</div>
-                            </div>
-                          </div>
-                        )}
-                        {selectedOrder.duplicateTherapy && (
-                          <div className="flex items-start space-x-1.5 text-[10px]">
-                            <AlertCircle className="w-3 h-3 text-red-600 mt-0.5" />
-                            <div>
-                              <div className="font-semibold text-red-800">Override</div>
-                              <div className="text-gray-600">{selectedOrder.duplicateTherapy}</div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -762,7 +778,7 @@ export default function MedicationsPage() {
               </div>
             </div>
           )}
-        </div>
+        </section>
       </div>
 
       {/* Status Bar */}
@@ -809,31 +825,59 @@ export default function MedicationsPage() {
 
 function OrderRow({ order, selected, onSelect, idx }: { order: MedicationOrderExtended; selected: boolean; onSelect: () => void; idx: number }) {
   const status = statusConfig[order.status];
-  const hasAlerts = order.interactions.length > 0 || order.allergies.length > 0;
+  const hasAlerts = hasMedicationAlerts(order);
   
   return (
-    <div
+    <button
+      type="button"
       onClick={onSelect}
-      className={`px-3 py-1 cursor-pointer flex items-center justify-between text-[11px] ${
+      aria-pressed={selected}
+      className={`ehr-focusable w-full text-left px-3 py-1 cursor-pointer flex items-center justify-between text-[11px] ${
         selected ? '' : idx % 2 === 1 ? 'bg-gray-50' : ''
       }`}
       style={selected ? { background: '#316ac5', color: 'white' } : undefined}
     >
-      <div className="flex items-center space-x-2">
-        <div className="w-6">
+      <span className="flex items-center space-x-2">
+        <span className="w-6">
           {order.controlled && <span className={`text-[9px] font-bold ${selected ? 'text-white' : 'text-red-600'}`}>{order.schedule}</span>}
-        </div>
-        <div>
-          <div className="font-semibold">{order.medicationName} {order.strength}</div>
-          <div style={selected ? { color: '#ccc' } : { color: '#666' }}>{order.sig}</div>
-        </div>
-      </div>
-      <div className="flex items-center space-x-2">
-        {hasAlerts && <AlertTriangle className={`w-3 h-3 ${selected ? 'text-yellow-200' : 'text-red-500'}`} />}
+        </span>
+        <span>
+          <span className="block font-semibold">{order.medicationName} {order.strength}</span>
+          <span className="block" style={selected ? { color: '#ccc' } : { color: '#666' }}>{order.sig}</span>
+        </span>
+      </span>
+      <span className="flex items-center space-x-2">
+        {hasAlerts && <AlertTriangle aria-hidden="true" className={`w-3 h-3 ${selected ? 'text-yellow-200' : 'text-red-500'}`} />}
+        <span className="sr-only">{describeMedicationAlerts(order)}</span>
         <span className={`px-1 py-0.5 border border-gray-400 text-[9px] ${selected ? 'bg-white/30' : `${status.bg} ${status.color}`}`}>
           {status.label}
         </span>
-      </div>
-    </div>
+      </span>
+    </button>
+  );
+}
+
+function PanelToggle({ panelId, expanded, onToggle, className = '', style, children }: {
+  panelId: string;
+  expanded: boolean;
+  onToggle: () => void;
+  className?: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={expanded}
+      aria-controls={panelId}
+      className={`ehr-focusable w-full text-left flex items-center cursor-pointer text-[11px] ${className}`}
+      style={style}
+    >
+      <span aria-hidden="true" className="w-4 h-4 border border-gray-400 bg-white text-black flex items-center justify-center text-[10px] font-bold mr-1">
+        {expanded ? '-' : '+'}
+      </span>
+      {children}
+    </button>
   );
 }

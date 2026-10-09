@@ -81,6 +81,11 @@ td {
   font-size: 11px;
 }
 
+.ehr-focusable:focus-visible {
+  outline: 1px dotted currentColor;
+  outline-offset: -3px;
+}
+
 .ehr-input:focus {
   outline: none;
   border-color: #4a90d9;

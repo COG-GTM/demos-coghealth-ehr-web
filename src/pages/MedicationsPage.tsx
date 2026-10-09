@@ -500,7 +500,7 @@ export default function MedicationsPage() {
                             {order.geriatricAlert && <User className={`w-3 h-3 ${isSelected ? 'text-blue-200' : 'text-blue-500'}`} />}
                           </div>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className={isSelected ? undefined : 'text-gray-600'}>-</span>
                         )}
                       </td>
                       <td className="px-1 py-1 text-center">

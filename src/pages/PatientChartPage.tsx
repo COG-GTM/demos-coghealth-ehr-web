@@ -181,37 +181,35 @@ export default function PatientChartPage() {
                 >
                   Active Problems ({problems.filter(p => p.status === 'Active').length})
                 </CollapsibleSectionHeading>
-                {expandedPanels.problems && (
-                  <div id="chart-problems-panel" className="bg-white">
-                    <table className="w-full text-[11px]">
-                      <thead>
-                        <tr>
-                          <th className="px-2 py-1 text-left">Problem</th>
-                          <th className="px-2 py-1 text-left w-20">ICD-10</th>
-                          <th className="px-2 py-1 text-left w-24">Onset</th>
-                          <th className="px-2 py-1 text-left w-16">Status</th>
+                <div id="chart-problems-panel" hidden={!expandedPanels.problems} className="bg-white">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-1 text-left">Problem</th>
+                        <th className="px-2 py-1 text-left w-20">ICD-10</th>
+                        <th className="px-2 py-1 text-left w-24">Onset</th>
+                        <th className="px-2 py-1 text-left w-16">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {problems.map((problem, idx) => (
+                        <tr key={problem.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
+                          <td className="px-2 py-1">
+                            <span className={`inline-block w-2 h-2 mr-1 border border-gray-500 ${problem.priority === 'high' ? 'bg-gray-400' : problem.priority === 'medium' ? 'bg-gray-300' : 'bg-gray-200'}`} />
+                            {problem.name}
+                          </td>
+                          <td className="px-2 py-1 font-mono text-[10px]">{problem.icd10}</td>
+                          <td className="px-2 py-1">{problem.onset}</td>
+                          <td className="px-2 py-1">
+                            <span className={`px-1 py-0.5 text-[9px] border border-gray-400 ${problem.status === 'Active' ? 'bg-gray-200 text-gray-800' : 'bg-gray-100 text-gray-600'}`}>
+                              {problem.status}
+                            </span>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {problems.map((problem, idx) => (
-                          <tr key={problem.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
-                            <td className="px-2 py-1">
-                              <span className={`inline-block w-2 h-2 mr-1 border border-gray-500 ${problem.priority === 'high' ? 'bg-gray-400' : problem.priority === 'medium' ? 'bg-gray-300' : 'bg-gray-200'}`} />
-                              {problem.name}
-                            </td>
-                            <td className="px-2 py-1 font-mono text-[10px]">{problem.icd10}</td>
-                            <td className="px-2 py-1">{problem.onset}</td>
-                            <td className="px-2 py-1">
-                              <span className={`px-1 py-0.5 text-[9px] border border-gray-400 ${problem.status === 'Active' ? 'bg-gray-200 text-gray-800' : 'bg-gray-100 text-gray-600'}`}>
-                                {problem.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* Medications */}
@@ -224,28 +222,26 @@ export default function PatientChartPage() {
                 >
                   Active Medications ({medications.length})
                 </CollapsibleSectionHeading>
-                {expandedPanels.meds && (
-                  <div id="chart-meds-panel" className="bg-white">
-                    <table className="w-full text-[11px]">
-                      <thead>
-                        <tr>
-                          <th className="px-2 py-1 text-left">Medication</th>
-                          <th className="px-2 py-1 text-left">Sig</th>
-                          <th className="px-2 py-1 text-left w-16">Refills</th>
+                <div id="chart-meds-panel" hidden={!expandedPanels.meds} className="bg-white">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-1 text-left">Medication</th>
+                        <th className="px-2 py-1 text-left">Sig</th>
+                        <th className="px-2 py-1 text-left w-16">Refills</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {medications.map((med, idx) => (
+                        <tr key={med.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
+                          <td className="px-2 py-1 font-semibold">{med.name} {med.dose}</td>
+                          <td className="px-2 py-1 text-gray-600">{med.sig}</td>
+                          <td className="px-2 py-1">{med.refills}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {medications.map((med, idx) => (
-                          <tr key={med.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
-                            <td className="px-2 py-1 font-semibold">{med.name} {med.dose}</td>
-                            <td className="px-2 py-1 text-gray-600">{med.sig}</td>
-                            <td className="px-2 py-1">{med.refills}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* Recent Encounters */}
@@ -258,30 +254,28 @@ export default function PatientChartPage() {
                 >
                   Recent Encounters
                 </CollapsibleSectionHeading>
-                {expandedPanels.encounters && (
-                  <div id="chart-encounters-panel" className="bg-white">
-                    <table className="w-full text-[11px]">
-                      <thead>
-                        <tr>
-                          <th className="px-2 py-1 text-left w-24">Date</th>
-                          <th className="px-2 py-1 text-left w-24">Type</th>
-                          <th className="px-2 py-1 text-left">Reason</th>
-                          <th className="px-2 py-1 text-left w-28">Provider</th>
+                <div id="chart-encounters-panel" hidden={!expandedPanels.encounters} className="bg-white">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-1 text-left w-24">Date</th>
+                        <th className="px-2 py-1 text-left w-24">Type</th>
+                        <th className="px-2 py-1 text-left">Reason</th>
+                        <th className="px-2 py-1 text-left w-28">Provider</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {encounters.map((enc, idx) => (
+                        <tr key={enc.id} className={`cursor-pointer hover:bg-blue-50 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                          <td className="px-2 py-1">{enc.date}</td>
+                          <td className="px-2 py-1">{enc.type}</td>
+                          <td className="px-2 py-1">{enc.reason}</td>
+                          <td className="px-2 py-1">{enc.provider}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {encounters.map((enc, idx) => (
-                          <tr key={enc.id} className={`cursor-pointer hover:bg-blue-50 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                            <td className="px-2 py-1">{enc.date}</td>
-                            <td className="px-2 py-1">{enc.type}</td>
-                            <td className="px-2 py-1">{enc.reason}</td>
-                            <td className="px-2 py-1">{enc.provider}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 
@@ -299,21 +293,19 @@ export default function PatientChartPage() {
                 >
                   Allergies ({allergies.length})
                 </CollapsibleSectionHeading>
-                {expandedPanels.allergies && (
-                  <div id="chart-allergies-panel" className="bg-red-50">
-                    {allergies.map((allergy, idx) => (
-                      <div key={allergy.id} className={`px-2 py-1.5 text-[11px] ${idx > 0 ? 'border-t border-red-200' : ''}`}>
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-red-900">{allergy.allergen}</span>
-                          <span className={`px-1 py-0.5 text-[9px] border border-gray-500 ${allergy.severity === 'Severe' ? 'bg-gray-300 text-gray-800 font-bold' : 'bg-gray-200 text-gray-700'}`}>
-                            {allergy.severity}
-                          </span>
-                        </div>
-                        <div className="text-red-700 text-[10px]">{allergy.reaction}</div>
+                <div id="chart-allergies-panel" hidden={!expandedPanels.allergies} className="bg-red-50">
+                  {allergies.map((allergy, idx) => (
+                    <div key={allergy.id} className={`px-2 py-1.5 text-[11px] ${idx > 0 ? 'border-t border-red-200' : ''}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-red-900">{allergy.allergen}</span>
+                        <span className={`px-1 py-0.5 text-[9px] border border-gray-500 ${allergy.severity === 'Severe' ? 'bg-gray-300 text-gray-800 font-bold' : 'bg-gray-200 text-gray-700'}`}>
+                          {allergy.severity}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <div className="text-red-700 text-[10px]">{allergy.reaction}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Vitals */}
@@ -326,36 +318,34 @@ export default function PatientChartPage() {
                 >
                   Vitals ({vitals.date})
                 </CollapsibleSectionHeading>
-                {expandedPanels.vitals && (
-                  <div id="chart-vitals-panel" className="bg-white p-2">
-                    <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">BP</div>
-                        <div className={`font-semibold ${parseInt(vitals.bp) > 140 ? 'text-gray-800' : ''}`}>{vitals.bp}</div>
-                      </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">HR</div>
-                        <div className="font-semibold">{vitals.hr}</div>
-                      </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">Temp</div>
-                        <div className="font-semibold">{vitals.temp}°F</div>
-                      </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">SpO2</div>
-                        <div className="font-semibold">{vitals.spo2}%</div>
-                      </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">Weight</div>
-                        <div className="font-semibold">{vitals.weight} lbs</div>
-                      </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">BMI</div>
-                        <div className={`font-semibold ${vitals.bmi > 25 ? 'text-gray-800' : ''}`}>{vitals.bmi}</div>
-                      </div>
+                <div id="chart-vitals-panel" hidden={!expandedPanels.vitals} className="bg-white p-2">
+                  <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">BP</div>
+                      <div className={`font-semibold ${parseInt(vitals.bp) > 140 ? 'text-gray-800' : ''}`}>{vitals.bp}</div>
+                    </div>
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">HR</div>
+                      <div className="font-semibold">{vitals.hr}</div>
+                    </div>
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">Temp</div>
+                      <div className="font-semibold">{vitals.temp}°F</div>
+                    </div>
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">SpO2</div>
+                      <div className="font-semibold">{vitals.spo2}%</div>
+                    </div>
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">Weight</div>
+                      <div className="font-semibold">{vitals.weight} lbs</div>
+                    </div>
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">BMI</div>
+                      <div className={`font-semibold ${vitals.bmi > 25 ? 'text-gray-800' : ''}`}>{vitals.bmi}</div>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Recent Labs */}
@@ -368,19 +358,17 @@ export default function PatientChartPage() {
                 >
                   Recent Labs
                 </CollapsibleSectionHeading>
-                {expandedPanels.labs && (
-                  <div id="chart-labs-panel" className="bg-white">
-                    {labs.map((lab, idx) => (
-                      <div key={lab.id} className={`flex items-center justify-between px-2 py-1 text-[10px] ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                        <span>{lab.name}</span>
-                        <div className="flex items-center space-x-2">
-                          <span className={`font-semibold ${lab.status === 'High' ? 'text-red-600' : ''}`}>{lab.value}</span>
-                          <span className="text-gray-400">{lab.ref}</span>
-                        </div>
+                <div id="chart-labs-panel" hidden={!expandedPanels.labs} className="bg-white">
+                  {labs.map((lab, idx) => (
+                    <div key={lab.id} className={`flex items-center justify-between px-2 py-1 text-[10px] ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                      <span>{lab.name}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className={`font-semibold ${lab.status === 'High' ? 'text-red-600' : ''}`}>{lab.value}</span>
+                        <span className="text-gray-400">{lab.ref}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Quick Actions */}

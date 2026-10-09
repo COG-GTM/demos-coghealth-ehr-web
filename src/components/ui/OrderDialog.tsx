@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Search, Plus, X, AlertTriangle } from 'lucide-react';
 import { Modal } from './Modal';
 
@@ -64,6 +64,22 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
   const [selectedOrders, setSelectedOrders] = useState<OrderItem[]>([]);
   const [priority, setPriority] = useState<'routine' | 'stat' | 'asap'>('routine');
   const [notes, setNotes] = useState('');
+  const [announcement, setAnnouncement] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const selectedListRef = useRef<HTMLDivElement>(null);
+  const focusIndexAfterRemove = useRef<number | null>(null);
+
+  useEffect(() => {
+    const index = focusIndexAfterRemove.current;
+    if (index === null) return;
+    focusIndexAfterRemove.current = null;
+    const removeButtons = selectedListRef.current?.querySelectorAll<HTMLButtonElement>('button[data-remove-order]');
+    if (removeButtons && removeButtons.length > 0) {
+      removeButtons[Math.min(index, removeButtons.length - 1)].focus();
+    } else {
+      searchInputRef.current?.focus();
+    }
+  }, [selectedOrders]);
 
   const items = type === 'lab' ? labTests : imagingStudies;
   const filteredItems = items.filter(item => 
@@ -80,11 +96,14 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
         priority,
         notes: '',
       }]);
+      setAnnouncement(`Added ${item.code} – ${item.name}`);
     }
   };
 
-  const removeOrder = (id: string) => {
-    setSelectedOrders(selectedOrders.filter(o => o.id !== id));
+  const removeOrder = (order: OrderItem) => {
+    focusIndexAfterRemove.current = selectedOrders.findIndex(o => o.id === order.id);
+    setSelectedOrders(selectedOrders.filter(o => o.id !== order.id));
+    setAnnouncement(`Removed ${order.code} – ${order.name}`);
   };
 
   const handleSubmit = () => {
@@ -94,6 +113,7 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
       setSelectedOrders([]);
       setSearchQuery('');
       setNotes('');
+      setAnnouncement('');
       onClose();
     }
   };
@@ -120,6 +140,10 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
       }
     >
       <div className="space-y-3">
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {announcement}
+        </div>
+
         {/* Patient Info */}
         {patientName && (
           <div className="ehr-alert-info p-2 flex items-center justify-between">
@@ -138,10 +162,12 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
               <div className="flex items-center space-x-2 mb-2">
                 <Search className="w-3.5 h-3.5 text-gray-500" />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder={`Search ${type === 'lab' ? 'tests' : 'studies'}...`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label={`Search ${type === 'lab' ? 'tests' : 'studies'}`}
                   className="ehr-input flex-1"
                 />
               </div>
@@ -149,19 +175,22 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
                 {filteredItems.map((item) => {
                   const isSelected = selectedOrders.some(o => o.code === item.code);
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={item.code}
                       onClick={() => !isSelected && addOrder(item)}
-                      className={`px-2 py-1 text-[11px] cursor-pointer border-b border-gray-200 flex items-center justify-between ${
-                        isSelected ? 'bg-gray-200 text-gray-500' : 'hover:bg-blue-50'
+                      aria-disabled={isSelected}
+                      aria-label={isSelected ? `${item.code} – ${item.name}, already added` : `Add ${item.code} – ${item.name}`}
+                      className={`w-full text-left px-2 py-1 text-[11px] border-b border-gray-200 flex items-center justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 ${
+                        isSelected ? 'bg-gray-200 text-gray-500 cursor-default' : 'cursor-pointer hover:bg-blue-50'
                       }`}
                     >
-                      <div>
+                      <span>
                         <span className="font-mono text-[10px] text-gray-500 mr-2">{item.code}</span>
                         <span>{item.name}</span>
-                      </div>
-                      {!isSelected && <Plus className="w-3 h-3 text-blue-600" />}
-                    </div>
+                      </span>
+                      {!isSelected && <Plus className="w-3 h-3 text-blue-600" aria-hidden="true" />}
+                    </button>
                   );
                 })}
               </div>
@@ -172,10 +201,10 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
           <div className="w-64">
             <fieldset className="ehr-fieldset h-64 flex flex-col">
               <legend>Selected Orders ({selectedOrders.length})</legend>
-              <div className="flex-1 overflow-auto border border-gray-300 bg-white">
+              <div ref={selectedListRef} className="flex-1 overflow-auto border border-gray-300 bg-white">
                 {selectedOrders.length === 0 ? (
                   <div className="p-4 text-center text-gray-500 text-[11px]">
-                    Click items on the left to add orders
+                    Select items on the left to add orders
                   </div>
                 ) : (
                   selectedOrders.map((order) => (
@@ -184,8 +213,14 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
                         <div className="font-medium">{order.code}</div>
                         <div className="text-[10px] text-gray-500 truncate max-w-[180px]">{order.name}</div>
                       </div>
-                      <button onClick={() => removeOrder(order.id)} className="text-red-600 hover:text-red-800">
-                        <X className="w-3 h-3" />
+                      <button
+                        type="button"
+                        data-remove-order
+                        onClick={() => removeOrder(order)}
+                        aria-label={`Remove ${order.code} – ${order.name}`}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <X className="w-3 h-3" aria-hidden="true" />
                       </button>
                     </div>
                   ))

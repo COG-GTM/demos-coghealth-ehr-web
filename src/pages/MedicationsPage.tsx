@@ -334,7 +334,7 @@ export default function MedicationsPage() {
           <label htmlFor="medication-search" className="text-gray-600">Search:</label>
           <input
             id="medication-search"
-            type="search"
+            type="text"
             placeholder="Medication, patient, Rx#..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -362,7 +362,7 @@ export default function MedicationsPage() {
             { key: 'active', label: 'Active', ariaLabel: undefined },
             { key: 'pending', label: 'Pending', ariaLabel: undefined },
             { key: 'controlled', label: 'Controlled', ariaLabel: undefined },
-            { key: 'discontinued', label: 'D/C', ariaLabel: 'Discontinued' },
+            { key: 'discontinued', label: 'D/C', ariaLabel: 'D/C (discontinued)' },
           ].map((filter) => (
             <button
               key={filter.key}

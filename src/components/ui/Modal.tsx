@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, type RefObject, useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -8,6 +8,9 @@ interface ModalProps {
   children: ReactNode;
   width?: 'sm' | 'md' | 'lg' | 'xl';
   footer?: ReactNode;
+  role?: 'dialog' | 'alertdialog';
+  describedById?: string;
+  initialFocusRef?: RefObject<HTMLElement | null>;
 }
 
 const widthClasses = {
@@ -17,27 +20,116 @@ const widthClasses = {
   xl: 'w-[800px]',
 };
 
-export function Modal({ isOpen, onClose, title, children, width = 'md', footer }: ModalProps) {
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
+const MODAL_BASE_Z_INDEX = 50;
+const openModalStack: symbol[] = [];
+let topZIndex = MODAL_BASE_Z_INDEX;
+
+function getFocusable(container: HTMLElement): HTMLElement[] {
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+}
+
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  width = 'md',
+  footer,
+  role = 'dialog',
+  describedById,
+  initialFocusRef,
+}: ModalProps) {
+  const titleId = useId();
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const modalToken = Symbol('modal');
+    openModalStack.push(modalToken);
+    // Most recently opened modal paints on top, matching the keyboard stack.
+    if (overlayRef.current) overlayRef.current.style.zIndex = String(++topZIndex);
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const dialog = dialogRef.current;
+    if (dialog) {
+      const target = initialFocusRef?.current
+        ?? dialog.querySelector<HTMLElement>('[data-autofocus]')
+        ?? getFocusable(dialog).find(el => !el.hasAttribute('data-modal-close'))
+        ?? dialog;
+      target.focus();
     }
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (openModalStack[openModalStack.length - 1] !== modalToken) return;
+      if (e.key === 'Escape') {
+        onCloseRef.current();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = getFocusable(dialogRef.current);
+      if (focusable.length === 0) {
+        e.preventDefault();
+        dialogRef.current.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      const outside = !dialogRef.current.contains(active);
+      if (e.shiftKey && (active === first || active === dialogRef.current || outside)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || outside)) {
+        e.preventDefault();
+        first.focus();
+      }
     };
-  }, [isOpen, onClose]);
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      openModalStack.splice(openModalStack.indexOf(modalToken), 1);
+      if (openModalStack.length === 0) {
+        document.body.style.overflow = '';
+        topZIndex = MODAL_BASE_Z_INDEX;
+      }
+      if (previouslyFocused && document.contains(previouslyFocused)) {
+        previouslyFocused.focus();
+      }
+    };
+  }, [isOpen, initialFocusRef]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col`} style={{ fontFamily: 'Tahoma, sans-serif' }}>
+    <div ref={overlayRef} className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
+      <div
+        ref={dialogRef}
+        role={role}
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={describedById}
+        tabIndex={-1}
+        className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col focus:outline-none`}
+        style={{ fontFamily: 'Tahoma, sans-serif' }}
+      >
         {/* Window frame */}
         <div className="bg-white border-2 border-gray-400 shadow-lg flex flex-col" style={{ boxShadow: '2px 2px 8px rgba(0,0,0,0.3)' }}>
           {/* Title bar */}
@@ -45,12 +137,15 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
             className="flex items-center justify-between px-2 py-1"
             style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
           >
-            <span className="text-white font-semibold text-[11px]">{title}</span>
+            <span id={titleId} className="text-white font-semibold text-[11px]">{title}</span>
             <button 
+              type="button"
               onClick={onClose}
+              aria-label="Close"
+              data-modal-close
               className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </div>
           
@@ -75,6 +170,7 @@ interface ConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  onCancel?: () => void;
   title: string;
   message: string;
   confirmText?: string;
@@ -86,24 +182,36 @@ export function ConfirmDialog({
   isOpen, 
   onClose, 
   onConfirm, 
+  onCancel,
   title, 
   message, 
   confirmText = 'OK',
   cancelText = 'Cancel',
   type = 'info'
 }: ConfirmDialogProps) {
+  const messageId = useId();
+  const focusCancel = type === 'danger';
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={title}
       width="sm"
+      role="alertdialog"
+      describedById={messageId}
       footer={
         <>
-          <button onClick={onClose} className="ehr-button px-4">
+          <button
+            type="button"
+            onClick={onCancel ?? onClose}
+            className="ehr-button px-4"
+            data-autofocus={focusCancel ? true : undefined}
+          >
             {cancelText}
           </button>
           <button 
+            type="button"
+            data-autofocus={focusCancel ? undefined : true}
             onClick={() => { onConfirm(); onClose(); }} 
             className={`ehr-button px-4 ${type === 'danger' ? '' : 'ehr-button-primary'}`}
             style={type === 'danger' ? { background: 'linear-gradient(to bottom, #e87458 0%, #c84030 100%)', color: 'white', border: '1px solid #a02010' } : undefined}
@@ -113,7 +221,7 @@ export function ConfirmDialog({
         </>
       }
     >
-      <p className="text-[11px] text-gray-700">{message}</p>
+      <p id={messageId} className="text-[11px] text-gray-700">{message}</p>
     </Modal>
   );
 }
@@ -133,6 +241,7 @@ export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: 
     warning: '#fff3cd',
     error: '#f8d7da',
   };
+  const messageId = useId();
   
   return (
     <Modal
@@ -140,14 +249,16 @@ export function AlertDialog({ isOpen, onClose, title, message, type = 'info' }: 
       onClose={onClose}
       title={title}
       width="sm"
+      role="alertdialog"
+      describedById={messageId}
       footer={
-        <button onClick={onClose} className="ehr-button ehr-button-primary px-6">
+        <button type="button" data-autofocus onClick={onClose} className="ehr-button ehr-button-primary px-6">
           OK
         </button>
       }
     >
       <div className="p-2 border border-gray-400" style={{ background: bgColors[type] }}>
-        <p className="text-[11px]">{message}</p>
+        <p id={messageId} className="text-[11px]">{message}</p>
       </div>
     </Modal>
   );

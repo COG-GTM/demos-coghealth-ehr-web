@@ -16,7 +16,8 @@ import {
   FlaskConical,
   Activity
 } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { FocusEvent, KeyboardEvent } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
 import PatientChartPage from './pages/PatientChartPage';
 import DashboardPage from './pages/DashboardPage';
@@ -28,6 +29,12 @@ import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
 import { logLogout } from './services/auditService';
+import {
+  filterPatients,
+  nextActiveIndex,
+  patientSearchStatus,
+  MIN_PATIENT_SEARCH_LENGTH,
+} from './utils/patientSearch';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
@@ -54,6 +61,8 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   const [globalSearch, setGlobalSearch] = useState('');
   const [searchResults, setSearchResults] = useState<typeof defaultPatientSearch>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [activeResultIndex, setActiveResultIndex] = useState(-1);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const [sessionTime, setSessionTime] = useState(SESSION_TIMEOUT_MS);
 
   useEffect(() => {
@@ -89,23 +98,68 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
 
   const handleSearch = (query: string) => {
     setGlobalSearch(query);
-    if (query.length >= 2) {
-      const results = defaultPatientSearch.filter(p =>
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.mrn.toLowerCase().includes(query.toLowerCase())
-      );
-      setSearchResults(results);
-      setShowSearchDropdown(true);
-    } else {
-      setSearchResults([]);
-      setShowSearchDropdown(false);
-    }
+    setActiveResultIndex(-1);
+    const hasQuery = query.trim().length >= MIN_PATIENT_SEARCH_LENGTH;
+    setSearchResults(filterPatients(defaultPatientSearch, query));
+    setShowSearchDropdown(hasQuery);
+  };
+
+  const closeSearchDropdown = () => {
+    setShowSearchDropdown(false);
+    setActiveResultIndex(-1);
   };
 
   const selectPatient = (patientId: number) => {
     setGlobalSearch('');
-    setShowSearchDropdown(false);
+    setSearchResults([]);
+    closeSearchDropdown();
     navigate(`/patients/${patientId}`);
+  };
+
+  const hasSearchQuery = globalSearch.trim().length >= MIN_PATIENT_SEARCH_LENGTH;
+  const searchListboxOpen = showSearchDropdown && searchResults.length > 0;
+  const searchStatus = showSearchDropdown ? patientSearchStatus(globalSearch, searchResults.length) : '';
+  const activeResultId = searchListboxOpen && activeResultIndex >= 0
+    ? `global-patient-search-option-${searchResults[activeResultIndex].id}`
+    : undefined;
+
+  const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    switch (e.key) {
+      case 'ArrowDown':
+      case 'ArrowUp':
+        if (!hasSearchQuery) return;
+        e.preventDefault();
+        if (!showSearchDropdown) {
+          setShowSearchDropdown(true);
+        }
+        setActiveResultIndex(i => nextActiveIndex(i, searchResults.length, e.key as 'ArrowDown' | 'ArrowUp'));
+        return;
+      case 'Home':
+      case 'End':
+        if (!searchListboxOpen || activeResultIndex < 0) return;
+        e.preventDefault();
+        setActiveResultIndex(i => nextActiveIndex(i, searchResults.length, e.key as 'Home' | 'End'));
+        return;
+      case 'Enter':
+        if (!searchListboxOpen) return;
+        e.preventDefault();
+        selectPatient(searchResults[activeResultIndex >= 0 ? activeResultIndex : 0].id);
+        return;
+      case 'Escape':
+        if (showSearchDropdown) {
+          e.preventDefault();
+          closeSearchDropdown();
+        } else if (globalSearch) {
+          e.preventDefault();
+          handleSearch('');
+        }
+        return;
+    }
+  };
+
+  const handleSearchBlur = (e: FocusEvent<HTMLInputElement>) => {
+    if (searchContainerRef.current?.contains(e.relatedTarget as Node | null)) return;
+    closeSearchDropdown();
   };
 
   const formatSessionTime = () => {
@@ -137,38 +191,61 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
           <span className="text-blue-200 text-[10px]">v4.2.1</span>
           <span className="text-blue-300">|</span>
           {/* Global Patient Search */}
-          <div className="relative">
+          <div className="relative" ref={searchContainerRef}>
             <div className="flex items-center">
-              <Search className="w-3 h-3 text-blue-200 mr-1" />
+              <Search className="w-3 h-3 text-blue-200 mr-1" aria-hidden="true" />
+              <label htmlFor="global-patient-search" className="sr-only">Patient search</label>
               <input
+                id="global-patient-search"
                 type="text"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={searchListboxOpen}
+                aria-controls="global-patient-search-listbox"
+                aria-activedescendant={activeResultId}
+                autoComplete="off"
                 placeholder="Patient search..."
                 value={globalSearch}
                 onChange={(e) => handleSearch(e.target.value)}
-                onFocus={() => globalSearch.length >= 2 && setShowSearchDropdown(true)}
-                onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
+                onFocus={() => hasSearchQuery && setShowSearchDropdown(true)}
+                onBlur={handleSearchBlur}
+                onKeyDown={handleSearchKeyDown}
                 className="bg-blue-900/50 border border-blue-400 text-white placeholder-blue-300 text-[10px] px-2 py-0.5 w-40 focus:outline-none focus:border-white"
               />
             </div>
-            {showSearchDropdown && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50">
-                {searchResults.map((patient) => (
-                  <div
-                    key={patient.id}
-                    onClick={() => selectPatient(patient.id)}
-                    className="px-2 py-1.5 hover:bg-blue-100 cursor-pointer text-[11px] text-gray-800 border-b border-gray-200"
-                  >
-                    <div className="font-semibold">{patient.name}</div>
-                    <div className="text-gray-500 text-[10px]">{patient.mrn} • DOB: {patient.dob}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {showSearchDropdown && searchResults.length === 0 && globalSearch.length >= 2 && (
-              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50 p-2 text-[11px] text-gray-500">
+            <ul
+              id="global-patient-search-listbox"
+              role="listbox"
+              aria-label="Patient search results"
+              hidden={!searchListboxOpen}
+              onMouseDown={(e) => e.preventDefault()}
+              className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50"
+            >
+              {searchListboxOpen && searchResults.map((patient, index) => (
+                <li
+                  key={patient.id}
+                  id={`global-patient-search-option-${patient.id}`}
+                  role="option"
+                  aria-selected={index === activeResultIndex}
+                  onClick={() => selectPatient(patient.id)}
+                  onMouseEnter={() => setActiveResultIndex(index)}
+                  className={`px-2 py-1.5 hover:bg-blue-100 cursor-pointer text-[11px] text-gray-800 border-b border-gray-200 ${
+                    index === activeResultIndex ? 'bg-blue-100 outline outline-1 outline-blue-500' : ''
+                  }`}
+                >
+                  <div className="font-semibold">{patient.name}</div>
+                  <div className="text-gray-500 text-[10px]">{patient.mrn} • DOB: {patient.dob}</div>
+                </li>
+              ))}
+            </ul>
+            {showSearchDropdown && searchResults.length === 0 && hasSearchQuery && (
+              <div aria-hidden="true" className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-400 shadow-lg z-50 p-2 text-[11px] text-gray-500">
                 No patients found
               </div>
             )}
+            <div id="global-patient-search-status" role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+              {searchStatus}
+            </div>
           </div>
         </div>
         <div className="flex items-center space-x-3 text-[10px]">

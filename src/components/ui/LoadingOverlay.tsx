@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { coverSiblings } from './coverSiblings';
 
 interface LoadingOverlayProps {
@@ -9,6 +9,14 @@ interface LoadingOverlayProps {
 export function LoadingOverlay({ isLoading, text = 'Loading...' }: LoadingOverlayProps) {
   const statusRef = useRef<HTMLSpanElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  // Live regions only announce text inserted after they exist, so the status
+  // starts empty and is filled once it has been mounted.
+  const [statusMounted, setStatusMounted] = useState(false);
+
+  useEffect(() => {
+    const id = setTimeout(() => setStatusMounted(true), 100);
+    return () => clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     const status = statusRef.current;
@@ -20,9 +28,8 @@ export function LoadingOverlay({ isLoading, text = 'Loading...' }: LoadingOverla
 
   return (
     <>
-      {/* Persistent live region so the loading message is announced when it appears */}
       <span ref={statusRef} role="status" aria-live="polite" aria-atomic="true" className="sr-only">
-        {isLoading ? text : ''}
+        {isLoading && statusMounted ? text : ''}
       </span>
       {isLoading && (
         <div

@@ -22,12 +22,12 @@ class FakeElement {
 }
 
 describe('LoadingOverlay', () => {
-  it('announces the loading text in a polite status region and hides decoration', () => {
+  it('mounts an empty polite status region and hides decoration', () => {
     const html = renderToStaticMarkup(
       createElement(LoadingOverlay, { isLoading: true, text: 'Loading patients...' })
     );
     expect(html).toMatch(
-      /<span role="status" aria-live="polite" aria-atomic="true" class="sr-only">Loading patients\.\.\.<\/span>/
+      /^<span role="status" aria-live="polite" aria-atomic="true" class="sr-only"><\/span>/
     );
     expect(html).toContain('<svg aria-hidden="true" focusable="false"');
     expect(html).toMatch(/<span aria-hidden="true"[^>]*>Loading patients\.\.\.<\/span>/);

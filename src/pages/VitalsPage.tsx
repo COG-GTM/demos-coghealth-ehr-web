@@ -208,7 +208,9 @@ export default function VitalsPage() {
                         className="p-0 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0]"
                         style={getStatusStyle(status)}
                         onClick={(e) => {
-                          if (e.target === e.currentTarget) setSelectedReading(reading);
+                          if (e.target !== e.currentTarget) return;
+                          e.currentTarget.querySelector('button')?.focus();
+                          setSelectedReading(reading);
                         }}
                       >
                         <button

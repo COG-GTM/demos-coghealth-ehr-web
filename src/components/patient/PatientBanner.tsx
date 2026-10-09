@@ -1,5 +1,6 @@
 import type { Patient } from '../../types';
-import { AlertTriangle, Phone, Mail, Calendar, User, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, Phone, Mail, Calendar, User, ShieldAlert, OctagonAlert } from 'lucide-react';
+import { summarizeAllergies } from './allergySummary';
 
 interface PatientBannerProps {
   patient: Patient;
@@ -27,7 +28,8 @@ export default function PatientBanner({ patient, allergies = [] }: PatientBanner
     });
   };
 
-  const hasSevereAllergy = allergies.some(a => a.severity === 'Severe');
+  const allergySummary = summarizeAllergies(allergies);
+  const hasSevereAllergy = allergySummary.hasSevere;
 
   return (
     <div className="border-b border-gray-500" style={{ background: 'linear-gradient(to bottom, #4a6ea5 0%, #2d4a7c 100%)' }}>
@@ -82,13 +84,29 @@ export default function PatientBanner({ patient, allergies = [] }: PatientBanner
         
         <div className="flex items-center space-x-2">
           {allergies.length > 0 && (
-            <div className={`flex items-center px-2 py-1 text-[10px] font-bold border border-gray-500 ${hasSevereAllergy ? 'bg-gray-300 text-gray-800' : 'bg-gray-200 text-gray-700'}`}>
-              <ShieldAlert className="w-3.5 h-3.5 mr-1" />
-              ALLERGIES: {allergies.map(a => a.allergen).join(', ')}
+            <div
+              role={hasSevereAllergy ? 'alert' : undefined}
+              data-testid="patient-banner-allergies"
+              data-severity={hasSevereAllergy ? 'severe' : 'standard'}
+              className={`flex items-center px-2 py-1 text-[10px] font-bold ${hasSevereAllergy ? 'bg-red-700 text-white border-2 border-white' : 'bg-gray-200 text-gray-700 border border-gray-500'}`}
+            >
+              {hasSevereAllergy
+                ? <OctagonAlert className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
+                : <ShieldAlert className="w-3.5 h-3.5 mr-1" aria-hidden="true" />}
+              <span>
+                {hasSevereAllergy && <span className="sr-only">Warning: </span>}
+                {allergySummary.heading}{' '}
+                {allergySummary.items.map((item, idx) => (
+                  <span key={`${item.allergen}-${idx}`}>
+                    {idx > 0 && ', '}
+                    {item.severe ? <span className="underline">{item.label}</span> : item.label}
+                  </span>
+                ))}
+              </span>
             </div>
           )}
-          <button className="p-1.5 text-white/80 hover:text-white hover:bg-white/10" title="View Allergies">
-            <AlertTriangle className="w-4 h-4" />
+          <button className="p-1.5 text-white/80 hover:text-white hover:bg-white/10" title="View Allergies" aria-label="View Allergies">
+            <AlertTriangle className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       </div>

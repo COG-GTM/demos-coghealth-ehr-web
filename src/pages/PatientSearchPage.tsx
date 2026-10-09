@@ -152,6 +152,7 @@ export default function PatientSearchPage() {
   const [showLabDialog, setShowLabDialog] = useState(false);
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   // Toggled after every search so identical result counts are still re-announced.
   const [announceSeq, setAnnounceSeq] = useState(0);
   const latestFetchId = useRef(0);
@@ -166,8 +167,10 @@ export default function PatientSearchPage() {
       setAllPatients(mapped);
       setSearchResults(mapped);
       setLastRefreshed(new Date());
+      setLoadFailed(false);
     } catch (error) {
       if (fetchId !== latestFetchId.current) return;
+      setLoadFailed(true);
       console.error('Failed to fetch patients:', error);
       setShowAlert({ title: 'Error', message: 'Failed to load patients from server.', type: 'info' });
     } finally {
@@ -538,7 +541,7 @@ export default function PatientSearchPage() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="ehr-subheader flex items-center justify-between">
             <span role="status" aria-live="polite" aria-atomic="true">
-              {`Patient List - ${patientListStatusMessage(searchResults.length, loading)}${announceSeq % 2 ? '\u00A0' : ''}`}
+              {`Patient List - ${patientListStatusMessage(searchResults.length, loading, loadFailed)}${announceSeq % 2 ? '\u00A0' : ''}`}
             </span>
             <span className="text-gray-500">Double-click to open chart</span>
           </div>
@@ -638,7 +641,7 @@ export default function PatientSearchPage() {
                 })}
               </tbody>
             </table>
-            {searchResults.length === 0 && !loading && (
+            {searchResults.length === 0 && !loading && !loadFailed && (
               <div className="text-center py-3 text-gray-500 text-[11px]">
                 No patients found matching your criteria
               </div>

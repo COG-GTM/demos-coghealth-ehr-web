@@ -14,4 +14,10 @@ describe('patientListStatusMessage', () => {
     expect(patientListStatusMessage(1, false)).toBe('1 record(s) found');
     expect(patientListStatusMessage(42, false)).toBe('42 record(s) found');
   });
+
+  it('announces a load failure instead of a result', () => {
+    expect(patientListStatusMessage(0, false, true)).toBe('Failed to load patients');
+    expect(patientListStatusMessage(7, false, true)).toBe('Refresh failed - showing 7 previous record(s)');
+    expect(patientListStatusMessage(7, true, true)).toBe('Loading patients...');
+  });
 });

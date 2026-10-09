@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
@@ -154,21 +154,27 @@ export default function PatientSearchPage() {
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   // Toggled after every search so identical result counts are still re-announced.
   const [announceSeq, setAnnounceSeq] = useState(0);
+  const latestFetchId = useRef(0);
 
   const fetchPatients = async (query = '') => {
+    const fetchId = ++latestFetchId.current;
     setLoading(true);
     try {
       const result = await patientService.search(query, 0, 100);
+      if (fetchId !== latestFetchId.current) return;
       const mapped = result.content.map(mapPatientToListItem);
       setAllPatients(mapped);
       setSearchResults(mapped);
       setLastRefreshed(new Date());
     } catch (error) {
+      if (fetchId !== latestFetchId.current) return;
       console.error('Failed to fetch patients:', error);
       setShowAlert({ title: 'Error', message: 'Failed to load patients from server.', type: 'info' });
     } finally {
-      setLoading(false);
-      setAnnounceSeq(n => n + 1);
+      if (fetchId === latestFetchId.current) {
+        setLoading(false);
+        setAnnounceSeq(n => n + 1);
+      }
     }
   };
 

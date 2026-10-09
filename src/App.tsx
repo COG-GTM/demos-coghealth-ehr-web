@@ -134,12 +134,12 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
             <span className="text-blue-800 font-bold text-[11px]">C</span>
           </div>
           <span className="font-semibold">CogHealth EHR</span>
-          <span className="text-blue-200 text-[10px]">v4.2.1</span>
-          <span className="text-blue-300">|</span>
+          <span className="text-white text-[10px]">v4.2.1</span>
+          <span className="text-blue-200" aria-hidden="true">|</span>
           {/* Global Patient Search */}
           <div className="relative">
             <div className="flex items-center">
-              <Search className="w-3 h-3 text-blue-200 mr-1" />
+              <Search className="w-3 h-3 text-white mr-1" aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Patient search..."
@@ -147,7 +147,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
                 onChange={(e) => handleSearch(e.target.value)}
                 onFocus={() => globalSearch.length >= 2 && setShowSearchDropdown(true)}
                 onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
-                className="bg-blue-900/50 border border-blue-400 text-white placeholder-blue-300 text-[10px] px-2 py-0.5 w-40 focus:outline-none focus:border-white"
+                className="bg-blue-900/50 border border-blue-400 text-white placeholder-blue-100 text-[10px] px-2 py-0.5 w-40 focus:outline-none focus:border-white"
               />
             </div>
             {showSearchDropdown && searchResults.length > 0 && (
@@ -172,20 +172,20 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
           </div>
         </div>
         <div className="flex items-center space-x-3 text-[10px]">
-          <span className="text-blue-100">Springfield Medical Center</span>
-          <span className="text-blue-300">|</span>
+          <span className="text-white">Springfield Medical Center</span>
+          <span className="text-blue-200" aria-hidden="true">|</span>
           <div className="flex items-center space-x-1">
             <Lock className="w-3 h-3" />
-            <span className={sessionTime < SESSION_WARNING_MS ? 'text-yellow-300' : 'text-blue-200'}>
+            <span className={sessionTime < SESSION_WARNING_MS ? 'text-yellow-200' : 'text-white'}>
               Session: {formatSessionTime()}
             </span>
           </div>
-          <span className="text-blue-300">|</span>
+          <span className="text-blue-200" aria-hidden="true">|</span>
           <div className="flex items-center space-x-1">
             <User className="w-3 h-3" />
             <span>Dr. Sarah Anderson</span>
           </div>
-          <button onClick={onLogout} className="flex items-center space-x-1 hover:text-white text-blue-200">
+          <button onClick={onLogout} className="flex items-center space-x-1 text-white hover:underline focus-visible:underline">
             <LogOut className="w-3 h-3" />
             <span>Logout</span>
           </button>

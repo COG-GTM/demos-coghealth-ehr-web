@@ -205,7 +205,7 @@ export default function ReportsPage() {
                     onClick={() => toggleCategory(category)}
                     aria-expanded={expanded}
                     aria-controls={panelId}
-                    className="w-full px-2 py-1 bg-gray-100 hover:bg-gray-200 cursor-pointer flex items-center justify-between text-left text-[11px] border-b border-gray-400 focus:outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px] focus-visible:outline-black"
+                    className="w-full px-2 py-1 bg-gray-100 hover:bg-gray-200 cursor-pointer flex items-center justify-between text-left text-[11px] border-b border-gray-400 focus-visible:outline-1 focus-visible:outline-solid focus-visible:outline-offset-[-2px] focus-visible:outline-black"
                     style={{ background: 'linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%)' }}
                   >
                     <span className="flex items-center space-x-2">

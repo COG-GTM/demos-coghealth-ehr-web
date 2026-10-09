@@ -29,7 +29,9 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
+const MODAL_BASE_Z_INDEX = 50;
 const openModalStack: symbol[] = [];
+let topZIndex = MODAL_BASE_Z_INDEX;
 
 function getFocusable(container: HTMLElement): HTMLElement[] {
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
@@ -47,6 +49,7 @@ export function Modal({
   initialFocusRef,
 }: ModalProps) {
   const titleId = useId();
+  const overlayRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
 
@@ -59,6 +62,8 @@ export function Modal({
 
     const modalToken = Symbol('modal');
     openModalStack.push(modalToken);
+    // Most recently opened modal paints on top, matching the keyboard stack.
+    if (overlayRef.current) overlayRef.current.style.zIndex = String(++topZIndex);
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const dialog = dialogRef.current;
     if (dialog) {
@@ -72,7 +77,6 @@ export function Modal({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (openModalStack[openModalStack.length - 1] !== modalToken) return;
       if (e.key === 'Escape') {
-        e.stopPropagation();
         onCloseRef.current();
         return;
       }
@@ -101,7 +105,10 @@ export function Modal({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       openModalStack.splice(openModalStack.indexOf(modalToken), 1);
-      if (openModalStack.length === 0) document.body.style.overflow = '';
+      if (openModalStack.length === 0) {
+        document.body.style.overflow = '';
+        topZIndex = MODAL_BASE_Z_INDEX;
+      }
       if (previouslyFocused && document.contains(previouslyFocused)) {
         previouslyFocused.focus();
       }
@@ -111,7 +118,7 @@ export function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div ref={overlayRef} className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
       <div
         ref={dialogRef}

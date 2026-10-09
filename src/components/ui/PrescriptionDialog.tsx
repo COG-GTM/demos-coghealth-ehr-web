@@ -296,16 +296,18 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
           </div>
         </div>
 
-        {selectedMed && (
-          <div className="ehr-alert-warning p-2 flex items-start text-[10px]">
-            <AlertTriangle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
-            <div>
-              <strong>Drug Interaction Check:</strong> No significant interactions found with current medications.
-              <br />
-              <span className="text-gray-600">Always verify patient's complete medication list before prescribing.</span>
+        <div role="status" aria-live="polite" aria-atomic="true">
+          {selectedMed && (
+            <div className="ehr-alert-warning p-2 flex items-start text-[10px]">
+              <AlertTriangle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <div>
+                <strong>Drug Interaction Check ({selectedMed.name}):</strong> No significant interactions found with current medications.
+                <br />
+                <span className="text-gray-600">Always verify patient's complete medication list before prescribing.</span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </Modal>
   );

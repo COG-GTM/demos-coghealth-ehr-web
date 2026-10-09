@@ -291,7 +291,7 @@ export default function MedicationsPage() {
     active: defaultMedicationOrders.filter(o => o.status === 'ACTIVE').length,
     pending: defaultMedicationOrders.filter(o => o.status === 'PENDING').length,
     controlled: defaultMedicationOrders.filter(o => o.controlled && o.status === 'ACTIVE').length,
-    withAlerts: defaultMedicationOrders.filter(o => o.interactions.length > 0 || o.allergies.length > 0 || o.renalDoseAlert || o.geriatricAlert).length,
+    withAlerts: defaultMedicationOrders.filter(hasMedicationAlerts).length,
   };
 
   const togglePatient = (mrn: string) => {
@@ -503,6 +503,7 @@ export default function MedicationsPage() {
                             {order.allergies.length > 0 && <Ban className={`w-3 h-3 ${isSelected ? 'text-orange-200' : 'text-orange-500'}`} />}
                             {order.renalDoseAlert && <Zap className={`w-3 h-3 ${isSelected ? 'text-purple-200' : 'text-purple-500'}`} />}
                             {order.geriatricAlert && <User className={`w-3 h-3 ${isSelected ? 'text-blue-200' : 'text-blue-500'}`} />}
+                            {order.duplicateTherapy && <AlertCircle className={`w-3 h-3 ${isSelected ? 'text-red-200' : 'text-red-600'}`} />}
                           </div>
                         ) : (
                           <span aria-hidden="true" className="text-gray-400">-</span>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import type { VitalReading } from '../types';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -28,6 +29,7 @@ const defaultVitals: VitalReading[] = [
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
 
 export default function VitalsPage() {
+  useDocumentTitle('Vitals');
   const [vitals] = useState<VitalReading[]>(defaultVitals);
   const [selectedReading, setSelectedReading] = useState<VitalReading | null>(null);
   const [showAddVitals, setShowAddVitals] = useState(false);

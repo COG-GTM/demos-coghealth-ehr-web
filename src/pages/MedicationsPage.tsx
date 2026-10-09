@@ -25,6 +25,14 @@ import type { MedicationOrderStatus } from '../types';
 import { AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
+import {
+  INACTIVE_ROW_CLASS,
+  SELECTED_BADGE_CLASS,
+  discontinueButtonStyle,
+  secondaryTextStyle,
+  selectedRowStyle,
+  signButtonStyle,
+} from './medicationPalette';
 
 interface MedicationOrderExtended {
   id: number;
@@ -443,21 +451,21 @@ export default function MedicationsPage() {
                       onClick={() => setSelectedOrder(order)}
                       className={`cursor-pointer ${
                         isSelected ? 'ehr-grid-row selected' : 
-                        order.status === 'DISCONTINUED' || order.status === 'COMPLETED' ? 'opacity-50' : 
+                        order.status === 'DISCONTINUED' || order.status === 'COMPLETED' ? INACTIVE_ROW_CLASS : 
                         idx % 2 === 1 ? 'bg-gray-50' : ''
                       }`}
-                      style={isSelected ? { background: '#316ac5', color: 'white' } : undefined}
+                      style={isSelected ? selectedRowStyle : undefined}
                     >
                       <td className="px-1 py-1">
                         <div className="flex items-center space-x-1">
                           {order.controlled && (
-                            <span className={`px-0.5 py-0 text-[9px] font-bold ${isSelected ? 'bg-white/30' : 'bg-gray-200 text-gray-800 border border-gray-400'}`}>
+                            <span className={`px-0.5 py-0 text-[9px] font-bold ${isSelected ? SELECTED_BADGE_CLASS : 'bg-gray-200 text-gray-800 border border-gray-400'}`}>
                               {order.schedule}
                             </span>
                           )}
                           <div>
                             <div className="font-semibold">{order.medicationName} {order.strength}</div>
-                            <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: '#666' }}>
+                            <div className="text-[10px]" style={secondaryTextStyle(isSelected)}>
                               {order.form} • {order.orderNumber}
                             </div>
                           </div>
@@ -465,7 +473,7 @@ export default function MedicationsPage() {
                       </td>
                       <td className="px-1 py-1">
                         <div>{order.patientName}</div>
-                        <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: '#666' }}>{order.patientMrn}</div>
+                        <div className="text-[10px]" style={secondaryTextStyle(isSelected)}>{order.patientMrn}</div>
                       </td>
                       <td className="px-1 py-1">
                         <div className="truncate max-w-[180px]">{order.sig}</div>
@@ -474,7 +482,7 @@ export default function MedicationsPage() {
                         )}
                       </td>
                       <td className="px-1 py-1">
-                        <span className={`px-1 py-0.5 text-[9px] ${isSelected ? 'bg-white/30' : `${status.bg} ${status.color}`}`}>
+                        <span className={`px-1 py-0.5 text-[9px] ${isSelected ? SELECTED_BADGE_CLASS : `${status.bg} ${status.color}`}`}>
                           {status.label}
                         </span>
                       </td>
@@ -500,7 +508,7 @@ export default function MedicationsPage() {
                           <button 
                             onClick={(e) => { e.stopPropagation(); setShowAlert({ title: 'Order Signed', message: `${order.medicationName} ${order.strength} has been signed and sent to pharmacy.`, type: 'success' }); }}
                             className="ehr-button text-[9px] px-1 py-0" 
-                            style={{ background: 'linear-gradient(to bottom, #66cc66 0%, #339933 100%)', color: 'white', border: '1px solid #206020' }}
+                            style={signButtonStyle}
                           >
                             Sign
                           </button>
@@ -508,7 +516,7 @@ export default function MedicationsPage() {
                         {order.status === 'ACTIVE' && (
                           <button 
                             onClick={(e) => { e.stopPropagation(); setShowAlert({ title: 'Renewal Sent', message: `Renewal request for ${order.medicationName} has been sent to pharmacy.`, type: 'success' }); }}
-                            className="ehr-button text-[9px] px-1 py-0"
+                            className="ehr-button text-[9px] px-1 py-0 text-black"
                           >
                             Renew
                           </button>
@@ -721,7 +729,7 @@ export default function MedicationsPage() {
                   <legend>Actions</legend>
                   <div className="grid grid-cols-4 gap-1">
                     {selectedOrder.status === 'PENDING' && (
-                      <button className="ehr-button flex flex-col items-center py-1 text-[9px]" style={{ background: 'linear-gradient(to bottom, #66cc66 0%, #339933 100%)', color: 'white', border: '1px solid #206020' }}>
+                      <button className="ehr-button flex flex-col items-center py-1 text-[9px]" style={signButtonStyle}>
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Sign
                       </button>
@@ -736,7 +744,7 @@ export default function MedicationsPage() {
                           <FileText className="w-3.5 h-3.5" />
                           Modify
                         </button>
-                        <button className="ehr-button flex flex-col items-center py-1 text-[9px]" style={{ background: 'linear-gradient(to bottom, #ff6666 0%, #cc0000 100%)', color: 'white', border: '1px solid #800000' }}>
+                        <button className="ehr-button flex flex-col items-center py-1 text-[9px]" style={discontinueButtonStyle}>
                           <XCircle className="w-3.5 h-3.5" />
                           D/C
                         </button>
@@ -817,7 +825,7 @@ function OrderRow({ order, selected, onSelect, idx }: { order: MedicationOrderEx
       className={`px-3 py-1 cursor-pointer flex items-center justify-between text-[11px] ${
         selected ? '' : idx % 2 === 1 ? 'bg-gray-50' : ''
       }`}
-      style={selected ? { background: '#316ac5', color: 'white' } : undefined}
+      style={selected ? selectedRowStyle : undefined}
     >
       <div className="flex items-center space-x-2">
         <div className="w-6">
@@ -825,12 +833,12 @@ function OrderRow({ order, selected, onSelect, idx }: { order: MedicationOrderEx
         </div>
         <div>
           <div className="font-semibold">{order.medicationName} {order.strength}</div>
-          <div style={selected ? { color: '#ccc' } : { color: '#666' }}>{order.sig}</div>
+          <div style={secondaryTextStyle(selected)}>{order.sig}</div>
         </div>
       </div>
       <div className="flex items-center space-x-2">
         {hasAlerts && <AlertTriangle className={`w-3 h-3 ${selected ? 'text-yellow-200' : 'text-red-500'}`} />}
-        <span className={`px-1 py-0.5 border border-gray-400 text-[9px] ${selected ? 'bg-white/30' : `${status.bg} ${status.color}`}`}>
+        <span className={`px-1 py-0.5 text-[9px] ${selected ? SELECTED_BADGE_CLASS : `border border-gray-400 ${status.bg} ${status.color}`}`}>
           {status.label}
         </span>
       </div>

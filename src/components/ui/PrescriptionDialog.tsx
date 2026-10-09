@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Pill, Search, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Modal } from './Modal';
+import { nextListboxIndex } from '../../utils/listboxNavigation';
 
 interface PrescriptionDialogProps {
   isOpen: boolean;
@@ -65,6 +66,10 @@ const sigTemplates = [
 export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, patientAllergies = [], onSubmit }: PrescriptionDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMed, setSelectedMed] = useState<typeof commonMedications[0] | null>(null);
+  const [activeMedName, setActiveMedName] = useState<string | null>(null);
+  const optionRefs = useRef(new Map<string, HTMLDivElement>());
+  const listboxId = useId();
+  const listboxLabelId = useId();
   const [prescription, setPrescription] = useState<Partial<PrescriptionData>>({
     strength: '',
     sig: 'Take 1 tablet by mouth once daily',
@@ -80,8 +85,46 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
     med.class.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const activeIndex = (() => {
+    const byActive = filteredMeds.findIndex(med => med.name === activeMedName);
+    if (byActive >= 0) return byActive;
+    const bySelected = filteredMeds.findIndex(med => med.name === selectedMed?.name);
+    return bySelected >= 0 ? bySelected : 0;
+  })();
+
+  const focusMedication = (index: number) => {
+    const med = filteredMeds[index];
+    if (!med) return;
+    setActiveMedName(med.name);
+    optionRefs.current.get(med.name)?.focus();
+  };
+
+  const handleListboxKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const med = filteredMeds[activeIndex];
+      if (med) {
+        e.preventDefault();
+        selectMedication(med);
+      }
+      return;
+    }
+    const next = nextListboxIndex(e.key, activeIndex, filteredMeds.length);
+    if (next !== null) {
+      e.preventDefault();
+      focusMedication(next);
+    }
+  };
+
+  const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown' && filteredMeds.length > 0) {
+      e.preventDefault();
+      focusMedication(activeIndex);
+    }
+  };
+
   const selectMedication = (med: typeof commonMedications[0]) => {
     setSelectedMed(med);
+    setActiveMedName(med.name);
     setPrescription(prev => ({
       ...prev,
       medication: med.name,
@@ -104,6 +147,7 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
         notes: prescription.notes,
       });
       setSelectedMed(null);
+      setActiveMedName(null);
       setSearchQuery('');
       setPrescription({
         strength: '',
@@ -163,30 +207,55 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
           {/* Medication Search */}
           <div className="w-64">
             <fieldset className="ehr-fieldset h-56 flex flex-col">
-              <legend>Select Medication</legend>
+              <legend id={listboxLabelId}>Select Medication</legend>
               <div className="flex items-center space-x-2 mb-2">
-                <Search className="w-3.5 h-3.5 text-gray-500" />
+                <Search className="w-3.5 h-3.5 text-gray-500" aria-hidden="true" />
                 <input
                   type="text"
                   placeholder="Search medications..."
+                  aria-label="Search medications"
+                  aria-controls={listboxId}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="ehr-input flex-1"
                 />
               </div>
-              <div className="flex-1 overflow-auto border border-gray-300 bg-white">
-                {filteredMeds.map((med) => (
-                  <div
-                    key={med.name}
-                    onClick={() => selectMedication(med)}
-                    className={`px-2 py-1 text-[11px] cursor-pointer border-b border-gray-200 ${
-                      selectedMed?.name === med.name ? 'bg-blue-100' : 'hover:bg-blue-50'
-                    }`}
-                  >
-                    <div className="font-medium">{med.name}</div>
-                    <div className="text-[10px] text-gray-500">{med.class} • {med.form}</div>
+              <div
+                id={listboxId}
+                role="listbox"
+                aria-labelledby={listboxLabelId}
+                onKeyDown={handleListboxKeyDown}
+                className="flex-1 overflow-auto border border-gray-300 bg-white"
+              >
+                {filteredMeds.map((med, index) => {
+                  const isSelected = selectedMed?.name === med.name;
+                  return (
+                    <div
+                      key={med.name}
+                      ref={(el) => {
+                        if (el) optionRefs.current.set(med.name, el);
+                        else optionRefs.current.delete(med.name);
+                      }}
+                      role="option"
+                      aria-selected={isSelected}
+                      tabIndex={index === activeIndex ? 0 : -1}
+                      onClick={() => selectMedication(med)}
+                      onFocus={() => setActiveMedName(med.name)}
+                      className={`px-2 py-1 text-[11px] cursor-pointer border-b border-gray-200 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 ${
+                        isSelected ? 'bg-blue-100 border-l-4 border-l-blue-600' : 'hover:bg-blue-50'
+                      }`}
+                    >
+                      <div className="font-medium">{med.name}</div>
+                      <div className="text-[10px] text-gray-500">{med.class} • {med.form}</div>
+                    </div>
+                  );
+                })}
+                {filteredMeds.length === 0 && (
+                  <div className="px-2 py-1 text-[11px] text-gray-500" role="status">
+                    No medications match "{searchQuery}"
                   </div>
-                ))}
+                )}
               </div>
             </fieldset>
           </div>

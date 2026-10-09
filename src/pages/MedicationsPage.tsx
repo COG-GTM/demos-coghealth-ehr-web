@@ -25,6 +25,8 @@ import type { MedicationOrderStatus } from '../types';
 import { AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
+import { MedicationAlertBadges } from '../components/medications/MedicationAlertBadges';
+import { ALERT_LEGEND } from '../components/medications/medicationAlerts';
 
 interface MedicationOrderExtended {
   id: number;
@@ -427,14 +429,13 @@ export default function MedicationsPage() {
                   <th className="px-1 py-1 text-left">Sig</th>
                   <th className="px-1 py-1 text-left w-16">Status</th>
                   <th className="px-1 py-1 text-left w-14">Refills</th>
-                  <th className="px-1 py-1 text-center w-16">Alerts</th>
+                  <th className="px-1 py-1 text-center w-24" title={ALERT_LEGEND}>Alerts</th>
                   <th className="px-1 py-1 text-center w-20">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredOrders.map((order, idx) => {
                   const status = statusConfig[order.status];
-                  const hasAlerts = order.interactions.length > 0 || order.allergies.length > 0 || order.renalDoseAlert || order.geriatricAlert;
                   const isSelected = selectedOrder?.id === order.id;
                   
                   return (
@@ -484,16 +485,7 @@ export default function MedicationsPage() {
                         </span>
                       </td>
                       <td className="px-1 py-1 text-center">
-                        {hasAlerts ? (
-                          <div className="flex items-center justify-center space-x-0.5">
-                            {order.interactions.length > 0 && <AlertTriangle className={`w-3 h-3 ${isSelected ? 'text-yellow-200' : 'text-red-500'}`} />}
-                            {order.allergies.length > 0 && <Ban className={`w-3 h-3 ${isSelected ? 'text-orange-200' : 'text-orange-500'}`} />}
-                            {order.renalDoseAlert && <Zap className={`w-3 h-3 ${isSelected ? 'text-purple-200' : 'text-purple-500'}`} />}
-                            {order.geriatricAlert && <User className={`w-3 h-3 ${isSelected ? 'text-blue-200' : 'text-blue-500'}`} />}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
+                        <MedicationAlertBadges order={order} selected={isSelected} />
                       </td>
                       <td className="px-1 py-1 text-center">
                         {order.status === 'PENDING' && (
@@ -809,8 +801,6 @@ export default function MedicationsPage() {
 
 function OrderRow({ order, selected, onSelect, idx }: { order: MedicationOrderExtended; selected: boolean; onSelect: () => void; idx: number }) {
   const status = statusConfig[order.status];
-  const hasAlerts = order.interactions.length > 0 || order.allergies.length > 0;
-  
   return (
     <div
       onClick={onSelect}
@@ -829,7 +819,7 @@ function OrderRow({ order, selected, onSelect, idx }: { order: MedicationOrderEx
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        {hasAlerts && <AlertTriangle className={`w-3 h-3 ${selected ? 'text-yellow-200' : 'text-red-500'}`} />}
+        <MedicationAlertBadges order={order} selected={selected} />
         <span className={`px-1 py-0.5 border border-gray-400 text-[9px] ${selected ? 'bg-white/30' : `${status.bg} ${status.color}`}`}>
           {status.label}
         </span>

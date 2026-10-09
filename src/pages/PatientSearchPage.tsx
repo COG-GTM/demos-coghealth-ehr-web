@@ -30,6 +30,7 @@ import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { patientService } from '../services/patientService';
+import { patientListStatusMessage } from './patientSearchStatus';
 import type { Patient } from '../types';
 
 interface PatientListItem {
@@ -150,6 +151,9 @@ export default function PatientSearchPage() {
   const [showRxDialog, setShowRxDialog] = useState(false);
   const [showLabDialog, setShowLabDialog] = useState(false);
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  // Toggled after every search so identical result counts are still re-announced.
+  const [announceSeq, setAnnounceSeq] = useState(0);
 
   const fetchPatients = async (query = '') => {
     setLoading(true);
@@ -158,11 +162,13 @@ export default function PatientSearchPage() {
       const mapped = result.content.map(mapPatientToListItem);
       setAllPatients(mapped);
       setSearchResults(mapped);
+      setLastRefreshed(new Date());
     } catch (error) {
       console.error('Failed to fetch patients:', error);
       setShowAlert({ title: 'Error', message: 'Failed to load patients from server.', type: 'info' });
     } finally {
       setLoading(false);
+      setAnnounceSeq(n => n + 1);
     }
   };
 
@@ -219,6 +225,7 @@ export default function PatientSearchPage() {
     }
 
     setSearchResults(results);
+    setAnnounceSeq(n => n + 1);
   };
 
   const toggleFilter = (category: keyof FilterState, value: string) => {
@@ -242,6 +249,7 @@ export default function PatientSearchPage() {
       flags: [],
     });
     setSearchResults(allPatients);
+    setAnnounceSeq(n => n + 1);
   };
 
   const handleSelectPatient = (patient: PatientListItem) => {
@@ -523,10 +531,12 @@ export default function PatientSearchPage() {
         {/* Patient List */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="ehr-subheader flex items-center justify-between">
-            <span>Patient List - {searchResults.length} record(s) found</span>
+            <span role="status" aria-live="polite" aria-atomic="true">
+              {`Patient List - ${patientListStatusMessage(searchResults.length, loading)}${announceSeq % 2 ? '\u00A0' : ''}`}
+            </span>
             <span className="text-gray-500">Double-click to open chart</span>
           </div>
-          <div className="flex-1 overflow-auto bg-white relative">
+          <div className="flex-1 overflow-auto bg-white relative" aria-busy={loading}>
             <LoadingOverlay isLoading={loading} text="Loading patients..." />
             <table className="w-full text-[11px]">
               <thead className="sticky top-0">
@@ -622,7 +632,7 @@ export default function PatientSearchPage() {
                 })}
               </tbody>
             </table>
-            {searchResults.length === 0 && (
+            {searchResults.length === 0 && !loading && (
               <div className="text-center py-3 text-gray-500 text-[11px]">
                 No patients found matching your criteria
               </div>
@@ -774,8 +784,8 @@ export default function PatientSearchPage() {
 
       {/* Status Bar */}
       <div className="ehr-status-bar flex items-center justify-between">
-        <span>Ready | {searchResults.length} patient(s) | {activeFilterCount > 0 ? `${activeFilterCount} filter(s) active` : 'No filters'}</span>
-        <span>Last refreshed: {new Date().toLocaleTimeString()}</span>
+        <span>{loading ? 'Loading...' : 'Ready'} | {searchResults.length} patient(s) | {activeFilterCount > 0 ? `${activeFilterCount} filter(s) active` : 'No filters'}</span>
+        <span>Last refreshed: {lastRefreshed ? lastRefreshed.toLocaleTimeString() : '-'}</span>
       </div>
 
       {/* Dialogs */}

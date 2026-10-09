@@ -11,10 +11,6 @@ import {
   RefreshCw,
   Printer,
   Plus,
-  ChevronDown,
-  ChevronRight,
-  Folder,
-  FolderOpen,
   FlaskConical,
   Heart,
   ClipboardList,
@@ -23,6 +19,7 @@ import {
 } from 'lucide-react';
 import type { Patient } from '../types';
 import { AlertDialog } from '../components/ui/Modal';
+import { CollapsibleSectionHeading } from '../components/ui';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
@@ -176,18 +173,16 @@ export default function PatientChartPage() {
             <div className="col-span-2 space-y-2">
               {/* Problems */}
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={() => togglePanel('problems')}
+                <CollapsibleSectionHeading
+                  panelId="chart-problems-panel"
+                  expanded={!!expandedPanels.problems}
+                  onToggle={() => togglePanel('problems')}
+                  icon={<Stethoscope className="w-3 h-3 mr-1" aria-hidden="true" />}
                 >
-                  <div className="flex items-center">
-                    {expandedPanels.problems ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <Stethoscope className="w-3 h-3 mr-1" /> Active Problems ({problems.filter(p => p.status === 'Active').length})
-                  </div>
-                  {expandedPanels.problems ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
+                  Active Problems ({problems.filter(p => p.status === 'Active').length})
+                </CollapsibleSectionHeading>
                 {expandedPanels.problems && (
-                  <div className="bg-white">
+                  <div id="chart-problems-panel" className="bg-white">
                     <table className="w-full text-[11px]">
                       <thead>
                         <tr>
@@ -221,18 +216,16 @@ export default function PatientChartPage() {
 
               {/* Medications */}
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={() => togglePanel('meds')}
+                <CollapsibleSectionHeading
+                  panelId="chart-meds-panel"
+                  expanded={!!expandedPanels.meds}
+                  onToggle={() => togglePanel('meds')}
+                  icon={<Pill className="w-3 h-3 mr-1" aria-hidden="true" />}
                 >
-                  <div className="flex items-center">
-                    {expandedPanels.meds ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <Pill className="w-3 h-3 mr-1" /> Active Medications ({medications.length})
-                  </div>
-                  {expandedPanels.meds ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
+                  Active Medications ({medications.length})
+                </CollapsibleSectionHeading>
                 {expandedPanels.meds && (
-                  <div className="bg-white">
+                  <div id="chart-meds-panel" className="bg-white">
                     <table className="w-full text-[11px]">
                       <thead>
                         <tr>
@@ -257,18 +250,16 @@ export default function PatientChartPage() {
 
               {/* Recent Encounters */}
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={() => togglePanel('encounters')}
+                <CollapsibleSectionHeading
+                  panelId="chart-encounters-panel"
+                  expanded={!!expandedPanels.encounters}
+                  onToggle={() => togglePanel('encounters')}
+                  icon={<Calendar className="w-3 h-3 mr-1" aria-hidden="true" />}
                 >
-                  <div className="flex items-center">
-                    {expandedPanels.encounters ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <Calendar className="w-3 h-3 mr-1" /> Recent Encounters
-                  </div>
-                  {expandedPanels.encounters ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
+                  Recent Encounters
+                </CollapsibleSectionHeading>
                 {expandedPanels.encounters && (
-                  <div className="bg-white">
+                  <div id="chart-encounters-panel" className="bg-white">
                     <table className="w-full text-[11px]">
                       <thead>
                         <tr>
@@ -298,19 +289,18 @@ export default function PatientChartPage() {
             <div className="space-y-2">
               {/* Allergies */}
               <div className="ehr-panel">
-                <div 
-                  className="flex items-center justify-between cursor-pointer px-2 py-1"
+                <CollapsibleSectionHeading
+                  panelId="chart-allergies-panel"
+                  expanded={!!expandedPanels.allergies}
+                  onToggle={() => togglePanel('allergies')}
+                  icon={<AlertTriangle className="w-3 h-3 mr-1" aria-hidden="true" />}
+                  className="text-[11px]"
                   style={{ background: '#cc0000', color: 'white' }}
-                  onClick={() => togglePanel('allergies')}
                 >
-                  <div className="flex items-center text-[11px]">
-                    {expandedPanels.allergies ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <AlertTriangle className="w-3 h-3 mr-1" /> Allergies ({allergies.length})
-                  </div>
-                  {expandedPanels.allergies ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
+                  Allergies ({allergies.length})
+                </CollapsibleSectionHeading>
                 {expandedPanels.allergies && (
-                  <div className="bg-red-50">
+                  <div id="chart-allergies-panel" className="bg-red-50">
                     {allergies.map((allergy, idx) => (
                       <div key={allergy.id} className={`px-2 py-1.5 text-[11px] ${idx > 0 ? 'border-t border-red-200' : ''}`}>
                         <div className="flex items-center justify-between">
@@ -328,18 +318,16 @@ export default function PatientChartPage() {
 
               {/* Vitals */}
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={() => togglePanel('vitals')}
+                <CollapsibleSectionHeading
+                  panelId="chart-vitals-panel"
+                  expanded={!!expandedPanels.vitals}
+                  onToggle={() => togglePanel('vitals')}
+                  icon={<Heart className="w-3 h-3 mr-1" aria-hidden="true" />}
                 >
-                  <div className="flex items-center">
-                    {expandedPanels.vitals ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <Heart className="w-3 h-3 mr-1" /> Vitals ({vitals.date})
-                  </div>
-                  {expandedPanels.vitals ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
+                  Vitals ({vitals.date})
+                </CollapsibleSectionHeading>
                 {expandedPanels.vitals && (
-                  <div className="bg-white p-2">
+                  <div id="chart-vitals-panel" className="bg-white p-2">
                     <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
                       <div className="p-1.5 bg-gray-100 border border-gray-300">
                         <div className="text-gray-500">BP</div>
@@ -372,18 +360,16 @@ export default function PatientChartPage() {
 
               {/* Recent Labs */}
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={() => togglePanel('labs')}
+                <CollapsibleSectionHeading
+                  panelId="chart-labs-panel"
+                  expanded={!!expandedPanels.labs}
+                  onToggle={() => togglePanel('labs')}
+                  icon={<FlaskConical className="w-3 h-3 mr-1" aria-hidden="true" />}
                 >
-                  <div className="flex items-center">
-                    {expandedPanels.labs ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <FlaskConical className="w-3 h-3 mr-1" /> Recent Labs
-                  </div>
-                  {expandedPanels.labs ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
+                  Recent Labs
+                </CollapsibleSectionHeading>
                 {expandedPanels.labs && (
-                  <div className="bg-white">
+                  <div id="chart-labs-panel" className="bg-white">
                     {labs.map((lab, idx) => (
                       <div key={lab.id} className={`flex items-center justify-between px-2 py-1 text-[10px] ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
                         <span>{lab.name}</span>

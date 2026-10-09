@@ -43,7 +43,7 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           {/* Title bar */}
           <div 
             className="flex items-center justify-between px-2 py-1"
-            style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
+            style={{ background: 'linear-gradient(to bottom, #3d6fa3 0%, #336699 100%)' }}
           >
             <span className="text-white font-semibold text-[11px]">{title}</span>
             <button 

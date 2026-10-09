@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FlaskConical, AlertTriangle, ChevronDown, ChevronRight, Printer, RefreshCw, Filter, Calendar } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import type { LabPanel, LabResult } from '../types';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const defaultLabPanels: LabPanel[] = [
   {
@@ -99,6 +100,7 @@ const defaultLabPanels: LabPanel[] = [
 ];
 
 export default function LabResultsPage() {
+  useDocumentTitle('Lab Results');
   const [labPanels] = useState<LabPanel[]>(defaultLabPanels);
   const [expandedPanels, setExpandedPanels] = useState<number[]>([1, 3]);
   const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);

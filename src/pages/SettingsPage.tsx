@@ -14,6 +14,7 @@ import {
   Check
 } from 'lucide-react';
 import { AlertDialog } from '../components/ui/Modal';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 type SettingsTab = 'profile' | 'notifications' | 'security' | 'appearance' | 'practice';
 
@@ -55,6 +56,7 @@ const defaultAppearance = {
 };
 
 export default function SettingsPage() {
+  useDocumentTitle('Settings');
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [saved, setSaved] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['channels', 'alerts', 'security', 'hours']));

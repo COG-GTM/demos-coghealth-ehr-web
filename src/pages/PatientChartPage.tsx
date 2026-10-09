@@ -28,6 +28,7 @@ import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { logPatientAccess } from '../services/auditService';
 import { patientService } from '../services/patientService';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface Problem { id: number; name: string; icd10: string; status: string; onset: string; priority: string; }
 interface Medication { id: number; name: string; dose: string; sig: string; status: string; refills: string; }
@@ -99,6 +100,11 @@ export default function PatientChartPage() {
     };
     fetchPatient();
   }, [id]);
+
+  useDocumentTitle(
+    'Patient Chart',
+    patient ? `${patient.lastName}, ${patient.firstName}` : undefined
+  );
 
   if (loading || !patient) {
     return <div className="h-full flex items-center justify-center">Loading patient...</div>;

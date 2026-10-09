@@ -28,6 +28,7 @@ import LabResultsPage from './pages/LabResultsPage';
 import VitalsPage from './pages/VitalsPage';
 import { AlertDialog, ConfirmDialog } from './components/ui/Modal';
 import { logLogout } from './services/auditService';
+import { isNavItemActive } from './utils/navigation';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
@@ -194,23 +195,23 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
 
       {/* Navigation Toolbar */}
       <div className="ehr-toolbar flex items-center justify-between">
-        <div className="flex items-center space-x-0.5">
+        <nav aria-label="Main" className="flex items-center space-x-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path || 
-              (item.path === '/patients' && location.pathname.startsWith('/patients/'));
+            const isActive = isNavItemActive(item.path, location.pathname);
             return (
               <Link
                 key={item.path}
                 to={item.path}
+                aria-current={isActive ? 'page' : undefined}
                 className={`ehr-toolbar-button flex items-center ${isActive ? 'ehr-toolbar-button-active' : ''}`}
               >
-                <Icon className="w-3.5 h-3.5 mr-1" />
+                <Icon className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
                 {item.label}
               </Link>
             );
           })}
-        </div>
+        </nav>
 
         <div className="flex items-center space-x-2 text-[10px] text-gray-600">
           <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
@@ -220,23 +221,28 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
 
         {/* Mobile menu button */}
         <button
+          type="button"
           className="md:hidden p-1 hover:bg-gray-200"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-main-nav"
         >
-          {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          {mobileMenuOpen ? <X className="w-4 h-4" aria-hidden="true" /> : <Menu className="w-4 h-4" aria-hidden="true" />}
         </button>
       </div>
 
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-300 bg-white">
+        <nav id="mobile-main-nav" aria-label="Main (mobile)" className="md:hidden border-t border-gray-300 bg-white">
           <div className="px-2 py-1 space-y-0.5">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path;
+              const isActive = isNavItemActive(item.path, location.pathname);
               return (
                 <Link
                   key={item.path}
                   to={item.path}
+                  aria-current={isActive ? 'page' : undefined}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center px-2 py-1.5 text-[11px] ${
                     isActive
@@ -244,13 +250,13 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
                       : 'hover:bg-gray-100'
                   }`}
                 >
-                  <Icon className="w-4 h-4 mr-2" />
+                  <Icon className="w-4 h-4 mr-2" aria-hidden="true" />
                   {item.label}
                 </Link>
               );
             })}
           </div>
-        </div>
+        </nav>
       )}
     </>
   );

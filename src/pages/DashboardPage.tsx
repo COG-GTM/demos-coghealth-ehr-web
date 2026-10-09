@@ -26,6 +26,7 @@ import {
   Radio,
   ClipboardList
 } from 'lucide-react';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 type InboxTab = 'all' | 'results' | 'messages' | 'rxRefills' | 'orders' | 'cosign';
 type WorklistFilter = 'all' | 'inpatient' | 'outpatient' | 'critical';
@@ -110,6 +111,7 @@ type InboxReadFilter = 'all' | 'unread' | 'read';
 type WorklistSort = 'name' | 'location' | 'status' | 'time';
 
 export default function DashboardPage() {
+  useDocumentTitle('Dashboard');
   const navigate = useNavigate();
   const [inboxTab, setInboxTab] = useState<InboxTab>('all');
   const [inboxPriority, setInboxPriority] = useState<InboxPriority>('all');

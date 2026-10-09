@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import type { VitalReading } from '../types';
+import { assessTrend, classifyTrend, describeTrend, sparklineLabel, type TrendDirection } from '../utils/vitalTrends';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -53,37 +54,33 @@ export default function VitalsPage() {
     }
   };
 
-  const getTrend = (key: string, currentIdx: number) => {
+  const getTrend = (key: string, currentIdx: number): TrendDirection | null => {
     if (currentIdx >= vitals.length - 1) return null;
     const current = vitals[currentIdx][key as keyof VitalReading] as number | undefined;
     const previous = vitals[currentIdx + 1][key as keyof VitalReading] as number | undefined;
     if (current === undefined || previous === undefined) return null;
-    
-    const diff = current - previous;
-    const threshold = key === 'temperature' ? 0.3 : key === 'spo2' ? 1 : 3;
-    
-    if (Math.abs(diff) < threshold) return 'stable';
-    return diff > 0 ? 'up' : 'down';
+    return classifyTrend(key, previous, current);
   };
 
-  const TrendIcon = ({ trend, vital }: { trend: string | null; vital: string }) => {
+  const TrendIcon = ({ trend, vital }: { trend: TrendDirection | null; vital: string }) => {
     if (!trend) return null;
-    const isGoodUp = vital === 'spo2';
-    const isGoodDown = ['systolic', 'diastolic', 'heartRate', 'temperature', 'respiratoryRate', 'painLevel'].includes(vital);
-    
-    if (trend === 'stable') return <Minus className="w-3 h-3 text-gray-400 inline ml-0.5" />;
-    if (trend === 'up') {
-      const color = isGoodUp ? 'text-green-600' : isGoodDown ? 'text-red-600' : 'text-gray-600';
-      return <TrendingUp className={`w-3 h-3 ${color} inline ml-0.5`} />;
-    }
-    if (trend === 'down') {
-      const color = isGoodDown ? 'text-green-600' : isGoodUp ? 'text-red-600' : 'text-gray-600';
-      return <TrendingDown className={`w-3 h-3 ${color} inline ml-0.5`} />;
-    }
-    return null;
+    const assessment = assessTrend(vital, trend);
+    const description = describeTrend(vital, trend);
+    const color = trend === 'stable' ? 'text-gray-400'
+      : assessment === 'improving' ? 'text-green-600'
+      : assessment === 'worsening' ? 'text-red-600'
+      : 'text-gray-600';
+    const Icon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus;
+
+    return (
+      <span title={description}>
+        <Icon className={`w-3 h-3 ${color} inline ml-0.5`} aria-hidden="true" focusable="false" />
+        <span className="sr-only">, {description}</span>
+      </span>
+    );
   };
 
-  const Sparkline = ({ data, vitalKey }: { data: (number | undefined)[]; vitalKey: string }) => {
+  const Sparkline = ({ data, vitalKey, name, unit }: { data: (number | undefined)[]; vitalKey: string; name: string; unit: string }) => {
     const values = data.filter((v): v is number => v !== undefined);
     if (values.length < 2) return null;
     
@@ -102,9 +99,11 @@ export default function VitalsPage() {
     const vital = vitalSigns.find(v => v.key === vitalKey);
     const lastValue = values[0];
     const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
+    const label = sparklineLabel(name, unit, vitalKey, values) ?? `${name} trend`;
 
     return (
-      <svg width={width} height={height} className="inline-block ml-1">
+      <svg width={width} height={height} className="inline-block ml-1" role="img" aria-label={label}>
+        <title>{label}</title>
         <polyline
           points={points}
           fill="none"
@@ -190,6 +189,8 @@ export default function VitalsPage() {
                     <Sparkline 
                       data={vitals.map(r => r[vital.key] as number | undefined)} 
                       vitalKey={vital.key}
+                      name={vital.name}
+                      unit={vital.unit}
                     />
                   </td>
                   {vitals.map((reading, readingIdx) => {

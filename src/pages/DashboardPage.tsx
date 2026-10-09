@@ -353,8 +353,11 @@ export default function DashboardPage() {
               <span>Inbox</span>
               <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{inboxCounts.all} unread</span>
             </CollapsiblePanelHeading>
-            {expandedPanels.inbox && (
-              <div id="dashboard-panel-inbox" className="flex-1 flex flex-col overflow-hidden">
+            <div
+              id="dashboard-panel-inbox"
+              className="flex-1 flex flex-col overflow-hidden"
+              hidden={!expandedPanels.inbox}
+            >
                 <div className="ehr-subheader flex items-center space-x-1">
                   {[
                     { key: 'all', label: 'All', count: inboxCounts.all },
@@ -438,8 +441,7 @@ export default function DashboardPage() {
                     </tbody>
                   </table>
                 </div>
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Worklist Panel */}
@@ -452,8 +454,11 @@ export default function DashboardPage() {
               <span>Patient Worklist</span>
               <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{worklistPatients.length} patients</span>
             </CollapsiblePanelHeading>
-            {expandedPanels.worklist && (
-              <div id="dashboard-panel-worklist" className="flex-1 flex flex-col overflow-hidden">
+            <div
+              id="dashboard-panel-worklist"
+              className="flex-1 flex flex-col overflow-hidden"
+              hidden={!expandedPanels.worklist}
+            >
                 <div className="ehr-subheader flex items-center space-x-1">
                   {[
                     { key: 'all', label: 'All' },
@@ -574,8 +579,7 @@ export default function DashboardPage() {
                     </tbody>
                   </table>
                 </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -590,8 +594,7 @@ export default function DashboardPage() {
             >
               <span>Unsigned Notes ({unsignedNotes.length})</span>
             </CollapsiblePanelHeading>
-            {expandedPanels.unsigned && (
-              <div id="dashboard-panel-unsigned" className="bg-white">
+            <div id="dashboard-panel-unsigned" className="bg-white" hidden={!expandedPanels.unsigned}>
                 {unsignedNotes.map((note, idx) => (
                   <div key={note.id} className={`px-2 py-1.5 border-b border-gray-200 flex items-center justify-between ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
                     <div>
@@ -607,8 +610,7 @@ export default function DashboardPage() {
                 <div className="p-1 bg-gray-100 border-t">
                   <button className="ehr-button w-full text-[10px]">Sign All Notes</button>
                 </div>
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Pending Orders */}
@@ -620,8 +622,7 @@ export default function DashboardPage() {
             >
               <span>Pending Orders ({pendingOrders.length})</span>
             </CollapsiblePanelHeading>
-            {expandedPanels.orders && (
-              <div id="dashboard-panel-orders" className="bg-white">
+            <div id="dashboard-panel-orders" className="bg-white" hidden={!expandedPanels.orders}>
                 {pendingOrders.map((order, idx) => (
                   <div key={order.id} className={`px-2 py-1.5 border-b border-gray-200 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
                     <div className="flex items-start justify-between">
@@ -641,8 +642,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Today's Schedule */}
@@ -654,8 +654,7 @@ export default function DashboardPage() {
             >
               <span>Today's Schedule</span>
             </CollapsiblePanelHeading>
-            {expandedPanels.schedule && (
-              <div id="dashboard-panel-schedule" className="bg-white p-2">
+            <div id="dashboard-panel-schedule" className="bg-white p-2" hidden={!expandedPanels.schedule}>
                 <div className="flex items-center justify-between mb-2 text-[11px]">
                   <span className="text-gray-500">January 18, 2024</span>
                   <span className="font-semibold">8 appointments</span>
@@ -679,8 +678,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
                 <button className="ehr-button w-full mt-2 text-[10px]">View Full Schedule</button>
-              </div>
-            )}
+            </div>
           </div>
 
           {/* System Messages */}

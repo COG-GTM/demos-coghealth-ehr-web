@@ -317,202 +317,209 @@ export default function PatientSearchPage() {
             {/* Quick Filters */}
             <div className="mb-1">
               <button 
+                type="button"
                 onClick={() => toggleSection('quickFilters')}
+                aria-expanded={!!expandedSections.quickFilters}
+                aria-controls="filter-section-quickFilters"
                 className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
               >
-                <span className="w-4 h-4 border border-gray-500 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
+                <span aria-hidden="true" className="w-4 h-4 border border-gray-500 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
                   {expandedSections.quickFilters ? '-' : '+'}
                 </span>
                 Quick Filters
               </button>
-              {expandedSections.quickFilters && (
-                <div className="ml-4 space-y-0.5 mt-0.5">
-                  <label className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
-                    <input 
-                      type="checkbox" 
-                      className="ehr-checkbox"
-                      checked={filters.hasOpenEncounters === true}
-                      onChange={() => setFilters(prev => ({ ...prev, hasOpenEncounters: prev.hasOpenEncounters === true ? null : true }))}
-                    />
-                    <span className="ehr-label">Open Encounters</span>
-                  </label>
-                  <label className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
-                    <input 
-                      type="checkbox" 
-                      className="ehr-checkbox"
-                      checked={filters.hasBalance === true}
-                      onChange={() => setFilters(prev => ({ ...prev, hasBalance: prev.hasBalance === true ? null : true }))}
-                    />
-                    <span className="ehr-label">Outstanding Balance</span>
-                  </label>
-                  <label className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
-                    <input 
-                      type="checkbox" 
-                      className="ehr-checkbox"
-                      checked={filters.hasAlerts === true}
-                      onChange={() => setFilters(prev => ({ ...prev, hasAlerts: prev.hasAlerts === true ? null : true }))}
-                    />
-                    <span className="ehr-label">Has Clinical Alerts</span>
-                  </label>
-                </div>
-              )}
+              <div id="filter-section-quickFilters" hidden={!expandedSections.quickFilters} className="ml-4 space-y-0.5 mt-0.5">
+                <label className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                  <input 
+                    type="checkbox" 
+                    className="ehr-checkbox"
+                    checked={filters.hasOpenEncounters === true}
+                    onChange={() => setFilters(prev => ({ ...prev, hasOpenEncounters: prev.hasOpenEncounters === true ? null : true }))}
+                  />
+                  <span className="ehr-label">Open Encounters</span>
+                </label>
+                <label className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                  <input 
+                    type="checkbox" 
+                    className="ehr-checkbox"
+                    checked={filters.hasBalance === true}
+                    onChange={() => setFilters(prev => ({ ...prev, hasBalance: prev.hasBalance === true ? null : true }))}
+                  />
+                  <span className="ehr-label">Outstanding Balance</span>
+                </label>
+                <label className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                  <input 
+                    type="checkbox" 
+                    className="ehr-checkbox"
+                    checked={filters.hasAlerts === true}
+                    onChange={() => setFilters(prev => ({ ...prev, hasAlerts: prev.hasAlerts === true ? null : true }))}
+                  />
+                  <span className="ehr-label">Has Clinical Alerts</span>
+                </label>
+              </div>
             </div>
 
             {/* Status */}
             <div className="mb-1">
               <button 
+                type="button"
                 onClick={() => toggleSection('status')}
+                aria-expanded={!!expandedSections.status}
+                aria-controls="filter-section-status"
                 className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
               >
-                {expandedSections.status ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
+                {expandedSections.status ? <ChevronDown aria-hidden="true" className="w-3.5 h-3.5 mr-1" /> : <ChevronRight aria-hidden="true" className="w-3.5 h-3.5 mr-1" />}
                 Patient Status
               </button>
-              {expandedSections.status && (
-                <div className="ml-4 space-y-0.5 mt-0.5">
-                  {['ACTIVE', 'INACTIVE', 'DECEASED'].map(status => (
-                    <label key={status} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
-                      <input 
-                        type="checkbox" 
-                        className="ehr-checkbox"
-                        checked={filters.status.includes(status)}
-                        onChange={() => toggleFilter('status', status)}
-                      />
-                      <span className="ehr-label">{status}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div id="filter-section-status" hidden={!expandedSections.status} className="ml-4 space-y-0.5 mt-0.5">
+                {['ACTIVE', 'INACTIVE', 'DECEASED'].map(status => (
+                  <label key={status} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <input 
+                      type="checkbox" 
+                      className="ehr-checkbox"
+                      checked={filters.status.includes(status)}
+                      onChange={() => toggleFilter('status', status)}
+                    />
+                    <span className="ehr-label">{status}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Demographics */}
             <div className="mb-1">
               <button 
+                type="button"
                 onClick={() => toggleSection('demographics')}
+                aria-expanded={!!expandedSections.demographics}
+                aria-controls="filter-section-demographics"
                 className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
               >
-                {expandedSections.demographics ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
+                {expandedSections.demographics ? <ChevronDown aria-hidden="true" className="w-3.5 h-3.5 mr-1" /> : <ChevronRight aria-hidden="true" className="w-3.5 h-3.5 mr-1" />}
                 Demographics
               </button>
-              {expandedSections.demographics && (
-                <div className="ml-4 space-y-0.5 mt-0.5">
-                  <div className="text-[10px] text-gray-500 px-1">Gender:</div>
-                  {[{ v: 'M', l: 'Male' }, { v: 'F', l: 'Female' }, { v: 'O', l: 'Other' }].map(g => (
-                    <label key={g.v} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
-                      <input 
-                        type="checkbox" 
-                        className="ehr-checkbox"
-                        checked={filters.gender.includes(g.v)}
-                        onChange={() => toggleFilter('gender', g.v)}
-                      />
-                      <span className="ehr-label">{g.l}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div id="filter-section-demographics" hidden={!expandedSections.demographics} className="ml-4 space-y-0.5 mt-0.5">
+                <div className="text-[10px] text-gray-500 px-1">Gender:</div>
+                {[{ v: 'M', l: 'Male' }, { v: 'F', l: 'Female' }, { v: 'O', l: 'Other' }].map(g => (
+                  <label key={g.v} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <input 
+                      type="checkbox" 
+                      className="ehr-checkbox"
+                      checked={filters.gender.includes(g.v)}
+                      onChange={() => toggleFilter('gender', g.v)}
+                    />
+                    <span className="ehr-label">{g.l}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Insurance */}
             <div className="mb-1">
               <button 
+                type="button"
                 onClick={() => toggleSection('insurance')}
+                aria-expanded={!!expandedSections.insurance}
+                aria-controls="filter-section-insurance"
                 className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
               >
-                {expandedSections.insurance ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
+                {expandedSections.insurance ? <ChevronDown aria-hidden="true" className="w-3.5 h-3.5 mr-1" /> : <ChevronRight aria-hidden="true" className="w-3.5 h-3.5 mr-1" />}
                 Insurance Type
               </button>
-              {expandedSections.insurance && (
-                <div className="ml-4 space-y-0.5 mt-0.5">
-                  {[{ v: 'COMMERCIAL', l: 'Commercial' }, { v: 'MEDICARE', l: 'Medicare' }, { v: 'MEDICAID', l: 'Medicaid' }, { v: 'SELF_PAY', l: 'Self Pay' }].map(ins => (
-                    <label key={ins.v} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
-                      <input 
-                        type="checkbox" 
-                        className="ehr-checkbox"
-                        checked={filters.insuranceType.includes(ins.v)}
-                        onChange={() => toggleFilter('insuranceType', ins.v)}
-                      />
-                      <span className="ehr-label">{ins.l}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div id="filter-section-insurance" hidden={!expandedSections.insurance} className="ml-4 space-y-0.5 mt-0.5">
+                {[{ v: 'COMMERCIAL', l: 'Commercial' }, { v: 'MEDICARE', l: 'Medicare' }, { v: 'MEDICAID', l: 'Medicaid' }, { v: 'SELF_PAY', l: 'Self Pay' }].map(ins => (
+                  <label key={ins.v} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <input 
+                      type="checkbox" 
+                      className="ehr-checkbox"
+                      checked={filters.insuranceType.includes(ins.v)}
+                      onChange={() => toggleFilter('insuranceType', ins.v)}
+                    />
+                    <span className="ehr-label">{ins.l}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Provider */}
             <div className="mb-1">
               <button 
+                type="button"
                 onClick={() => toggleSection('provider')}
+                aria-expanded={!!expandedSections.provider}
+                aria-controls="filter-section-provider"
                 className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
               >
-                {expandedSections.provider ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
+                {expandedSections.provider ? <ChevronDown aria-hidden="true" className="w-3.5 h-3.5 mr-1" /> : <ChevronRight aria-hidden="true" className="w-3.5 h-3.5 mr-1" />}
                 Primary Care Provider
               </button>
-              {expandedSections.provider && (
-                <div className="ml-4 space-y-0.5 mt-0.5">
-                  {[{ id: 'PCP001', name: 'Williams, Mark MD' }, { id: 'PCP002', name: 'Chen, Lisa MD' }, { id: 'PCP003', name: 'Patel, Raj MD' }].map(pcp => (
-                    <label key={pcp.id} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
-                      <input 
-                        type="checkbox" 
-                        className="ehr-checkbox"
-                        checked={filters.pcp.includes(pcp.id)}
-                        onChange={() => toggleFilter('pcp', pcp.id)}
-                      />
-                      <span className="ehr-label truncate">{pcp.name}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div id="filter-section-provider" hidden={!expandedSections.provider} className="ml-4 space-y-0.5 mt-0.5">
+                {[{ id: 'PCP001', name: 'Williams, Mark MD' }, { id: 'PCP002', name: 'Chen, Lisa MD' }, { id: 'PCP003', name: 'Patel, Raj MD' }].map(pcp => (
+                  <label key={pcp.id} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <input 
+                      type="checkbox" 
+                      className="ehr-checkbox"
+                      checked={filters.pcp.includes(pcp.id)}
+                      onChange={() => toggleFilter('pcp', pcp.id)}
+                    />
+                    <span className="ehr-label truncate">{pcp.name}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Location */}
             <div className="mb-1">
               <button 
+                type="button"
                 onClick={() => toggleSection('location')}
+                aria-expanded={!!expandedSections.location}
+                aria-controls="filter-section-location"
                 className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
               >
-                {expandedSections.location ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
+                {expandedSections.location ? <ChevronDown aria-hidden="true" className="w-3.5 h-3.5 mr-1" /> : <ChevronRight aria-hidden="true" className="w-3.5 h-3.5 mr-1" />}
                 Location
               </button>
-              {expandedSections.location && (
-                <div className="ml-4 space-y-0.5 mt-0.5">
-                  {['Main Clinic', 'East Campus', 'West Wing'].map(loc => (
-                    <label key={loc} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
-                      <input 
-                        type="checkbox" 
-                        className="ehr-checkbox"
-                        checked={filters.location.includes(loc)}
-                        onChange={() => toggleFilter('location', loc)}
-                      />
-                      <span className="ehr-label">{loc}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div id="filter-section-location" hidden={!expandedSections.location} className="ml-4 space-y-0.5 mt-0.5">
+                {['Main Clinic', 'East Campus', 'West Wing'].map(loc => (
+                  <label key={loc} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <input 
+                      type="checkbox" 
+                      className="ehr-checkbox"
+                      checked={filters.location.includes(loc)}
+                      onChange={() => toggleFilter('location', loc)}
+                    />
+                    <span className="ehr-label">{loc}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Flags */}
             <div className="mb-1">
               <button 
+                type="button"
                 onClick={() => toggleSection('flags')}
+                aria-expanded={!!expandedSections.flags}
+                aria-controls="filter-section-flags"
                 className="w-full flex items-center text-left px-1 py-0.5 hover:bg-gray-200 font-semibold text-gray-700"
               >
-                {expandedSections.flags ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
+                {expandedSections.flags ? <ChevronDown aria-hidden="true" className="w-3.5 h-3.5 mr-1" /> : <ChevronRight aria-hidden="true" className="w-3.5 h-3.5 mr-1" />}
                 Patient Flags
               </button>
-              {expandedSections.flags && (
-                <div className="ml-4 space-y-0.5 mt-0.5">
-                  {Object.entries(flagConfig).map(([key, cfg]) => (
-                    <label key={key} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
-                      <input 
-                        type="checkbox" 
-                        className="ehr-checkbox"
-                        checked={filters.flags.includes(key)}
-                        onChange={() => toggleFilter('flags', key)}
-                      />
-                      <span className={`ehr-label px-1 ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
+              <div id="filter-section-flags" hidden={!expandedSections.flags} className="ml-4 space-y-0.5 mt-0.5">
+                {Object.entries(flagConfig).map(([key, cfg]) => (
+                  <label key={key} className="flex items-center cursor-pointer hover:bg-gray-200 px-1">
+                    <input 
+                      type="checkbox" 
+                      className="ehr-checkbox"
+                      checked={filters.flags.includes(key)}
+                      onChange={() => toggleFilter('flags', key)}
+                    />
+                    <span className={`ehr-label px-1 ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
           <div className="border-t border-gray-400 p-1">

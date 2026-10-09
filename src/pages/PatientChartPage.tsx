@@ -62,6 +62,7 @@ export default function PatientChartPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabId>('summary');
   const [patient, setPatient] = useState<Patient | null>(null);
+  const [loadedPatientRouteId, setLoadedPatientRouteId] = useState<string | undefined>();
   const [problems] = useState<Problem[]>(defaultProblems);
   const [medications] = useState<Medication[]>(defaultMedications);
   const [allergies] = useState<Allergy[]>(defaultAllergies);
@@ -83,27 +84,34 @@ export default function PatientChartPage() {
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchPatient = async () => {
       if (!id) return;
       setLoading(true);
       try {
         const data = await patientService.getById(parseInt(id));
+        if (cancelled) return;
         setPatient(data);
+        setLoadedPatientRouteId(id);
         if (data.id && data.mrn) {
           logPatientAccess(data.id.toString(), data.mrn, `${data.lastName}, ${data.firstName}`);
         }
       } catch (error) {
-        console.error('Failed to fetch patient:', error);
+        if (!cancelled) console.error('Failed to fetch patient:', error);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     fetchPatient();
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
+  const patientForRoute = loadedPatientRouteId === id ? patient : null;
   useDocumentTitle(
     'Patient Chart',
-    patient ? `${patient.lastName}, ${patient.firstName}` : undefined
+    patientForRoute ? `${patientForRoute.lastName}, ${patientForRoute.firstName}` : undefined
   );
 
   if (loading || !patient) {

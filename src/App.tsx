@@ -226,7 +226,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           aria-expanded={mobileMenuOpen}
-          aria-controls="mobile-main-nav"
+          aria-controls={mobileMenuOpen ? 'mobile-main-nav' : undefined}
         >
           {mobileMenuOpen ? <X className="w-4 h-4" aria-hidden="true" /> : <Menu className="w-4 h-4" aria-hidden="true" />}
         </button>

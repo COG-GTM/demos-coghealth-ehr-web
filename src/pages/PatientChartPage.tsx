@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import type { KeyboardEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PatientBanner } from '../components/patient';
 import { 
@@ -28,6 +29,7 @@ import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { logPatientAccess } from '../services/auditService';
 import { patientService } from '../services/patientService';
+import { nextTabIndex, chartTabId, CHART_TABPANEL_ID } from '../utils/tabNavigation';
 
 interface Problem { id: number; name: string; icd10: string; status: string; onset: string; priority: string; }
 interface Medication { id: number; name: string; dose: string; sig: string; status: string; refills: string; }
@@ -60,6 +62,7 @@ export default function PatientChartPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabId>('summary');
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [patient, setPatient] = useState<Patient | null>(null);
   const [problems] = useState<Problem[]>(defaultProblems);
   const [medications] = useState<Medication[]>(defaultMedications);
@@ -117,6 +120,14 @@ export default function PatientChartPage() {
     { id: 'results' as TabId, label: 'Results', icon: Activity },
   ];
 
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const next = nextTabIndex(index, event.key, tabs.length);
+    if (next === null) return;
+    event.preventDefault();
+    setActiveTab(tabs[next].id);
+    tabRefs.current[next]?.focus();
+  };
+
   return (
     <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
       <PatientBanner patient={patient} allergies={allergies} />
@@ -152,16 +163,25 @@ export default function PatientChartPage() {
       </div>
 
       {/* Tabs */}
-      <div className="ehr-subheader flex items-center">
-        {tabs.map((tab) => {
+      <div className="ehr-subheader flex items-center" role="tablist" aria-label="Patient chart sections">
+        {tabs.map((tab, index) => {
           const Icon = tab.icon;
+          const selected = activeTab === tab.id;
           return (
             <button
               key={tab.id}
+              ref={(el) => { tabRefs.current[index] = el; }}
+              type="button"
+              role="tab"
+              id={chartTabId(tab.id)}
+              aria-selected={selected}
+              aria-controls={CHART_TABPANEL_ID}
+              tabIndex={selected ? 0 : -1}
               onClick={() => setActiveTab(tab.id)}
-              className={`ehr-tab flex items-center ${activeTab === tab.id ? 'active' : ''}`}
+              onKeyDown={(event) => handleTabKeyDown(event, index)}
+              className={`ehr-tab flex items-center ${selected ? 'active' : ''}`}
             >
-              <Icon className="w-3 h-3 mr-1" />
+              <Icon className="w-3 h-3 mr-1" aria-hidden="true" />
               {tab.label}
             </button>
           );
@@ -169,7 +189,13 @@ export default function PatientChartPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto p-2">
+      <div
+        className="flex-1 overflow-auto p-2"
+        role="tabpanel"
+        id={CHART_TABPANEL_ID}
+        aria-labelledby={chartTabId(activeTab)}
+        tabIndex={0}
+      >
         {activeTab === 'summary' && (
           <div className="grid grid-cols-3 gap-2">
             {/* Left Column */}

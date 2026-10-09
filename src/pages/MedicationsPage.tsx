@@ -331,8 +331,9 @@ export default function MedicationsPage() {
           </button>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-gray-600">Search:</span>
+          <label htmlFor="medication-search" className="text-gray-600">Search:</label>
           <input
+            id="medication-search"
             type="text"
             placeholder="Medication, patient, Rx#..."
             value={searchQuery}
@@ -355,34 +356,47 @@ export default function MedicationsPage() {
           <span>w/Alerts: <strong>{stats.withAlerts}</strong></span>
         </div>
         <div className="flex items-center space-x-1">
+          <div role="group" aria-label="Status filter" className="flex items-center space-x-1">
           {[
-            { key: 'all', label: 'All' },
-            { key: 'active', label: 'Active' },
-            { key: 'pending', label: 'Pending' },
-            { key: 'controlled', label: 'Controlled' },
-            { key: 'discontinued', label: 'D/C' },
+            { key: 'all', label: 'All', ariaLabel: 'All statuses' },
+            { key: 'active', label: 'Active', ariaLabel: undefined },
+            { key: 'pending', label: 'Pending', ariaLabel: undefined },
+            { key: 'controlled', label: 'Controlled', ariaLabel: undefined },
+            { key: 'discontinued', label: 'D/C', ariaLabel: 'D/C (discontinued)' },
           ].map((filter) => (
             <button
               key={filter.key}
+              type="button"
               onClick={() => setFilterStatus(filter.key as FilterStatus)}
+              aria-pressed={filterStatus === filter.key}
+              aria-label={filter.ariaLabel}
               className={`ehr-tab ${filterStatus === filter.key ? 'active' : ''}`}
             >
               {filter.label}
             </button>
           ))}
-          <span className="text-gray-400 mx-1">|</span>
-          <button
-            onClick={() => setViewMode('all')}
-            className={`ehr-tab ${viewMode === 'all' ? 'active' : ''}`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setViewMode('by-patient')}
-            className={`ehr-tab ${viewMode === 'by-patient' ? 'active' : ''}`}
-          >
-            By Patient
-          </button>
+          </div>
+          <span className="text-gray-400 mx-1" aria-hidden="true">|</span>
+          <div role="group" aria-label="View mode" className="flex items-center space-x-1">
+            <button
+              type="button"
+              onClick={() => setViewMode('all')}
+              aria-pressed={viewMode === 'all'}
+              aria-label="All orders view"
+              className={`ehr-tab ${viewMode === 'all' ? 'active' : ''}`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('by-patient')}
+              aria-pressed={viewMode === 'by-patient'}
+              aria-label="By patient view"
+              className={`ehr-tab ${viewMode === 'by-patient' ? 'active' : ''}`}
+            >
+              By Patient
+            </button>
+          </div>
         </div>
       </div>
 

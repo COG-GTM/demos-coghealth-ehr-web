@@ -173,10 +173,11 @@ export default function LabResultsPage() {
         <div className="ehr-toolbar flex items-center justify-between py-1">
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-1">
-              <Filter className="w-3 h-3 text-gray-500" />
+              <Filter className="w-3 h-3 text-gray-500" aria-hidden="true" />
               <span className="text-[10px] text-gray-600">Filter:</span>
             </div>
             <select
+              aria-label="Result status"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
               className="ehr-input text-[10px] py-0.5"
@@ -186,6 +187,7 @@ export default function LabResultsPage() {
               <option value="critical">Critical Only</option>
             </select>
             <select
+              aria-label="Patient"
               value={filterPatient}
               onChange={(e) => setFilterPatient(e.target.value)}
               className="ehr-input text-[10px] py-0.5"
@@ -199,8 +201,9 @@ export default function LabResultsPage() {
               })}
             </select>
             <div className="flex items-center space-x-1">
-              <Calendar className="w-3 h-3 text-gray-500" />
+              <Calendar className="w-3 h-3 text-gray-500" aria-hidden="true" />
               <select
+                aria-label="Date range"
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value as typeof dateRange)}
                 className="ehr-input text-[10px] py-0.5"

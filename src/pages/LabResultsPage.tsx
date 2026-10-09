@@ -230,11 +230,15 @@ export default function LabResultsPage() {
           ) : (
             filteredPanels.map(panel => (
               <div key={panel.id} className="border-b border-gray-300">
-                <div
-                  className="flex items-center justify-between px-2 py-1.5 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] cursor-pointer hover:from-[#fff] hover:to-[#f0f0f0]"
+                <button
+                  type="button"
+                  id={`lab-panel-${panel.id}-header`}
+                  className="w-full text-left flex items-center justify-between px-2 py-1.5 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] cursor-pointer hover:from-[#fff] hover:to-[#f0f0f0] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600"
+                  aria-expanded={expandedPanels.includes(panel.id)}
+                  aria-controls={`lab-panel-${panel.id}-results`}
                   onClick={() => togglePanel(panel.id)}
                 >
-                  <div className="flex items-center space-x-2">
+                  <span className="flex items-center space-x-2">
                     {expandedPanels.includes(panel.id) ? (
                       <ChevronDown className="w-3 h-3 text-gray-600" />
                     ) : (
@@ -249,8 +253,8 @@ export default function LabResultsPage() {
                         <span className="text-[9px] font-bold">CRITICAL</span>
                       </span>
                     )}
-                  </div>
-                  <div className="flex items-center space-x-4 text-[10px] text-gray-600">
+                  </span>
+                  <span className="flex items-center space-x-4 text-[10px] text-gray-600">
                     <span>{panel.patientName}</span>
                     <span className="text-gray-400">|</span>
                     <span>{panel.patientMrn}</span>
@@ -258,18 +262,25 @@ export default function LabResultsPage() {
                     <span>Collected: {panel.collectedAt}</span>
                     <span className="text-gray-400">|</span>
                     <span>Resulted: {panel.resultedAt}</span>
-                  </div>
-                </div>
+                  </span>
+                </button>
 
+                <div
+                  id={`lab-panel-${panel.id}-results`}
+                  role="region"
+                  aria-labelledby={`lab-panel-${panel.id}-header`}
+                  hidden={!expandedPanels.includes(panel.id)}
+                >
                 {expandedPanels.includes(panel.id) && (
                   <table className="w-full text-[11px]">
+                    <caption className="sr-only">{panel.panelName} results for {panel.patientName}</caption>
                     <thead>
                       <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
-                        <th className="text-left px-2 py-1 border-b border-gray-400 w-1/4">Test</th>
-                        <th className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Result</th>
-                        <th className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Units</th>
-                        <th className="text-left px-2 py-1 border-b border-gray-400 w-1/4">Reference Range</th>
-                        <th className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Status</th>
+                        <th scope="col" className="text-left px-2 py-1 border-b border-gray-400 w-1/4">Test</th>
+                        <th scope="col" className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Result</th>
+                        <th scope="col" className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Units</th>
+                        <th scope="col" className="text-left px-2 py-1 border-b border-gray-400 w-1/4">Reference Range</th>
+                        <th scope="col" className="text-left px-2 py-1 border-b border-gray-400 w-1/6">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -280,7 +291,20 @@ export default function LabResultsPage() {
                           style={getStatusStyle(result.status)}
                           onClick={() => setSelectedResult(result)}
                         >
-                          <td className="px-2 py-1 border-b border-gray-200">{result.testName}</td>
+                          <th scope="row" className="px-2 py-1 border-b border-gray-200 text-left font-normal">
+                            <button
+                              type="button"
+                              className="text-left underline decoration-dotted underline-offset-2 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+                              aria-haspopup="dialog"
+                              aria-label={`${result.testName}: ${result.value} ${result.unit}, ${result.status}. View result details`}
+                              onClick={e => {
+                                e.stopPropagation();
+                                setSelectedResult(result);
+                              }}
+                            >
+                              {result.testName}
+                            </button>
+                          </th>
                           <td className="px-2 py-1 border-b border-gray-200 font-mono">
                             {result.status === 'critical' && <AlertTriangle className="w-3 h-3 inline mr-1 text-red-600" />}
                             {result.value}
@@ -297,6 +321,7 @@ export default function LabResultsPage() {
                     </tbody>
                   </table>
                 )}
+                </div>
               </div>
             ))
           )}

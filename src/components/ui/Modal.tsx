@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -18,6 +18,16 @@ const widthClasses = {
 };
 
 export function Modal({ isOpen, onClose, title, children, width = 'md', footer }: ModalProps) {
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+    return () => previouslyFocused?.focus();
+  }, [isOpen]);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -37,7 +47,15 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col`} style={{ fontFamily: 'Tahoma, sans-serif' }}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col focus:outline-none`}
+        style={{ fontFamily: 'Tahoma, sans-serif' }}
+      >
         {/* Window frame */}
         <div className="bg-white border-2 border-gray-400 shadow-lg flex flex-col" style={{ boxShadow: '2px 2px 8px rgba(0,0,0,0.3)' }}>
           {/* Title bar */}
@@ -45,8 +63,10 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
             className="flex items-center justify-between px-2 py-1"
             style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
           >
-            <span className="text-white font-semibold text-[11px]">{title}</span>
+            <span id={titleId} className="text-white font-semibold text-[11px]">{title}</span>
             <button 
+              type="button"
+              aria-label="Close"
               onClick={onClose}
               className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20"
             >

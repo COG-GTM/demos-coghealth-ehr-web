@@ -43,7 +43,7 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           {/* Title bar */}
           <div 
             className="flex items-center justify-between px-2 py-1"
-            style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
+            style={{ background: 'var(--ehr-header-gradient)' }}
           >
             <span className="text-white font-semibold text-[11px]">{title}</span>
             <button 
@@ -105,8 +105,7 @@ export function ConfirmDialog({
           </button>
           <button 
             onClick={() => { onConfirm(); onClose(); }} 
-            className={`ehr-button px-4 ${type === 'danger' ? '' : 'ehr-button-primary'}`}
-            style={type === 'danger' ? { background: 'linear-gradient(to bottom, #e87458 0%, #c84030 100%)', color: 'white', border: '1px solid #a02010' } : undefined}
+            className={`ehr-button px-4 ${type === 'danger' ? 'ehr-button-danger' : 'ehr-button-primary'}`}
           >
             {confirmText}
           </button>

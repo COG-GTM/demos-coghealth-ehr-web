@@ -65,5 +65,7 @@ describe('white text on gradient surfaces meets WCAG 1.4.3 (4.5:1)', () => {
     for (const source of [modal, button]) {
       expect(source).not.toMatch(/linear-gradient/);
     }
+    // A translucent white hover overlay lightens the title bar below 4.5:1 behind the white close icon.
+    expect(modal).not.toMatch(/hover:bg-white\//);
   });
 });

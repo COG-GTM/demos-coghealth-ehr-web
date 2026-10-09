@@ -107,6 +107,8 @@ function mapPatientToInbox(patient: Patient, index: number): InboxItem {
 
 type InboxPriority = 'all' | 'critical' | 'high' | 'normal';
 type InboxReadFilter = 'all' | 'unread' | 'read';
+
+const UNREAD_NOTIFICATION_COUNT = 3;
 type WorklistSort = 'name' | 'location' | 'status' | 'time';
 
 export default function DashboardPage() {
@@ -311,9 +313,14 @@ export default function DashboardPage() {
           </button>
         </div>
         <div className="flex items-center space-x-2">
-          <button className="ehr-toolbar-button relative">
-            <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-gray-600 text-white text-[9px] flex items-center justify-center border border-gray-700">3</span>
+          <button
+            type="button"
+            className="ehr-toolbar-button relative"
+            aria-label={`Notifications, ${UNREAD_NOTIFICATION_COUNT} unread`}
+            title="Notifications"
+          >
+            <Bell className="w-4 h-4" aria-hidden="true" />
+            <span aria-hidden="true" className="absolute -top-1 -right-1 w-4 h-4 bg-gray-600 text-white text-[9px] flex items-center justify-center border border-gray-700">{UNREAD_NOTIFICATION_COUNT}</span>
           </button>
         </div>
       </div>
@@ -397,7 +404,9 @@ export default function DashboardPage() {
                   </select>
                   <div className="flex-1" />
                   <button className="ehr-toolbar-button p-0.5 text-[10px]" onClick={markAllAsRead}>Mark All Read</button>
-                  <button className="ehr-toolbar-button p-0.5"><RefreshCw className="w-3 h-3" /></button>
+                  <button type="button" className="ehr-toolbar-button p-0.5" aria-label="Refresh inbox" title="Refresh inbox">
+                    <RefreshCw className="w-3 h-3" aria-hidden="true" />
+                  </button>
                 </div>
                 <div className="flex-1 overflow-auto bg-white">
                   <table className="w-full text-[11px]">
@@ -488,10 +497,13 @@ export default function DashboardPage() {
                     <option value="location">Location</option>
                   </select>
                   <button 
+                    type="button"
                     className="ehr-toolbar-button p-0.5 text-[10px]" 
                     onClick={() => setWorklistSortAsc(!worklistSortAsc)}
+                    aria-label={worklistSortAsc ? 'Sort descending' : 'Sort ascending'}
+                    title={worklistSortAsc ? 'Sorted ascending. Click to sort descending' : 'Sorted descending. Click to sort ascending'}
                   >
-                    {worklistSortAsc ? '↑' : '↓'}
+                    <span aria-hidden="true">{worklistSortAsc ? '↑' : '↓'}</span>
                   </button>
                   <div className="flex-1" />
                   <button className="ehr-button text-[10px] px-2 py-0.5 flex items-center" onClick={() => setShowPrintDialog(true)}>

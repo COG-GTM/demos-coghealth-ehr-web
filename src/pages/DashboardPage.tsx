@@ -178,6 +178,24 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
+  const refreshInbox = async () => {
+    try {
+      const result = await patientService.search('', 0, 20);
+      setInboxItems(prev => {
+        const previous = new Map(prev.map(item => [item.id, item]));
+        return result.content.slice(0, 10).map((p, i) => {
+          const item = mapPatientToInbox(p, i);
+          const existing = previous.get(item.id);
+          return existing ? { ...item, read: existing.read, flagged: existing.flagged } : item;
+        });
+      });
+      setShowAlert({ title: 'Inbox Refreshed', message: 'Inbox has been refreshed.', type: 'success' });
+    } catch (error) {
+      console.error('Failed to refresh inbox:', error);
+      setShowAlert({ title: 'Refresh Failed', message: 'Unable to refresh the inbox. Please try again.', type: 'info' });
+    }
+  };
+
   const togglePanel = (panel: string) => {
     setExpandedPanels(prev => ({ ...prev, [panel]: !prev[panel] }));
   };
@@ -398,7 +416,7 @@ export default function DashboardPage() {
                   </select>
                   <div className="flex-1" />
                   <button className="ehr-toolbar-button p-0.5 text-[10px]" onClick={markAllAsRead}>Mark All Read</button>
-                  <button className="ehr-toolbar-button p-0.5" aria-label="Refresh inbox" title="Refresh inbox" onClick={() => setShowAlert({ title: 'Inbox Refreshed', message: 'Inbox has been refreshed.', type: 'info' })}><RefreshCw className="w-3 h-3" /></button>
+                  <button className="ehr-toolbar-button p-0.5" aria-label="Refresh inbox" title="Refresh inbox" onClick={refreshInbox}><RefreshCw className="w-3 h-3" /></button>
                 </div>
                 <div className="flex-1 overflow-auto bg-white">
                   <table className="w-full text-[11px]">
@@ -433,7 +451,7 @@ export default function DashboardPage() {
                           </td>
                           <td className="px-1 py-0.5 text-gray-500">{item.timestamp}</td>
                           <td className="px-1 py-0.5 text-center">
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View" aria-label={`View ${item.title} for ${item.patientName}`}><Eye className="w-3 h-3" /></button>
+                            <button className="ehr-toolbar-button p-0.5" onClick={() => { markAsRead(item.id); navigate(`/patients/${item.id}`); }} title="View" aria-label={`View ${item.title} for ${item.patientName}`}><Eye className="w-3 h-3" /></button>
                             <button className="ehr-toolbar-button p-0.5" onClick={() => markAsRead(item.id)} title="Mark Read" aria-label={`Mark ${item.title} for ${item.patientName} as read`}><CheckCircle2 className="w-3 h-3" /></button>
                             <button className="ehr-toolbar-button p-0.5" onClick={() => toggleFlag(item.id)} title={item.flagged ? 'Unflag' : 'Flag'} aria-label={`${item.flagged ? 'Unflag' : 'Flag'} ${item.title} for ${item.patientName}`} aria-pressed={item.flagged}><Flag className={`w-3 h-3 ${item.flagged ? 'text-red-600' : ''}`} /></button>
                           </td>

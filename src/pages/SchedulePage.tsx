@@ -190,13 +190,16 @@ const flagConfig: Record<string, { label: string; color: string; bg: string }> =
   'new-patient': { label: 'NEW', color: 'text-gray-700', bg: 'bg-gray-100' },
 };
 
+const APPOINTMENT_DETAIL_PANEL_ID = 'schedule-appointment-detail';
+const APPOINTMENT_DETAIL_HEADING_ID = 'schedule-appointment-detail-heading';
+
 type StatusFilter = 'all' | 'waiting' | 'in-progress' | 'completed';
 
 export default function SchedulePage() {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date('2024-01-18'));
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [selectedAppointment, setSelectedAppointment] = useState<ScheduleAppointment | null>(defaultAppointments[5]);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<ScheduleAppointment['id'] | null>(defaultAppointments[5]?.id ?? null);
   const [expandedPanels, setExpandedPanels] = useState<Record<string, boolean>>({
     vitals: true,
     labs: true,
@@ -255,6 +258,8 @@ export default function SchedulePage() {
     ));
     navigate(`/patients/${apt.patientId}`);
   };
+
+  const selectedAppointment = appointments.find(a => a.id === selectedAppointmentId) ?? null;
 
   const filteredAppointments = appointments.filter(apt => {
     if (statusFilter === 'waiting') return apt.status === 'ARRIVED' || apt.status === 'TRIAGED';
@@ -358,7 +363,8 @@ export default function SchedulePage() {
                 return (
                   <tr
                     key={apt.id}
-                    onClick={() => setSelectedAppointment(apt)}
+                    onClick={() => setSelectedAppointmentId(apt.id)}
+                    aria-current={isSelected ? 'true' : undefined}
                     className={`cursor-pointer ${
                       isSelected ? 'ehr-grid-row selected' : 
                       isUrgent ? 'ehr-alert-critical' : 
@@ -372,7 +378,16 @@ export default function SchedulePage() {
                       <div className="text-[9px] text-gray-500">{apt.duration}m</div>
                     </td>
                     <td className="px-1 py-1">
-                      <div className="font-semibold">{apt.patientName}</div>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setSelectedAppointmentId(apt.id); }}
+                        aria-pressed={isSelected}
+                        aria-controls={APPOINTMENT_DETAIL_PANEL_ID}
+                        aria-label={`${apt.patientName}, ${formatTime(apt.appointmentTime)}: show appointment details`}
+                        className="ehr-row-select font-semibold"
+                      >
+                        {apt.patientName}
+                      </button>
                       <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: '#666' }}>
                         {apt.patientMrn} • {apt.patientAge}{apt.patientGender}
                       </div>
@@ -416,22 +431,22 @@ export default function SchedulePage() {
                     </td>
                     <td className="px-1 py-1 text-center">
                       {apt.status === 'PLANNED' && (
-                        <button onClick={(e) => { e.stopPropagation(); handleCheckIn(apt); }} className="ehr-button ehr-button-primary text-[9px] px-1 py-0">
+                        <button onClick={(e) => { e.stopPropagation(); setSelectedAppointmentId(apt.id); handleCheckIn(apt); }} className="ehr-button ehr-button-primary text-[9px] px-1 py-0">
                           Check In
                         </button>
                       )}
                       {apt.status === 'ARRIVED' && (
-                        <button onClick={(e) => { e.stopPropagation(); handleRoom(apt); }} className="ehr-button text-[9px] px-1 py-0" style={{ background: 'linear-gradient(to bottom, #9966cc 0%, #663399 100%)', color: 'white', border: '1px solid #4a2080' }}>
+                        <button onClick={(e) => { e.stopPropagation(); setSelectedAppointmentId(apt.id); handleRoom(apt); }} className="ehr-button text-[9px] px-1 py-0" style={{ background: 'linear-gradient(to bottom, #9966cc 0%, #663399 100%)', color: 'white', border: '1px solid #4a2080' }}>
                           Room
                         </button>
                       )}
                       {(apt.status === 'TRIAGED' || apt.status === 'ARRIVED') && (
-                        <button onClick={(e) => { e.stopPropagation(); handleStartVisit(apt); }} className="ehr-button text-[9px] px-1 py-0 ml-0.5" style={{ background: 'linear-gradient(to bottom, #66cc66 0%, #339933 100%)', color: 'white', border: '1px solid #206020' }}>
+                        <button onClick={(e) => { e.stopPropagation(); setSelectedAppointmentId(apt.id); handleStartVisit(apt); }} className="ehr-button text-[9px] px-1 py-0 ml-0.5" style={{ background: 'linear-gradient(to bottom, #66cc66 0%, #339933 100%)', color: 'white', border: '1px solid #206020' }}>
                           Start
                         </button>
                       )}
                       {apt.status === 'IN_PROGRESS' && apt.encounterType === 'TELEHEALTH' && (
-                        <button onClick={(e) => { e.stopPropagation(); setShowAlert({ title: 'Telehealth', message: 'Launching video visit...', type: 'info' }); }} className="ehr-button ehr-button-primary text-[9px] px-1 py-0 flex items-center">
+                        <button onClick={(e) => { e.stopPropagation(); setSelectedAppointmentId(apt.id); setShowAlert({ title: 'Telehealth', message: 'Launching video visit...', type: 'info' }); }} className="ehr-button ehr-button-primary text-[9px] px-1 py-0 flex items-center">
                           <Video className="w-3 h-3 mr-0.5" /> Join
                         </button>
                       )}
@@ -444,12 +459,26 @@ export default function SchedulePage() {
         </div>
 
         {/* Detail Panel */}
-        <div className="w-80 flex flex-col overflow-hidden" style={{ background: '#ece9d8' }}>
+        <section
+          id={APPOINTMENT_DETAIL_PANEL_ID}
+          aria-labelledby={selectedAppointment ? APPOINTMENT_DETAIL_HEADING_ID : undefined}
+          aria-label={selectedAppointment ? undefined : 'Appointment details'}
+          className="w-80 flex flex-col overflow-hidden"
+          style={{ background: '#ece9d8' }}
+        >
+          <div className="sr-only" role="status" aria-live="polite">
+            {selectedAppointment
+              ? `Showing appointment details for ${selectedAppointment.patientName}, ${formatTime(selectedAppointment.appointmentTime)}`
+              : ''}
+          </div>
           {selectedAppointment ? (
             <>
               {/* Patient Header */}
               <div className="ehr-header flex items-center justify-between">
-                <span>{selectedAppointment.patientName}</span>
+                <h2 id={APPOINTMENT_DETAIL_HEADING_ID}>
+                  <span className="sr-only">Appointment details: </span>
+                  {selectedAppointment.patientName}
+                </h2>
                 <button 
                   onClick={() => navigate(`/patients/${selectedAppointment.patientId}`)}
                   className="text-white/80 hover:text-white flex items-center text-[10px]"
@@ -697,7 +726,7 @@ export default function SchedulePage() {
               </div>
             </div>
           )}
-        </div>
+        </section>
       </div>
 
       {/* Status Bar */}

@@ -289,7 +289,7 @@ export default function LabResultsPage() {
                           <td className="px-2 py-1 border-b border-gray-200 text-gray-600">{result.referenceRange}</td>
                           <td className="px-2 py-1 border-b border-gray-200">
                             {result.status === 'critical' && <span className="text-red-700 font-bold">CRITICAL</span>}
-                            {result.status === 'abnormal' && <span className="text-yellow-700">Abnormal</span>}
+                            {result.status === 'abnormal' && <span className="text-yellow-800">Abnormal</span>}
                             {result.status === 'normal' && <span className="text-green-700">Normal</span>}
                           </td>
                         </tr>

@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -10,6 +10,11 @@ interface ModalProps {
   footer?: ReactNode;
 }
 
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// Open dialogs, topmost last; only the topmost one handles Escape/Tab.
+const openDialogs: HTMLElement[] = [];
+
 const widthClasses = {
   sm: 'w-80',
   md: 'w-[480px]',
@@ -18,26 +23,70 @@ const widthClasses = {
 };
 
 export function Modal({ isOpen, onClose, title, children, width = 'md', footer }: ModalProps) {
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+    onCloseRef.current = onClose;
+  });
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!isOpen || !dialog) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    openDialogs.push(dialog);
+    dialog.focus();
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (openDialogs[openDialogs.length - 1] !== dialog) return;
+      if (e.key === 'Escape') {
+        onCloseRef.current();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (focusable.length === 0) {
+        e.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      const inside = active instanceof Node && dialog.contains(active);
+      if (e.shiftKey && (!inside || active === first || active === dialog)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (!inside || active === last)) {
+        e.preventDefault();
+        first.focus();
+      }
     };
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
+    document.addEventListener('keydown', handleKeyDown);
+
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKeyDown);
+      openDialogs.splice(openDialogs.indexOf(dialog), 1);
+      if (openDialogs.length === 0) document.body.style.overflow = '';
+      if (opener?.isConnected) opener.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col`} style={{ fontFamily: 'Tahoma, sans-serif' }}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col outline-none`}
+        style={{ fontFamily: 'Tahoma, sans-serif' }}
+      >
         {/* Window frame */}
         <div className="bg-white border-2 border-gray-400 shadow-lg flex flex-col" style={{ boxShadow: '2px 2px 8px rgba(0,0,0,0.3)' }}>
           {/* Title bar */}
@@ -45,12 +94,14 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
             className="flex items-center justify-between px-2 py-1"
             style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
           >
-            <span className="text-white font-semibold text-[11px]">{title}</span>
+            <span id={titleId} className="text-white font-semibold text-[11px]">{title}</span>
             <button 
+              type="button"
+              aria-label="Close"
               onClick={onClose}
               className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20"
             >
-              <X className="w-3.5 h-3.5" />
+              <X aria-hidden="true" className="w-3.5 h-3.5" />
             </button>
           </div>
           

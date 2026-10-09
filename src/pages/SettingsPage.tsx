@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { 
   User, 
   Bell, 
@@ -57,6 +57,8 @@ const defaultAppearance = {
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [saved, setSaved] = useState(false);
+  const [saveCount, setSaveCount] = useState(0);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['channels', 'alerts', 'security', 'hours']));
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
 
@@ -100,9 +102,13 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ profile, notifications, appearance }));
+    clearTimeout(savedTimer.current);
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaveCount((count) => count + 1);
+    savedTimer.current = setTimeout(() => setSaved(false), 2000);
   };
+
+  useEffect(() => () => clearTimeout(savedTimer.current), []);
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
@@ -117,7 +123,7 @@ export default function SettingsPage() {
           {saved ? <><Check className="w-3 h-3 mr-1" aria-hidden="true" /> Saved</> : <><Save className="w-3 h-3 mr-1" aria-hidden="true" /> Save Changes</>}
         </button>
         <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
-          {saved ? 'Settings saved' : ''}
+          {saved && <span key={saveCount}>Settings saved</span>}
         </div>
       </div>
 

@@ -733,7 +733,7 @@ export default function SchedulePage() {
           <fieldset className="ehr-fieldset">
             <legend>Patient</legend>
             <div className="flex items-center space-x-2">
-              <input type="text" placeholder="Search patient by name or MRN..." className="ehr-input flex-1" />
+              <input id="new-appt-patient-search" type="text" placeholder="Search patient by name or MRN..." aria-label="Search patient by name or MRN" className="ehr-input flex-1" />
               <button className="ehr-button">Search</button>
             </div>
           </fieldset>
@@ -742,12 +742,12 @@ export default function SchedulePage() {
               <legend>Date & Time</legend>
               <div className="space-y-2">
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Date</label>
-                  <input type="date" defaultValue="2024-01-18" className="ehr-input w-full" />
+                  <label htmlFor="new-appt-date" className="block text-[10px] text-gray-600 mb-0.5">Date</label>
+                  <input id="new-appt-date" type="date" defaultValue="2024-01-18" className="ehr-input w-full" />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Time</label>
-                  <select className="ehr-input w-full">
+                  <label htmlFor="new-appt-time" className="block text-[10px] text-gray-600 mb-0.5">Time</label>
+                  <select id="new-appt-time" className="ehr-input w-full">
                     <option>9:00 AM</option>
                     <option>9:30 AM</option>
                     <option>10:00 AM</option>
@@ -756,8 +756,8 @@ export default function SchedulePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Duration</label>
-                  <select className="ehr-input w-full">
+                  <label htmlFor="new-appt-duration" className="block text-[10px] text-gray-600 mb-0.5">Duration</label>
+                  <select id="new-appt-duration" className="ehr-input w-full">
                     <option>15 minutes</option>
                     <option>30 minutes</option>
                     <option>45 minutes</option>
@@ -770,8 +770,8 @@ export default function SchedulePage() {
               <legend>Visit Details</legend>
               <div className="space-y-2">
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Visit Type</label>
-                  <select className="ehr-input w-full">
+                  <label htmlFor="new-appt-visit-type" className="block text-[10px] text-gray-600 mb-0.5">Visit Type</label>
+                  <select id="new-appt-visit-type" className="ehr-input w-full">
                     <option>Follow-up</option>
                     <option>New Patient</option>
                     <option>Annual Physical</option>
@@ -781,16 +781,16 @@ export default function SchedulePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Provider</label>
-                  <select className="ehr-input w-full">
+                  <label htmlFor="new-appt-provider" className="block text-[10px] text-gray-600 mb-0.5">Provider</label>
+                  <select id="new-appt-provider" className="ehr-input w-full">
                     <option>Dr. Anderson</option>
                     <option>Dr. Chen</option>
                     <option>Dr. Patel</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-gray-600 mb-0.5">Reason for Visit</label>
-                  <input type="text" placeholder="Chief complaint..." className="ehr-input w-full" />
+                  <label htmlFor="new-appt-reason" className="block text-[10px] text-gray-600 mb-0.5">Reason for Visit</label>
+                  <input id="new-appt-reason" type="text" placeholder="Chief complaint..." className="ehr-input w-full" />
                 </div>
               </div>
             </fieldset>

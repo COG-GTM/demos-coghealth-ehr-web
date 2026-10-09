@@ -28,6 +28,7 @@ import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { logPatientAccess } from '../services/auditService';
 import { patientService } from '../services/patientService';
+import { isCriticalLabFlag, labResultFlag, problemPriorityFlag } from '../utils/clinicalFlags';
 
 interface Problem { id: number; name: string; icd10: string; status: string; onset: string; priority: string; }
 interface Medication { id: number; name: string; dose: string; sig: string; status: string; refills: string; }
@@ -201,7 +202,14 @@ export default function PatientChartPage() {
                         {problems.map((problem, idx) => (
                           <tr key={problem.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
                             <td className="px-2 py-1">
-                              <span className={`inline-block w-2 h-2 mr-1 border border-gray-500 ${problem.priority === 'high' ? 'bg-gray-400' : problem.priority === 'medium' ? 'bg-gray-300' : 'bg-gray-200'}`} />
+                              <span
+                                aria-hidden="true"
+                                title={problemPriorityFlag(problem.priority).label}
+                                className={`inline-flex items-center justify-center w-3 h-3 mr-1 border border-gray-500 text-[8px] font-bold leading-none text-gray-900 ${problem.priority === 'high' ? 'bg-gray-400' : problem.priority === 'medium' ? 'bg-gray-300' : 'bg-gray-200'}`}
+                              >
+                                {problemPriorityFlag(problem.priority).code}
+                              </span>
+                              <span className="sr-only">{problemPriorityFlag(problem.priority).label}: </span>
                               {problem.name}
                             </td>
                             <td className="px-2 py-1 font-mono text-[10px]">{problem.icd10}</td>
@@ -343,7 +351,15 @@ export default function PatientChartPage() {
                     <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
                       <div className="p-1.5 bg-gray-100 border border-gray-300">
                         <div className="text-gray-500">BP</div>
-                        <div className={`font-semibold ${parseInt(vitals.bp) > 140 ? 'text-gray-800' : ''}`}>{vitals.bp}</div>
+                        <div className={`font-semibold ${parseInt(vitals.bp) > 140 ? 'text-gray-800' : ''}`}>
+                          {vitals.bp}
+                          {parseInt(vitals.bp) > 140 && (
+                            <>
+                              <span aria-hidden="true" title="High" className="ml-1 text-red-700">H</span>
+                              <span className="sr-only"> (High)</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                       <div className="p-1.5 bg-gray-100 border border-gray-300">
                         <div className="text-gray-500">HR</div>
@@ -363,7 +379,15 @@ export default function PatientChartPage() {
                       </div>
                       <div className="p-1.5 bg-gray-100 border border-gray-300">
                         <div className="text-gray-500">BMI</div>
-                        <div className={`font-semibold ${vitals.bmi > 25 ? 'text-gray-800' : ''}`}>{vitals.bmi}</div>
+                        <div className={`font-semibold ${vitals.bmi > 25 ? 'text-gray-800' : ''}`}>
+                          {vitals.bmi}
+                          {vitals.bmi > 25 && (
+                            <>
+                              <span aria-hidden="true" title="High" className="ml-1 text-red-700">H</span>
+                              <span className="sr-only"> (High)</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -384,15 +408,35 @@ export default function PatientChartPage() {
                 </div>
                 {expandedPanels.labs && (
                   <div className="bg-white">
-                    {labs.map((lab, idx) => (
-                      <div key={lab.id} className={`flex items-center justify-between px-2 py-1 text-[10px] ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                        <span>{lab.name}</span>
-                        <div className="flex items-center space-x-2">
-                          <span className={`font-semibold ${lab.status === 'High' ? 'text-red-600' : ''}`}>{lab.value}</span>
-                          <span className="text-gray-400">{lab.ref}</span>
+                    {labs.map((lab, idx) => {
+                      const flag = labResultFlag(lab.status);
+                      return (
+                        <div key={lab.id} className={`flex items-center justify-between px-2 py-1 text-[10px] ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                          <span>{lab.name}</span>
+                          <div className="flex items-center space-x-2">
+                            <span className={`font-semibold ${flag ? 'text-red-700' : ''}`}>
+                              {lab.value}
+                              {flag && (
+                                <>
+                                  <span
+                                    aria-hidden="true"
+                                    title={flag.label}
+                                    className={`ml-1 px-0.5 border border-red-700 text-[9px] leading-none ${isCriticalLabFlag(flag) ? 'bg-red-700 text-white' : 'bg-white'}`}
+                                  >
+                                    {flag.code}
+                                  </span>
+                                  <span className="sr-only"> ({flag.label})</span>
+                                </>
+                              )}
+                            </span>
+                            <span className="text-gray-600">
+                              <span className="sr-only">Reference range </span>
+                              {lab.ref}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

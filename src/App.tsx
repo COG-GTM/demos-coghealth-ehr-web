@@ -220,8 +220,11 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
 
         {/* Mobile menu button */}
         <button
+          type="button"
           className="md:hidden p-1 hover:bg-gray-200"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
         </button>

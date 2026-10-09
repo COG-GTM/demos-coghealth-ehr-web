@@ -308,7 +308,7 @@ export default function PatientSearchPage() {
           <div className="ehr-header text-xs flex items-center justify-between">
             <span>Filter Patients</span>
             {activeFilterCount > 0 && (
-              <button onClick={clearFilters} className="text-white/80 hover:text-white flex items-center text-[10px]">
+              <button onClick={clearFilters} className="text-white hover:underline flex items-center text-[10px]">
                 <X className="w-3 h-3 mr-0.5" /> Clear ({activeFilterCount})
               </button>
             )}
@@ -524,7 +524,7 @@ export default function PatientSearchPage() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="ehr-subheader flex items-center justify-between">
             <span>Patient List - {searchResults.length} record(s) found</span>
-            <span className="text-gray-500">Double-click to open chart</span>
+            <span className="text-gray-700">Double-click to open chart</span>
           </div>
           <div className="flex-1 overflow-auto bg-white relative">
             <LoadingOverlay isLoading={loading} text="Loading patients..." />
@@ -635,7 +635,7 @@ export default function PatientSearchPage() {
           <div className="w-72 flex flex-col border-l border-gray-500" style={{ background: '#f5f5f5' }}>
             <div className="ehr-header text-xs flex items-center justify-between">
               <span>Patient Details</span>
-              <button onClick={() => setSelectedPatient(null)} className="text-white/80 hover:text-white">
+              <button onClick={() => setSelectedPatient(null)} className="text-white hover:opacity-80" aria-label="Close patient details">
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>

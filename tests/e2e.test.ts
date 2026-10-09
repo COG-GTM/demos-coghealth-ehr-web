@@ -83,6 +83,18 @@ describe('CogHealth EHR E2E Tests', () => {
   });
 
   describe('Global Patient Search', () => {
+    test('should expose a programmatic label for the search field', async () => {
+      await page.goto(BASE_URL);
+      const label = await page.$eval('#global-patient-search', (el) =>
+        Array.from((el as HTMLInputElement).labels ?? []).map((l) => l.textContent?.trim()).join(' ')
+      );
+      expect(label).toBe('Search patients by name or MRN');
+      const iconHidden = await page.$eval('#global-patient-search', (el) =>
+        el.parentElement?.querySelector('svg')?.getAttribute('aria-hidden')
+      );
+      expect(iconHidden).toBe('true');
+    });
+
     test('should show search dropdown when typing', async () => {
       await page.goto(BASE_URL);
       const searchInput = await page.$('input[placeholder="Patient search..."]');

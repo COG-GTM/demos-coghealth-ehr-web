@@ -139,8 +139,12 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
           {/* Global Patient Search */}
           <div className="relative">
             <div className="flex items-center">
-              <Search className="w-3 h-3 text-blue-200 mr-1" />
+              <label htmlFor="global-patient-search" className="sr-only">
+                Search patients by name or MRN
+              </label>
+              <Search className="w-3 h-3 text-blue-200 mr-1" aria-hidden="true" />
               <input
+                id="global-patient-search"
                 type="text"
                 placeholder="Patient search..."
                 value={globalSearch}

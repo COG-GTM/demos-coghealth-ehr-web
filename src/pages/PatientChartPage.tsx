@@ -11,10 +11,6 @@ import {
   RefreshCw,
   Printer,
   Plus,
-  ChevronDown,
-  ChevronRight,
-  Folder,
-  FolderOpen,
   FlaskConical,
   Heart,
   ClipboardList,
@@ -23,6 +19,7 @@ import {
 } from 'lucide-react';
 import type { Patient } from '../types';
 import { AlertDialog } from '../components/ui/Modal';
+import { CollapsibleSectionHeading } from '../components/ui';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
@@ -176,121 +173,109 @@ export default function PatientChartPage() {
             <div className="col-span-2 space-y-2">
               {/* Problems */}
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={() => togglePanel('problems')}
+                <CollapsibleSectionHeading
+                  panelId="chart-problems-panel"
+                  expanded={!!expandedPanels.problems}
+                  onToggle={() => togglePanel('problems')}
+                  icon={<Stethoscope className="w-3 h-3 mr-1" aria-hidden="true" />}
                 >
-                  <div className="flex items-center">
-                    {expandedPanels.problems ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <Stethoscope className="w-3 h-3 mr-1" /> Active Problems ({problems.filter(p => p.status === 'Active').length})
-                  </div>
-                  {expandedPanels.problems ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
-                {expandedPanels.problems && (
-                  <div className="bg-white">
-                    <table className="w-full text-[11px]">
-                      <thead>
-                        <tr>
-                          <th className="px-2 py-1 text-left">Problem</th>
-                          <th className="px-2 py-1 text-left w-20">ICD-10</th>
-                          <th className="px-2 py-1 text-left w-24">Onset</th>
-                          <th className="px-2 py-1 text-left w-16">Status</th>
+                  Active Problems ({problems.filter(p => p.status === 'Active').length})
+                </CollapsibleSectionHeading>
+                <div id="chart-problems-panel" hidden={!expandedPanels.problems} className="bg-white">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-1 text-left">Problem</th>
+                        <th className="px-2 py-1 text-left w-20">ICD-10</th>
+                        <th className="px-2 py-1 text-left w-24">Onset</th>
+                        <th className="px-2 py-1 text-left w-16">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {problems.map((problem, idx) => (
+                        <tr key={problem.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
+                          <td className="px-2 py-1">
+                            <span className={`inline-block w-2 h-2 mr-1 border border-gray-500 ${problem.priority === 'high' ? 'bg-gray-400' : problem.priority === 'medium' ? 'bg-gray-300' : 'bg-gray-200'}`} />
+                            {problem.name}
+                          </td>
+                          <td className="px-2 py-1 font-mono text-[10px]">{problem.icd10}</td>
+                          <td className="px-2 py-1">{problem.onset}</td>
+                          <td className="px-2 py-1">
+                            <span className={`px-1 py-0.5 text-[9px] border border-gray-400 ${problem.status === 'Active' ? 'bg-gray-200 text-gray-800' : 'bg-gray-100 text-gray-600'}`}>
+                              {problem.status}
+                            </span>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {problems.map((problem, idx) => (
-                          <tr key={problem.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
-                            <td className="px-2 py-1">
-                              <span className={`inline-block w-2 h-2 mr-1 border border-gray-500 ${problem.priority === 'high' ? 'bg-gray-400' : problem.priority === 'medium' ? 'bg-gray-300' : 'bg-gray-200'}`} />
-                              {problem.name}
-                            </td>
-                            <td className="px-2 py-1 font-mono text-[10px]">{problem.icd10}</td>
-                            <td className="px-2 py-1">{problem.onset}</td>
-                            <td className="px-2 py-1">
-                              <span className={`px-1 py-0.5 text-[9px] border border-gray-400 ${problem.status === 'Active' ? 'bg-gray-200 text-gray-800' : 'bg-gray-100 text-gray-600'}`}>
-                                {problem.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* Medications */}
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={() => togglePanel('meds')}
+                <CollapsibleSectionHeading
+                  panelId="chart-meds-panel"
+                  expanded={!!expandedPanels.meds}
+                  onToggle={() => togglePanel('meds')}
+                  icon={<Pill className="w-3 h-3 mr-1" aria-hidden="true" />}
                 >
-                  <div className="flex items-center">
-                    {expandedPanels.meds ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <Pill className="w-3 h-3 mr-1" /> Active Medications ({medications.length})
-                  </div>
-                  {expandedPanels.meds ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
-                {expandedPanels.meds && (
-                  <div className="bg-white">
-                    <table className="w-full text-[11px]">
-                      <thead>
-                        <tr>
-                          <th className="px-2 py-1 text-left">Medication</th>
-                          <th className="px-2 py-1 text-left">Sig</th>
-                          <th className="px-2 py-1 text-left w-16">Refills</th>
+                  Active Medications ({medications.length})
+                </CollapsibleSectionHeading>
+                <div id="chart-meds-panel" hidden={!expandedPanels.meds} className="bg-white">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-1 text-left">Medication</th>
+                        <th className="px-2 py-1 text-left">Sig</th>
+                        <th className="px-2 py-1 text-left w-16">Refills</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {medications.map((med, idx) => (
+                        <tr key={med.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
+                          <td className="px-2 py-1 font-semibold">{med.name} {med.dose}</td>
+                          <td className="px-2 py-1 text-gray-600">{med.sig}</td>
+                          <td className="px-2 py-1">{med.refills}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {medications.map((med, idx) => (
-                          <tr key={med.id} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
-                            <td className="px-2 py-1 font-semibold">{med.name} {med.dose}</td>
-                            <td className="px-2 py-1 text-gray-600">{med.sig}</td>
-                            <td className="px-2 py-1">{med.refills}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {/* Recent Encounters */}
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={() => togglePanel('encounters')}
+                <CollapsibleSectionHeading
+                  panelId="chart-encounters-panel"
+                  expanded={!!expandedPanels.encounters}
+                  onToggle={() => togglePanel('encounters')}
+                  icon={<Calendar className="w-3 h-3 mr-1" aria-hidden="true" />}
                 >
-                  <div className="flex items-center">
-                    {expandedPanels.encounters ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <Calendar className="w-3 h-3 mr-1" /> Recent Encounters
-                  </div>
-                  {expandedPanels.encounters ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
-                {expandedPanels.encounters && (
-                  <div className="bg-white">
-                    <table className="w-full text-[11px]">
-                      <thead>
-                        <tr>
-                          <th className="px-2 py-1 text-left w-24">Date</th>
-                          <th className="px-2 py-1 text-left w-24">Type</th>
-                          <th className="px-2 py-1 text-left">Reason</th>
-                          <th className="px-2 py-1 text-left w-28">Provider</th>
+                  Recent Encounters
+                </CollapsibleSectionHeading>
+                <div id="chart-encounters-panel" hidden={!expandedPanels.encounters} className="bg-white">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-1 text-left w-24">Date</th>
+                        <th className="px-2 py-1 text-left w-24">Type</th>
+                        <th className="px-2 py-1 text-left">Reason</th>
+                        <th className="px-2 py-1 text-left w-28">Provider</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {encounters.map((enc, idx) => (
+                        <tr key={enc.id} className={`cursor-pointer hover:bg-blue-50 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                          <td className="px-2 py-1">{enc.date}</td>
+                          <td className="px-2 py-1">{enc.type}</td>
+                          <td className="px-2 py-1">{enc.reason}</td>
+                          <td className="px-2 py-1">{enc.provider}</td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {encounters.map((enc, idx) => (
-                          <tr key={enc.id} className={`cursor-pointer hover:bg-blue-50 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                            <td className="px-2 py-1">{enc.date}</td>
-                            <td className="px-2 py-1">{enc.type}</td>
-                            <td className="px-2 py-1">{enc.reason}</td>
-                            <td className="px-2 py-1">{enc.provider}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 
@@ -298,103 +283,92 @@ export default function PatientChartPage() {
             <div className="space-y-2">
               {/* Allergies */}
               <div className="ehr-panel">
-                <div 
-                  className="flex items-center justify-between cursor-pointer px-2 py-1"
+                <CollapsibleSectionHeading
+                  panelId="chart-allergies-panel"
+                  expanded={!!expandedPanels.allergies}
+                  onToggle={() => togglePanel('allergies')}
+                  icon={<AlertTriangle className="w-3 h-3 mr-1" aria-hidden="true" />}
+                  className="text-[11px]"
                   style={{ background: '#cc0000', color: 'white' }}
-                  onClick={() => togglePanel('allergies')}
                 >
-                  <div className="flex items-center text-[11px]">
-                    {expandedPanels.allergies ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <AlertTriangle className="w-3 h-3 mr-1" /> Allergies ({allergies.length})
-                  </div>
-                  {expandedPanels.allergies ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
-                {expandedPanels.allergies && (
-                  <div className="bg-red-50">
-                    {allergies.map((allergy, idx) => (
-                      <div key={allergy.id} className={`px-2 py-1.5 text-[11px] ${idx > 0 ? 'border-t border-red-200' : ''}`}>
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-red-900">{allergy.allergen}</span>
-                          <span className={`px-1 py-0.5 text-[9px] border border-gray-500 ${allergy.severity === 'Severe' ? 'bg-gray-300 text-gray-800 font-bold' : 'bg-gray-200 text-gray-700'}`}>
-                            {allergy.severity}
-                          </span>
-                        </div>
-                        <div className="text-red-700 text-[10px]">{allergy.reaction}</div>
+                  Allergies ({allergies.length})
+                </CollapsibleSectionHeading>
+                <div id="chart-allergies-panel" hidden={!expandedPanels.allergies} className="bg-red-50">
+                  {allergies.map((allergy, idx) => (
+                    <div key={allergy.id} className={`px-2 py-1.5 text-[11px] ${idx > 0 ? 'border-t border-red-200' : ''}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-red-900">{allergy.allergen}</span>
+                        <span className={`px-1 py-0.5 text-[9px] border border-gray-500 ${allergy.severity === 'Severe' ? 'bg-gray-300 text-gray-800 font-bold' : 'bg-gray-200 text-gray-700'}`}>
+                          {allergy.severity}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <div className="text-red-700 text-[10px]">{allergy.reaction}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Vitals */}
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={() => togglePanel('vitals')}
+                <CollapsibleSectionHeading
+                  panelId="chart-vitals-panel"
+                  expanded={!!expandedPanels.vitals}
+                  onToggle={() => togglePanel('vitals')}
+                  icon={<Heart className="w-3 h-3 mr-1" aria-hidden="true" />}
                 >
-                  <div className="flex items-center">
-                    {expandedPanels.vitals ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <Heart className="w-3 h-3 mr-1" /> Vitals ({vitals.date})
-                  </div>
-                  {expandedPanels.vitals ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
-                {expandedPanels.vitals && (
-                  <div className="bg-white p-2">
-                    <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">BP</div>
-                        <div className={`font-semibold ${parseInt(vitals.bp) > 140 ? 'text-gray-800' : ''}`}>{vitals.bp}</div>
-                      </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">HR</div>
-                        <div className="font-semibold">{vitals.hr}</div>
-                      </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">Temp</div>
-                        <div className="font-semibold">{vitals.temp}°F</div>
-                      </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">SpO2</div>
-                        <div className="font-semibold">{vitals.spo2}%</div>
-                      </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">Weight</div>
-                        <div className="font-semibold">{vitals.weight} lbs</div>
-                      </div>
-                      <div className="p-1.5 bg-gray-100 border border-gray-300">
-                        <div className="text-gray-500">BMI</div>
-                        <div className={`font-semibold ${vitals.bmi > 25 ? 'text-gray-800' : ''}`}>{vitals.bmi}</div>
-                      </div>
+                  Vitals ({vitals.date})
+                </CollapsibleSectionHeading>
+                <div id="chart-vitals-panel" hidden={!expandedPanels.vitals} className="bg-white p-2">
+                  <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">BP</div>
+                      <div className={`font-semibold ${parseInt(vitals.bp) > 140 ? 'text-gray-800' : ''}`}>{vitals.bp}</div>
+                    </div>
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">HR</div>
+                      <div className="font-semibold">{vitals.hr}</div>
+                    </div>
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">Temp</div>
+                      <div className="font-semibold">{vitals.temp}°F</div>
+                    </div>
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">SpO2</div>
+                      <div className="font-semibold">{vitals.spo2}%</div>
+                    </div>
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">Weight</div>
+                      <div className="font-semibold">{vitals.weight} lbs</div>
+                    </div>
+                    <div className="p-1.5 bg-gray-100 border border-gray-300">
+                      <div className="text-gray-500">BMI</div>
+                      <div className={`font-semibold ${vitals.bmi > 25 ? 'text-gray-800' : ''}`}>{vitals.bmi}</div>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Recent Labs */}
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={() => togglePanel('labs')}
+                <CollapsibleSectionHeading
+                  panelId="chart-labs-panel"
+                  expanded={!!expandedPanels.labs}
+                  onToggle={() => togglePanel('labs')}
+                  icon={<FlaskConical className="w-3 h-3 mr-1" aria-hidden="true" />}
                 >
-                  <div className="flex items-center">
-                    {expandedPanels.labs ? <FolderOpen className="w-3 h-3 mr-1" /> : <Folder className="w-3 h-3 mr-1" />}
-                    <FlaskConical className="w-3 h-3 mr-1" /> Recent Labs
-                  </div>
-                  {expandedPanels.labs ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                </div>
-                {expandedPanels.labs && (
-                  <div className="bg-white">
-                    {labs.map((lab, idx) => (
-                      <div key={lab.id} className={`flex items-center justify-between px-2 py-1 text-[10px] ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                        <span>{lab.name}</span>
-                        <div className="flex items-center space-x-2">
-                          <span className={`font-semibold ${lab.status === 'High' ? 'text-red-600' : ''}`}>{lab.value}</span>
-                          <span className="text-gray-400">{lab.ref}</span>
-                        </div>
+                  Recent Labs
+                </CollapsibleSectionHeading>
+                <div id="chart-labs-panel" hidden={!expandedPanels.labs} className="bg-white">
+                  {labs.map((lab, idx) => (
+                    <div key={lab.id} className={`flex items-center justify-between px-2 py-1 text-[10px] ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                      <span>{lab.name}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className={`font-semibold ${lab.status === 'High' ? 'text-red-600' : ''}`}>{lab.value}</span>
+                        <span className="text-gray-400">{lab.ref}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Quick Actions */}

@@ -36,7 +36,15 @@ export function getGridKeyAction(
   }
 }
 
-export function clampRowIndex(index: number, rowCount: number): number {
-  if (rowCount <= 0) return 0;
-  return Math.min(Math.max(index, 0), rowCount - 1);
+export function resolveActiveRowIndex(
+  rowIds: readonly number[],
+  activeId: number | null,
+  selectedId: number | null,
+): number {
+  for (const id of [activeId, selectedId]) {
+    if (id === null) continue;
+    const index = rowIds.indexOf(id);
+    if (index !== -1) return index;
+  }
+  return 0;
 }

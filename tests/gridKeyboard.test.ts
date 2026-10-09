@@ -1,4 +1,4 @@
-import { clampRowIndex, getGridKeyAction } from '../src/utils/gridKeyboard';
+import { getGridKeyAction, resolveActiveRowIndex } from '../src/utils/gridKeyboard';
 
 describe('getGridKeyAction', () => {
   it('moves focus with arrow keys and clamps at the edges', () => {
@@ -32,11 +32,16 @@ describe('getGridKeyAction', () => {
   });
 });
 
-describe('clampRowIndex', () => {
-  it('keeps the active row inside the current result set', () => {
-    expect(clampRowIndex(5, 3)).toBe(2);
-    expect(clampRowIndex(-1, 3)).toBe(0);
-    expect(clampRowIndex(1, 3)).toBe(1);
-    expect(clampRowIndex(4, 0)).toBe(0);
+describe('resolveActiveRowIndex', () => {
+  it('follows the active patient by id when results change', () => {
+    expect(resolveActiveRowIndex([10, 20, 30], 30, null)).toBe(2);
+    expect(resolveActiveRowIndex([30, 10], 30, null)).toBe(0);
+  });
+
+  it('falls back to the selected patient, then the first row', () => {
+    expect(resolveActiveRowIndex([10, 20, 30], 99, 20)).toBe(1);
+    expect(resolveActiveRowIndex([10, 20, 30], 99, 98)).toBe(0);
+    expect(resolveActiveRowIndex([10, 20, 30], null, null)).toBe(0);
+    expect(resolveActiveRowIndex([], 10, 20)).toBe(0);
   });
 });

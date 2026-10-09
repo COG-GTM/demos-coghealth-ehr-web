@@ -31,7 +31,7 @@ import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { patientService } from '../services/patientService';
-import { clampRowIndex, getGridKeyAction } from '../utils/gridKeyboard';
+import { getGridKeyAction, resolveActiveRowIndex } from '../utils/gridKeyboard';
 import type { Patient } from '../types';
 
 interface PatientListItem {
@@ -128,8 +128,9 @@ export default function PatientSearchPage() {
   const [allPatients, setAllPatients] = useState<PatientListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<PatientListItem | null>(null);
-  const [activeRowIndex, setActiveRowIndex] = useState(0);
-  const rowRefs = useRef<Array<HTMLTableRowElement | null>>([]);
+  const [activePatientId, setActivePatientId] = useState<number | null>(null);
+  const rowRefs = useRef(new Map<number, HTMLTableRowElement>());
+  const gridHadFocusRef = useRef(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     quickFilters: true,
     status: true,
@@ -248,14 +249,38 @@ export default function PatientSearchPage() {
     setSearchResults(allPatients);
   };
 
-  const handleSelectPatient = (patient: PatientListItem, index: number) => {
-    setActiveRowIndex(index);
+  const activeRowIndex = resolveActiveRowIndex(
+    searchResults.map((p) => p.id),
+    activePatientId,
+    selectedPatient?.id ?? null,
+  );
+
+  useEffect(() => {
+    const onFocusIn = (event: FocusEvent) => {
+      gridHadFocusRef.current = event.target instanceof Element && event.target.closest('[data-patient-row]') !== null;
+    };
+    document.addEventListener('focusin', onFocusIn);
+    return () => document.removeEventListener('focusin', onFocusIn);
+  }, []);
+
+  useEffect(() => {
+    if (!gridHadFocusRef.current) return;
+    const focused = document.activeElement;
+    if (focused && focused !== document.body) return;
+    const patient = searchResults[activeRowIndex];
+    if (patient) rowRefs.current.get(patient.id)?.focus();
+  }, [searchResults, activeRowIndex]);
+
+  const handleSelectPatient = (patient: PatientListItem) => {
+    setActivePatientId(patient.id);
     setSelectedPatient(patient);
   };
 
   const focusRow = (index: number) => {
-    setActiveRowIndex(index);
-    rowRefs.current[index]?.focus();
+    const patient = searchResults[index];
+    if (!patient) return;
+    setActivePatientId(patient.id);
+    rowRefs.current.get(patient.id)?.focus();
   };
 
   const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, patient: PatientListItem, index: number) => {
@@ -264,13 +289,14 @@ export default function PatientSearchPage() {
     if (!action) return;
     event.preventDefault();
     if (action.type === 'focus') focusRow(action.index);
-    else if (action.type === 'select') handleSelectPatient(patient, index);
+    else if (action.type === 'select') handleSelectPatient(patient);
     else handleOpenChart(patient.id);
   };
 
   const handleCloseDetails = () => {
     setSelectedPatient(null);
-    rowRefs.current[clampRowIndex(activeRowIndex, searchResults.length)]?.focus();
+    const patient = searchResults[activeRowIndex];
+    if (patient) rowRefs.current.get(patient.id)?.focus();
   };
 
   const handleOpenChart = (patientId: number) => {
@@ -560,7 +586,6 @@ export default function PatientSearchPage() {
               role="grid"
               aria-label="Patient search results"
               aria-describedby="patient-grid-instructions"
-              aria-rowcount={searchResults.length + 1}
             >
               <thead className="sticky top-0">
                 <tr>
@@ -587,17 +612,20 @@ export default function PatientSearchPage() {
                   </tr>
                 ) : searchResults.map((patient, idx) => {
                   const isSelected = selectedPatient?.id === patient.id;
-                  const isActive = idx === clampRowIndex(activeRowIndex, searchResults.length);
+                  const isActive = idx === activeRowIndex;
                   return (
                     <tr
                       key={patient.id}
-                      ref={(el) => { rowRefs.current[idx] = el; }}
+                      ref={(el) => {
+                        if (el) rowRefs.current.set(patient.id, el);
+                        else rowRefs.current.delete(patient.id);
+                      }}
+                      data-patient-row
                       tabIndex={isActive ? 0 : -1}
                       aria-selected={isSelected}
-                      aria-rowindex={idx + 2}
-                      onFocus={() => setActiveRowIndex(idx)}
+                      onFocus={() => setActivePatientId(patient.id)}
                       onKeyDown={(e) => handleRowKeyDown(e, patient, idx)}
-                      onClick={() => handleSelectPatient(patient, idx)}
+                      onClick={() => handleSelectPatient(patient)}
                       onDoubleClick={() => handleOpenChart(patient.id)}
                       className={`cursor-pointer ${isSelected ? 'ehr-grid-row selected' : `ehr-grid-row ${idx % 2 === 0 ? '' : ''}`}`}
                       style={isSelected ? { background: '#316ac5', color: 'white' } : idx % 2 === 1 ? { background: '#f0f4f8' } : {}}

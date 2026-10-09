@@ -635,8 +635,14 @@ export default function PatientSearchPage() {
           <div className="w-72 flex flex-col border-l border-gray-500" style={{ background: '#f5f5f5' }}>
             <div className="ehr-header text-xs flex items-center justify-between">
               <span>Patient Details</span>
-              <button onClick={() => setSelectedPatient(null)} className="text-white/80 hover:text-white">
-                <X className="w-3.5 h-3.5" />
+              <button
+                type="button"
+                onClick={() => setSelectedPatient(null)}
+                className="text-white/80 hover:text-white"
+                aria-label="Close patient details"
+                title="Close patient details"
+              >
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
             <div className="flex-1 overflow-auto">

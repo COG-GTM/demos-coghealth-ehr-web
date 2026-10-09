@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
@@ -130,6 +130,7 @@ export default function DashboardPage() {
   const [showRxDialog, setShowRxDialog] = useState(false);
   const [showLabDialog, setShowLabDialog] = useState(false);
   const [showImagingDialog, setShowImagingDialog] = useState(false);
+  const unreadNotificationCount = 3;
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
   const [inboxItems, setInboxItems] = useState<InboxItem[]>([]);
   const [worklistPatients, setWorklistPatients] = useState<WorklistPatient[]>([]);
@@ -176,6 +177,24 @@ export default function DashboardPage() {
     };
     fetchData();
   }, []);
+
+  const refreshInbox = async () => {
+    try {
+      const result = await patientService.search('', 0, 20);
+      setInboxItems(prev => {
+        const previous = new Map(prev.map(item => [item.id, item]));
+        return result.content.slice(0, 10).map((p, i) => {
+          const item = mapPatientToInbox(p, i);
+          const existing = previous.get(item.id);
+          return existing ? { ...item, read: existing.read, flagged: existing.flagged } : item;
+        });
+      });
+      setShowAlert({ title: 'Inbox Refreshed', message: 'Inbox has been refreshed.', type: 'success' });
+    } catch (error) {
+      console.error('Failed to refresh inbox:', error);
+      setShowAlert({ title: 'Refresh Failed', message: 'Unable to refresh the inbox. Please try again.', type: 'info' });
+    }
+  };
 
   const togglePanel = (panel: string) => {
     setExpandedPanels(prev => ({ ...prev, [panel]: !prev[panel] }));
@@ -311,9 +330,9 @@ export default function DashboardPage() {
           </button>
         </div>
         <div className="flex items-center space-x-2">
-          <button className="ehr-toolbar-button relative">
+          <button className="ehr-toolbar-button relative" aria-label={`Notifications, ${unreadNotificationCount} unread`} title="Notifications">
             <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-gray-600 text-white text-[9px] flex items-center justify-center border border-gray-700">3</span>
+            <span aria-hidden="true" className="absolute -top-1 -right-1 w-4 h-4 bg-gray-600 text-white text-[9px] flex items-center justify-center border border-gray-700">{unreadNotificationCount}</span>
           </button>
         </div>
       </div>
@@ -397,7 +416,7 @@ export default function DashboardPage() {
                   </select>
                   <div className="flex-1" />
                   <button className="ehr-toolbar-button p-0.5 text-[10px]" onClick={markAllAsRead}>Mark All Read</button>
-                  <button className="ehr-toolbar-button p-0.5"><RefreshCw className="w-3 h-3" /></button>
+                  <button className="ehr-toolbar-button p-0.5" aria-label="Refresh inbox" title="Refresh inbox" onClick={refreshInbox}><RefreshCw className="w-3 h-3" /></button>
                 </div>
                 <div className="flex-1 overflow-auto bg-white">
                   <table className="w-full text-[11px]">
@@ -432,9 +451,9 @@ export default function DashboardPage() {
                           </td>
                           <td className="px-1 py-0.5 text-gray-500">{item.timestamp}</td>
                           <td className="px-1 py-0.5 text-center">
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View"><Eye className="w-3 h-3" /></button>
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => markAsRead(item.id)} title="Mark Read"><CheckCircle2 className="w-3 h-3" /></button>
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => toggleFlag(item.id)} title="Flag"><Flag className={`w-3 h-3 ${item.flagged ? 'text-red-600' : ''}`} /></button>
+                            <button className="ehr-toolbar-button p-0.5" onClick={() => { markAsRead(item.id); navigate(`/patients/${item.id}`); }} title="View" aria-label={`View ${item.title} for ${item.patientName}`}><Eye className="w-3 h-3" /></button>
+                            <button className="ehr-toolbar-button p-0.5" onClick={() => markAsRead(item.id)} title="Mark Read" aria-label={`Mark ${item.title} for ${item.patientName} as read`}><CheckCircle2 className="w-3 h-3" /></button>
+                            <button className="ehr-toolbar-button p-0.5" onClick={() => toggleFlag(item.id)} title={item.flagged ? 'Unflag' : 'Flag'} aria-label={`${item.flagged ? 'Unflag' : 'Flag'} ${item.title} for ${item.patientName}`} aria-pressed={item.flagged}><Flag className={`w-3 h-3 ${item.flagged ? 'text-red-600' : ''}`} /></button>
                           </td>
                         </tr>
                       ))}
@@ -519,7 +538,13 @@ export default function DashboardPage() {
                           onClick={() => navigate(`/patients/${patient.id}`)}
                         >
                           <td className="px-1 py-0.5">
-                            <div className="font-semibold">{patient.name}</div>
+                            <Link
+                              to={`/patients/${patient.id}`}
+                              className="font-semibold hover:underline focus:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {patient.name}
+                            </Link>
                             <div className="text-gray-500 text-[10px]">{patient.mrn} • {patient.age}{patient.gender}</div>
                             <div className="flex space-x-0.5 mt-0.5">
                               {patient.flags.map((flag) => {
@@ -569,10 +594,23 @@ export default function DashboardPage() {
                             </span>
                           </td>
                           <td className="px-1 py-0.5 text-center">
-                            <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Open Chart">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); navigate(`/patients/${patient.id}`); }}
+                              className="ehr-toolbar-button p-0.5"
+                              title="Open Chart"
+                              aria-label={`Open chart for ${patient.name}`}
+                            >
                               <ExternalLink className="w-3 h-3" />
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); }} className="ehr-toolbar-button p-0.5" title="Write Note">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowAlert({ title: 'New Note', message: `Clinical note editor for ${patient.name} (MRN ${patient.mrn}) would open here.`, type: 'info' });
+                              }}
+                              className="ehr-toolbar-button p-0.5"
+                              title="Write Note"
+                              aria-label={`Write note for ${patient.name}`}
+                            >
                               <Edit3 className="w-3 h-3" />
                             </button>
                           </td>

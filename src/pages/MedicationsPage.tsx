@@ -355,6 +355,7 @@ export default function MedicationsPage() {
           <span>Pending: <strong>{stats.pending}</strong></span>
           <span>Controlled: <strong>{stats.controlled}</strong></span>
           <span>w/Alerts: <strong>{stats.withAlerts}</strong></span>
+          <span className="text-[10px] text-gray-600">Alert key: {ALERT_LEGEND}</span>
         </div>
         <div className="flex items-center space-x-1">
           {[

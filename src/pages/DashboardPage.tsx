@@ -5,6 +5,7 @@ import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
+import { CollapsiblePanelHeading, PanelGlyph, PanelHeading } from '../components/ui/PanelHeading';
 import { patientService } from '../services/patientService';
 import type { Patient } from '../types';
 import { 
@@ -344,20 +345,16 @@ export default function DashboardPage() {
         <div className="flex-1 flex flex-col space-y-1 overflow-hidden">
           {/* Inbox Panel */}
           <div className={`ehr-panel flex flex-col overflow-hidden ${expandedPanels.inbox ? 'flex-1' : ''}`}>
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('inbox'); }}
+            <CollapsiblePanelHeading
+              panelId="dashboard-panel-inbox"
+              expanded={!!expandedPanels.inbox}
+              onToggle={() => togglePanel('inbox')}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.inbox ? '-' : '+'}
-                </span>
-                <span>Inbox</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{inboxCounts.all} unread</span>
-              </div>
-            </div>
+              <span>Inbox</span>
+              <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{inboxCounts.all} unread</span>
+            </CollapsiblePanelHeading>
             {expandedPanels.inbox && (
-              <>
+              <div id="dashboard-panel-inbox" className="flex-1 flex flex-col overflow-hidden">
                 <div className="ehr-subheader flex items-center space-x-1">
                   {[
                     { key: 'all', label: 'All', count: inboxCounts.all },
@@ -441,26 +438,22 @@ export default function DashboardPage() {
                     </tbody>
                   </table>
                 </div>
-              </>
+              </div>
             )}
           </div>
 
           {/* Worklist Panel */}
           <div className={`ehr-panel flex flex-col overflow-hidden ${expandedPanels.worklist ? 'flex-1' : ''}`}>
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('worklist'); }}
+            <CollapsiblePanelHeading
+              panelId="dashboard-panel-worklist"
+              expanded={!!expandedPanels.worklist}
+              onToggle={() => togglePanel('worklist')}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.worklist ? '-' : '+'}
-                </span>
-                <span>Patient Worklist</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{worklistPatients.length} patients</span>
-              </div>
-            </div>
+              <span>Patient Worklist</span>
+              <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{worklistPatients.length} patients</span>
+            </CollapsiblePanelHeading>
             {expandedPanels.worklist && (
-              <>
+              <div id="dashboard-panel-worklist" className="flex-1 flex flex-col overflow-hidden">
                 <div className="ehr-subheader flex items-center space-x-1">
                   {[
                     { key: 'all', label: 'All' },
@@ -581,7 +574,7 @@ export default function DashboardPage() {
                     </tbody>
                   </table>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -590,19 +583,15 @@ export default function DashboardPage() {
         <div className="w-64 flex flex-col space-y-1 overflow-auto">
           {/* Unsigned Notes */}
           <div className="ehr-panel">
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('unsigned'); }}
+            <CollapsiblePanelHeading
+              panelId="dashboard-panel-unsigned"
+              expanded={!!expandedPanels.unsigned}
+              onToggle={() => togglePanel('unsigned')}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.unsigned ? '-' : '+'}
-                </span>
-                <span>Unsigned Notes ({unsignedNotes.length})</span>
-              </div>
-            </div>
+              <span>Unsigned Notes ({unsignedNotes.length})</span>
+            </CollapsiblePanelHeading>
             {expandedPanels.unsigned && (
-              <div className="bg-white">
+              <div id="dashboard-panel-unsigned" className="bg-white">
                 {unsignedNotes.map((note, idx) => (
                   <div key={note.id} className={`px-2 py-1.5 border-b border-gray-200 flex items-center justify-between ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
                     <div>
@@ -624,19 +613,15 @@ export default function DashboardPage() {
 
           {/* Pending Orders */}
           <div className="ehr-panel">
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('orders'); }}
+            <CollapsiblePanelHeading
+              panelId="dashboard-panel-orders"
+              expanded={!!expandedPanels.orders}
+              onToggle={() => togglePanel('orders')}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.orders ? '-' : '+'}
-                </span>
-                <span>Pending Orders ({pendingOrders.length})</span>
-              </div>
-            </div>
+              <span>Pending Orders ({pendingOrders.length})</span>
+            </CollapsiblePanelHeading>
             {expandedPanels.orders && (
-              <div className="bg-white">
+              <div id="dashboard-panel-orders" className="bg-white">
                 {pendingOrders.map((order, idx) => (
                   <div key={order.id} className={`px-2 py-1.5 border-b border-gray-200 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
                     <div className="flex items-start justify-between">
@@ -662,19 +647,15 @@ export default function DashboardPage() {
 
           {/* Today's Schedule */}
           <div className="ehr-panel">
-            <div 
-              className="ehr-header flex items-center justify-between cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); togglePanel('schedule'); }}
+            <CollapsiblePanelHeading
+              panelId="dashboard-panel-schedule"
+              expanded={!!expandedPanels.schedule}
+              onToggle={() => togglePanel('schedule')}
             >
-              <div className="flex items-center">
-                <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">
-                  {expandedPanels.schedule ? '-' : '+'}
-                </span>
-                <span>Today's Schedule</span>
-              </div>
-            </div>
+              <span>Today's Schedule</span>
+            </CollapsiblePanelHeading>
             {expandedPanels.schedule && (
-              <div className="bg-white p-2">
+              <div id="dashboard-panel-schedule" className="bg-white p-2">
                 <div className="flex items-center justify-between mb-2 text-[11px]">
                   <span className="text-gray-500">January 18, 2024</span>
                   <span className="font-semibold">8 appointments</span>
@@ -704,10 +685,10 @@ export default function DashboardPage() {
 
           {/* System Messages */}
           <div className="ehr-panel">
-            <div className="ehr-header flex items-center">
-              <span className="w-4 h-4 mr-2 flex items-center justify-center border border-white/50 text-[10px] font-bold">!</span>
+            <PanelHeading>
+              <PanelGlyph>!</PanelGlyph>
               <span>System Messages</span>
-            </div>
+            </PanelHeading>
             <div className="bg-white text-[10px]">
               <div className="px-2 py-1 border-b border-gray-200">
                 <span className="text-gray-500">01/18 08:00</span> - System maintenance scheduled for 01/20 2:00 AM
@@ -723,9 +704,9 @@ export default function DashboardPage() {
 
           {/* System Status */}
           <div className="ehr-panel">
-            <div className="ehr-header flex items-center">
+            <PanelHeading>
               <span>System Status</span>
-            </div>
+            </PanelHeading>
             <div className="bg-white p-2 text-[10px]">
               <table className="w-full">
                 <tbody>

@@ -31,6 +31,8 @@ import { logLogout } from './services/auditService';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
+const SESSION_WARNING_MESSAGE = 'Your session will expire in 2 minutes due to inactivity. Choose Continue Session to stay signed in, or Logout Now to end your session.';
+const SESSION_EXPIRED_MESSAGE = 'Your session has expired due to inactivity. You will be logged out for security purposes. Please log in again to continue.';
 
 const defaultPatientSearch = [
   { id: 1, name: 'Smith, John', mrn: 'MRN001234', dob: '03/15/1965' },
@@ -80,10 +82,10 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   useEffect(() => {
     const handleActivity = () => resetSession();
     window.addEventListener('click', handleActivity);
-    window.addEventListener('keypress', handleActivity);
+    window.addEventListener('keydown', handleActivity);
     return () => {
       window.removeEventListener('click', handleActivity);
-      window.removeEventListener('keypress', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
     };
   }, [resetSession]);
 
@@ -175,8 +177,8 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
           <span className="text-blue-100">Springfield Medical Center</span>
           <span className="text-blue-300">|</span>
           <div className="flex items-center space-x-1">
-            <Lock className="w-3 h-3" />
-            <span className={sessionTime < SESSION_WARNING_MS ? 'text-yellow-300' : 'text-blue-200'}>
+            <Lock className="w-3 h-3" aria-hidden="true" />
+            <span role="timer" className={sessionTime < SESSION_WARNING_MS ? 'text-yellow-300' : 'text-blue-200'}>
               Session: {formatSessionTime()}
             </span>
           </div>
@@ -266,6 +268,7 @@ function App() {
   }, []);
 
   const handleSessionExpired = useCallback(() => {
+    setShowSessionWarning(false);
     setShowSessionExpired(true);
   }, []);
 
@@ -321,13 +324,18 @@ function App() {
           </div>
         </div>
 
+        <div className="sr-only" aria-live="assertive" aria-atomic="true">
+          {showSessionExpired ? SESSION_EXPIRED_MESSAGE : showSessionWarning ? SESSION_WARNING_MESSAGE : ''}
+        </div>
+
         {/* Session Warning Dialog */}
         <ConfirmDialog
           isOpen={showSessionWarning}
           onClose={() => setShowSessionWarning(false)}
           onConfirm={() => setShowSessionWarning(false)}
+          onCancel={() => performLogout('manual')}
           title="Session Timeout Warning"
-          message="Your session will expire in 2 minutes due to inactivity. Click 'Continue' to extend your session."
+          message={SESSION_WARNING_MESSAGE}
           confirmText="Continue Session"
           cancelText="Logout Now"
           type="warning"
@@ -338,7 +346,7 @@ function App() {
           isOpen={showSessionExpired}
           onClose={() => performLogout('timeout')}
           title="Session Expired"
-          message="Your session has expired due to inactivity. You will be logged out for security purposes. Please log in again to continue."
+          message={SESSION_EXPIRED_MESSAGE}
           type="warning"
         />
 

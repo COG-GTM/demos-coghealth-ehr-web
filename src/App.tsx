@@ -31,6 +31,7 @@ import { logLogout } from './services/auditService';
 
 const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
 const SESSION_WARNING_MS = 2 * 60 * 1000;
+const MOBILE_MENU_ID = 'mobile-main-menu';
 
 const defaultPatientSearch = [
   { id: 1, name: 'Smith, John', mrn: 'MRN001234', dob: '03/15/1965' },
@@ -220,38 +221,45 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
 
         {/* Mobile menu button */}
         <button
+          type="button"
           className="md:hidden p-1 hover:bg-gray-200"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Main menu"
+          aria-expanded={mobileMenuOpen}
+          aria-controls={MOBILE_MENU_ID}
         >
-          {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          {mobileMenuOpen ? <X className="w-4 h-4" aria-hidden="true" /> : <Menu className="w-4 h-4" aria-hidden="true" />}
         </button>
       </div>
 
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-300 bg-white">
-          <div className="px-2 py-1 space-y-0.5">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center px-2 py-1.5 text-[11px] ${
-                    isActive
-                      ? 'bg-blue-100 border border-blue-300'
-                      : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
+      <nav
+        id={MOBILE_MENU_ID}
+        aria-label="Main menu"
+        hidden={!mobileMenuOpen}
+        className="md:hidden border-t border-gray-300 bg-white"
+      >
+        <div className="px-2 py-1 space-y-0.5">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center px-2 py-1.5 text-[11px] ${
+                  isActive
+                    ? 'bg-blue-100 border border-blue-300'
+                    : 'hover:bg-gray-100'
+                }`}
+              >
+                <Icon className="w-4 h-4 mr-2" aria-hidden="true" />
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
-      )}
+      </nav>
     </>
   );
 }

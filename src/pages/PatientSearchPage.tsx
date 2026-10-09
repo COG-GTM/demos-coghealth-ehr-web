@@ -592,7 +592,7 @@ export default function PatientSearchPage() {
                             handleSelectPatient(patient);
                           }}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter' && isSelected) {
+                            if (e.key === 'Enter' && isSelected && !e.repeat) {
                               e.preventDefault();
                               handleOpenChart(patient.id);
                             }

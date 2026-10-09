@@ -190,7 +190,7 @@ export default function CalculatorsPage() {
           <Calculator className="w-4 h-4" />
           <span className="font-semibold text-[12px]">Clinical Calculators</span>
           <span className="text-[10px] text-gray-600">
-            {patientInfo.name} ({patientInfo.mrn}) - Room {patientInfo.room} - values pre-filled from latest chart data
+            {patientInfo.name} ({patientInfo.mrn}) - Room {patientInfo.room} - pre-filled with demo values
           </span>
         </div>
         <div className="flex items-center space-x-2">

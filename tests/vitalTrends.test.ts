@@ -1,4 +1,4 @@
-import { assessTrend, classifyTrend, describeTrend, sparklineLabel } from '../src/utils/vitalTrends';
+import { assessTrend, classifyTrend, describeTrend, sparklineLabel, sparklinePoints } from '../src/utils/vitalTrends';
 
 describe('vital trend text alternatives', () => {
   it('classifies direction using per-vital thresholds', () => {
@@ -31,5 +31,16 @@ describe('vital trend text alternatives', () => {
     expect(sparklineLabel('Temperature', '°F', 'temperature', [98.6, 98.2]))
       .toBe('Temperature trend over 2 readings: 98.2 to 98.6 °F, rising, worsening');
     expect(sparklineLabel('SpO2', '%', 'spo2', [94])).toBeNull();
+  });
+
+  it('plots the sparkline oldest-to-newest so its direction matches the label', () => {
+    const points = sparklinePoints([158, 162, 168, 172, 178, 182, 145, 138], 60, 20).split(' ');
+    expect(points).toHaveLength(8);
+    const [firstX, firstY] = points[0].split(',').map(Number);
+    const [lastX, lastY] = points[points.length - 1].split(',').map(Number);
+    expect(firstX).toBe(0);
+    expect(lastX).toBe(60);
+    expect(firstY).toBe(20);
+    expect(lastY).toBeLessThan(firstY);
   });
 });

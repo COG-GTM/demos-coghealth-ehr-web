@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import type { VitalReading } from '../types';
-import { assessTrend, classifyTrend, describeTrend, sparklineLabel, type TrendDirection } from '../utils/vitalTrends';
+import { assessTrend, classifyTrend, describeTrend, sparklineLabel, sparklinePoints, type TrendDirection } from '../utils/vitalTrends';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -84,17 +84,9 @@ export default function VitalsPage() {
     const values = data.filter((v): v is number => v !== undefined);
     if (values.length < 2) return null;
     
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
     const height = 20;
     const width = 60;
-    
-    const points = values.map((v, i) => {
-      const x = (i / (values.length - 1)) * width;
-      const y = height - ((v - min) / range) * height;
-      return `${x},${y}`;
-    }).join(' ');
+    const points = sparklinePoints(values, width, height);
 
     const vital = vitalSigns.find(v => v.key === vitalKey);
     const lastValue = values[0];

@@ -39,3 +39,15 @@ export const sparklineLabel = (name: string, unit: string, vitalKey: string, new
   const trend = classifyTrend(vitalKey, oldest, newest);
   return `${name} trend over ${newestFirst.length} readings: ${formatVitalValue(vitalKey, oldest)} to ${formatVitalValue(vitalKey, newest)} ${unit}, ${describeTrend(vitalKey, trend)}`;
 };
+
+/** Plots oldest on the left and newest on the right so the line matches `sparklineLabel`. */
+export const sparklinePoints = (newestFirst: number[], width: number, height: number) => {
+  const chronological = [...newestFirst].reverse();
+  const min = Math.min(...chronological);
+  const range = Math.max(...chronological) - min || 1;
+  return chronological.map((v, i) => {
+    const x = (i / (chronological.length - 1)) * width;
+    const y = height - ((v - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
+};

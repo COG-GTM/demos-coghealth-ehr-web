@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import type { KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
@@ -30,6 +31,7 @@ import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { patientService } from '../services/patientService';
+import { getGridKeyAction, resolveActiveRowIndex } from '../utils/gridKeyboard';
 import type { Patient } from '../types';
 
 interface PatientListItem {
@@ -126,6 +128,9 @@ export default function PatientSearchPage() {
   const [allPatients, setAllPatients] = useState<PatientListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<PatientListItem | null>(null);
+  const [activePatientId, setActivePatientId] = useState<number | null>(null);
+  const rowRefs = useRef(new Map<number, HTMLTableRowElement>());
+  const gridHadFocusRef = useRef(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     quickFilters: true,
     status: true,
@@ -244,8 +249,54 @@ export default function PatientSearchPage() {
     setSearchResults(allPatients);
   };
 
+  const activeRowIndex = resolveActiveRowIndex(
+    searchResults.map((p) => p.id),
+    activePatientId,
+    selectedPatient?.id ?? null,
+  );
+
+  useEffect(() => {
+    const onFocusIn = (event: FocusEvent) => {
+      gridHadFocusRef.current = event.target instanceof Element && event.target.closest('[data-patient-row]') !== null;
+    };
+    document.addEventListener('focusin', onFocusIn);
+    return () => document.removeEventListener('focusin', onFocusIn);
+  }, []);
+
+  useEffect(() => {
+    if (!gridHadFocusRef.current) return;
+    const focused = document.activeElement;
+    if (focused && focused !== document.body) return;
+    const patient = searchResults[activeRowIndex];
+    if (patient) rowRefs.current.get(patient.id)?.focus();
+  }, [searchResults, activeRowIndex]);
+
   const handleSelectPatient = (patient: PatientListItem) => {
+    setActivePatientId(patient.id);
     setSelectedPatient(patient);
+  };
+
+  const focusRow = (index: number) => {
+    const patient = searchResults[index];
+    if (!patient) return;
+    setActivePatientId(patient.id);
+    rowRefs.current.get(patient.id)?.focus();
+  };
+
+  const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, patient: PatientListItem, index: number) => {
+    if (event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey) return;
+    const action = getGridKeyAction(event.key, index, searchResults.length, selectedPatient?.id === patient.id);
+    if (!action) return;
+    event.preventDefault();
+    if (action.type === 'focus') focusRow(action.index);
+    else if (action.type === 'select') handleSelectPatient(patient);
+    else handleOpenChart(patient.id);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedPatient(null);
+    const patient = searchResults[activeRowIndex];
+    if (patient) rowRefs.current.get(patient.id)?.focus();
   };
 
   const handleOpenChart = (patientId: number) => {
@@ -524,11 +575,18 @@ export default function PatientSearchPage() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="ehr-subheader flex items-center justify-between">
             <span>Patient List - {searchResults.length} record(s) found</span>
-            <span className="text-gray-500">Double-click to open chart</span>
+            <span id="patient-grid-instructions" className="text-gray-500">
+              Double-click or press Enter on the selected row to open chart. Arrow keys move, Space selects.
+            </span>
           </div>
           <div className="flex-1 overflow-auto bg-white relative">
             <LoadingOverlay isLoading={loading} text="Loading patients..." />
-            <table className="w-full text-[11px]">
+            <table
+              className="w-full text-[11px]"
+              role="grid"
+              aria-label="Patient search results"
+              aria-describedby="patient-grid-instructions"
+            >
               <thead className="sticky top-0">
                 <tr>
                   <th className="px-1 py-1 text-left w-16">Flags</th>
@@ -554,9 +612,19 @@ export default function PatientSearchPage() {
                   </tr>
                 ) : searchResults.map((patient, idx) => {
                   const isSelected = selectedPatient?.id === patient.id;
+                  const isActive = idx === activeRowIndex;
                   return (
                     <tr
                       key={patient.id}
+                      ref={(el) => {
+                        if (el) rowRefs.current.set(patient.id, el);
+                        else rowRefs.current.delete(patient.id);
+                      }}
+                      data-patient-row
+                      tabIndex={isActive ? 0 : -1}
+                      aria-selected={isSelected}
+                      onFocus={() => setActivePatientId(patient.id)}
+                      onKeyDown={(e) => handleRowKeyDown(e, patient, idx)}
                       onClick={() => handleSelectPatient(patient)}
                       onDoubleClick={() => handleOpenChart(patient.id)}
                       className={`cursor-pointer ${isSelected ? 'ehr-grid-row selected' : `ehr-grid-row ${idx % 2 === 0 ? '' : ''}`}`}
@@ -635,8 +703,8 @@ export default function PatientSearchPage() {
           <div className="w-72 flex flex-col border-l border-gray-500" style={{ background: '#f5f5f5' }}>
             <div className="ehr-header text-xs flex items-center justify-between">
               <span>Patient Details</span>
-              <button onClick={() => setSelectedPatient(null)} className="text-white/80 hover:text-white">
-                <X className="w-3.5 h-3.5" />
+              <button onClick={handleCloseDetails} aria-label="Close patient details" className="text-white/80 hover:text-white">
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
             <div className="flex-1 overflow-auto">
@@ -653,9 +721,10 @@ export default function PatientSearchPage() {
                 </div>
                 <button
                   onClick={() => handleOpenChart(selectedPatient.id)}
+                  aria-label={`Open chart for ${selectedPatient.lastName}, ${selectedPatient.firstName}`}
                   className="ehr-button ehr-button-primary w-full mt-2 flex items-center justify-center"
                 >
-                  Open Chart <ChevronRight className="w-3 h-3 ml-1" />
+                  Open Chart <ChevronRight className="w-3 h-3 ml-1" aria-hidden="true" />
                 </button>
               </div>
 

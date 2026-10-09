@@ -14,6 +14,7 @@ import {
   Check
 } from 'lucide-react';
 import { AlertDialog } from '../components/ui/Modal';
+import { DisclosureHeader } from '../components/ui/DisclosureHeader';
 
 type SettingsTab = 'profile' | 'notifications' | 'security' | 'appearance' | 'practice';
 
@@ -223,19 +224,14 @@ export default function SettingsPage() {
           {activeTab === 'notifications' && (
             <div className="space-y-3">
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={(e) => { e.stopPropagation(); toggleSection('channels'); }}
-                >
-                  <div className="flex items-center">
-                    <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
-                      {expandedSections.has('channels') ? '-' : '+'}
-                    </span>
-                    Notification Channels
-                  </div>
-                </div>
+                <DisclosureHeader
+                  label="Notification Channels"
+                  expanded={expandedSections.has('channels')}
+                  controls="settings-section-channels"
+                  onToggle={() => toggleSection('channels')}
+                />
                 {expandedSections.has('channels') && (
-                  <div className="bg-white p-2 space-y-2">
+                  <div id="settings-section-channels" className="bg-white p-2 space-y-2">
                     <label className="flex items-center justify-between p-2 bg-gray-50 border border-gray-300 cursor-pointer hover:bg-gray-100">
                       <div className="flex items-center">
                         <Mail className="w-4 h-4 text-gray-500 mr-2" />
@@ -271,19 +267,14 @@ export default function SettingsPage() {
               </div>
 
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={(e) => { e.stopPropagation(); toggleSection('alerts'); }}
-                >
-                  <div className="flex items-center">
-                    <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
-                      {expandedSections.has('alerts') ? '-' : '+'}
-                    </span>
-                    Alert Types
-                  </div>
-                </div>
+                <DisclosureHeader
+                  label="Alert Types"
+                  expanded={expandedSections.has('alerts')}
+                  controls="settings-section-alerts"
+                  onToggle={() => toggleSection('alerts')}
+                />
                 {expandedSections.has('alerts') && (
-                  <div className="bg-white">
+                  <div id="settings-section-alerts" className="bg-white">
                     {[
                       { key: 'labResults', label: 'Lab Results', desc: 'When new lab results are available' },
                       { key: 'appointments', label: 'Appointments', desc: 'Reminders and schedule changes' },
@@ -312,19 +303,14 @@ export default function SettingsPage() {
           {activeTab === 'security' && (
             <div className="space-y-3">
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={(e) => { e.stopPropagation(); toggleSection('security'); }}
-                >
-                  <div className="flex items-center">
-                    <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
-                      {expandedSections.has('security') ? '-' : '+'}
-                    </span>
-                    Security Settings
-                  </div>
-                </div>
+                <DisclosureHeader
+                  label="Security Settings"
+                  expanded={expandedSections.has('security')}
+                  controls="settings-section-security"
+                  onToggle={() => toggleSection('security')}
+                />
                 {expandedSections.has('security') && (
-                  <div className="bg-white p-2 space-y-2">
+                  <div id="settings-section-security" className="bg-white p-2 space-y-2">
                     <div className="flex items-center justify-between p-2 bg-gray-50 border border-gray-300">
                       <div className="flex items-center">
                         <Key className="w-4 h-4 text-gray-500 mr-2" />
@@ -467,19 +453,14 @@ export default function SettingsPage() {
               </fieldset>
 
               <div className="ehr-panel">
-                <div 
-                  className="ehr-header flex items-center justify-between cursor-pointer"
-                  onClick={(e) => { e.stopPropagation(); toggleSection('hours'); }}
-                >
-                  <div className="flex items-center">
-                    <span className="w-4 h-4 border border-gray-400 bg-white flex items-center justify-center text-[10px] font-bold mr-1">
-                      {expandedSections.has('hours') ? '-' : '+'}
-                    </span>
-                    Business Hours
-                  </div>
-                </div>
+                <DisclosureHeader
+                  label="Business Hours"
+                  expanded={expandedSections.has('hours')}
+                  controls="settings-section-hours"
+                  onToggle={() => toggleSection('hours')}
+                />
                 {expandedSections.has('hours') && (
-                  <div className="bg-white p-2 space-y-1.5">
+                  <div id="settings-section-hours" className="bg-white p-2 space-y-1.5">
                     {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((day) => (
                       <div key={day} className="flex items-center space-x-2 text-[11px]">
                         <span className="w-20 text-gray-600">{day}</span>

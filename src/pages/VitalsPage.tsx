@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import type { VitalReading } from '../types';
+import { assessTrend, describeSparkline, describeTrend, type TrendDirection } from './vitalsTrend';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -53,7 +54,7 @@ export default function VitalsPage() {
     }
   };
 
-  const getTrend = (key: string, currentIdx: number) => {
+  const getTrend = (key: string, currentIdx: number): TrendDirection | null => {
     if (currentIdx >= vitals.length - 1) return null;
     const current = vitals[currentIdx][key as keyof VitalReading] as number | undefined;
     const previous = vitals[currentIdx + 1][key as keyof VitalReading] as number | undefined;
@@ -66,21 +67,20 @@ export default function VitalsPage() {
     return diff > 0 ? 'up' : 'down';
   };
 
-  const TrendIcon = ({ trend, vital }: { trend: string | null; vital: string }) => {
+  const TrendIcon = ({ trend, vital }: { trend: TrendDirection | null; vital: string }) => {
     if (!trend) return null;
-    const isGoodUp = vital === 'spo2';
-    const isGoodDown = ['systolic', 'diastolic', 'heartRate', 'temperature', 'respiratoryRate', 'painLevel'].includes(vital);
-    
-    if (trend === 'stable') return <Minus className="w-3 h-3 text-gray-400 inline ml-0.5" />;
-    if (trend === 'up') {
-      const color = isGoodUp ? 'text-green-600' : isGoodDown ? 'text-red-600' : 'text-gray-600';
-      return <TrendingUp className={`w-3 h-3 ${color} inline ml-0.5`} />;
-    }
-    if (trend === 'down') {
-      const color = isGoodDown ? 'text-green-600' : isGoodUp ? 'text-red-600' : 'text-gray-600';
-      return <TrendingDown className={`w-3 h-3 ${color} inline ml-0.5`} />;
-    }
-    return null;
+    const assessment = assessTrend(trend, vital);
+    const label = describeTrend(trend, vital);
+    const color = trend === 'stable'
+      ? 'text-gray-400'
+      : assessment === 'improving' ? 'text-green-600' : assessment === 'worsening' ? 'text-red-600' : 'text-gray-600';
+    const Icon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus;
+    return (
+      <span role="img" aria-label={label} title={label} className="inline-flex items-center ml-0.5">
+        <Icon aria-hidden="true" className={`w-3 h-3 ${color}`} />
+        {assessment === 'worsening' && <span aria-hidden="true" className={`text-[9px] font-bold leading-none ${color}`}>!</span>}
+      </span>
+    );
   };
 
   const Sparkline = ({ data, vitalKey }: { data: (number | undefined)[]; vitalKey: string }) => {
@@ -102,16 +102,20 @@ export default function VitalsPage() {
     const vital = vitalSigns.find(v => v.key === vitalKey);
     const lastValue = values[0];
     const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
+    const summary = vital ? describeSparkline(values, vital.normalRange) : null;
 
     return (
-      <svg width={width} height={height} className="inline-block ml-1">
-        <polyline
-          points={points}
-          fill="none"
-          stroke={isAbnormal ? '#dc2626' : '#2563eb'}
-          strokeWidth="1.5"
-        />
-      </svg>
+      <>
+        <svg width={width} height={height} className="inline-block ml-1" aria-hidden="true" focusable="false">
+          <polyline
+            points={points}
+            fill="none"
+            stroke={isAbnormal ? '#dc2626' : '#2563eb'}
+            strokeWidth="1.5"
+          />
+        </svg>
+        {summary && <span className="sr-only">{summary}</span>}
+      </>
     );
   };
 
@@ -162,6 +166,7 @@ export default function VitalsPage() {
             <span className="flex items-center"><span className="w-2 h-2 bg-green-500 inline-block mr-1"></span>Normal</span>
             <span className="flex items-center"><span className="w-2 h-2 bg-yellow-400 inline-block mr-1"></span>Abnormal</span>
             <span className="flex items-center"><span className="w-2 h-2 bg-red-500 inline-block mr-1"></span>Critical</span>
+            <span className="flex items-center"><span className="text-red-600 font-bold mr-1" aria-hidden="true">!</span>Worsening trend</span>
           </div>
         </div>
 
@@ -200,19 +205,29 @@ export default function VitalsPage() {
                     return (
                       <td
                         key={reading.id}
-                        className="px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0]"
+                        className="p-0 border border-gray-300 text-center hover:bg-[#e0e8f0]"
                         style={getStatusStyle(status)}
-                        onClick={() => setSelectedReading(reading)}
                       >
-                        {value !== undefined ? (
-                          <span className="font-mono">
-                            {status === 'critical' && <AlertTriangle className="w-3 h-3 inline mr-0.5" />}
-                            {vital.key === 'temperature' ? value.toFixed(1) : value}
-                            <TrendIcon trend={trend} vital={vital.key} />
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
+                        <button
+                          type="button"
+                          className="w-full px-2 py-1 cursor-pointer bg-transparent border-0 text-inherit focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#336699]"
+                          style={{ font: 'inherit', color: 'inherit' }}
+                          aria-haspopup="dialog"
+                          onClick={() => setSelectedReading(reading)}
+                        >
+                          <span className="sr-only">{vital.name}, {reading.timestamp}: </span>
+                          {value !== undefined ? (
+                            <span className="font-mono">
+                              {status === 'critical' && <AlertTriangle aria-hidden="true" className="w-3 h-3 inline mr-0.5" />}
+                              {vital.key === 'temperature' ? value.toFixed(1) : value}
+                              <span className="sr-only"> {vital.unit}{status !== 'normal' ? `, ${status}` : ''}</span>
+                              <TrendIcon trend={trend} vital={vital.key} />
+                            </span>
+                          ) : (
+                            <span className="text-gray-400"><span aria-hidden="true">-</span><span className="sr-only">not recorded</span></span>
+                          )}
+                          <span className="sr-only">. Open reading detail</span>
+                        </button>
                       </td>
                     );
                   })}

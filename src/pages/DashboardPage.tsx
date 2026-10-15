@@ -299,7 +299,7 @@ export default function DashboardPage() {
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowImagingDialog(true)}>
             <Radio className="w-3.5 h-3.5 mr-1" /> Order Imaging
           </button>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'New Note', message: 'Select a patient first to create a clinical note.', type: 'info' })}>
+          <button className="ehr-toolbar-button flex items-center" onClick={() => navigate('/notes?new=1')}>
             <FileText className="w-3.5 h-3.5 mr-1" /> New Note
           </button>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'Referral', message: 'Select a patient first to create a referral.', type: 'info' })}>
@@ -604,7 +604,7 @@ export default function DashboardPage() {
             {expandedPanels.unsigned && (
               <div className="bg-white">
                 {unsignedNotes.map((note, idx) => (
-                  <div key={note.id} className={`px-2 py-1.5 border-b border-gray-200 flex items-center justify-between ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                  <div key={note.id} onClick={() => navigate('/notes')} className={`px-2 py-1.5 border-b border-gray-200 flex items-center justify-between cursor-pointer hover:bg-blue-50 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
                     <div>
                       <div className="font-semibold text-[11px]">{note.patientName}</div>
                       <div className="text-[10px] text-gray-500">{note.type} • {note.date}</div>
@@ -616,7 +616,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 <div className="p-1 bg-gray-100 border-t">
-                  <button className="ehr-button w-full text-[10px]">Sign All Notes</button>
+                  <button className="ehr-button w-full text-[10px]" onClick={() => navigate('/notes')}>Review &amp; Sign Notes</button>
                 </div>
               </div>
             )}

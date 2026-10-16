@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
-import { Modal } from '../components/ui/Modal';
-import type { VitalReading } from '../types';
+import { Modal, AlertDialog } from '../components/ui/Modal';
+import { News2Badge, News2Breakdown, News2SummaryPanel } from '../components/vitals/News2';
+import type { Consciousness, VitalReading } from '../types';
+import { calculateNews2, CONSCIOUSNESS_LABELS, NEWS2_COLORS, NEWS2_RESPONSES } from '../utils/news2';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -27,8 +29,36 @@ const defaultVitals: VitalReading[] = [
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
 
+type NumericVitalKey = (typeof vitalSigns)[number]['key'];
+
+interface VitalsForm {
+  values: Partial<Record<NumericVitalKey, string>>;
+  consciousness: Consciousness;
+  supplementalO2: boolean;
+}
+
+const emptyForm: VitalsForm = { values: {}, consciousness: 'A', supplementalO2: false };
+
+const formatTimestamp = (d: Date) => {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+const formToReading = (form: VitalsForm): Partial<VitalReading> => {
+  const reading: Partial<VitalReading> = { consciousness: form.consciousness, supplementalO2: form.supplementalO2 };
+  (Object.keys(form.values) as NumericVitalKey[]).forEach(key => {
+    const raw = form.values[key];
+    if (raw !== undefined && raw.trim() !== '' && !Number.isNaN(Number(raw))) {
+      reading[key] = Number(raw);
+    }
+  });
+  return reading;
+};
+
 export default function VitalsPage() {
-  const [vitals] = useState<VitalReading[]>(defaultVitals);
+  const [vitals, setVitals] = useState<VitalReading[]>(defaultVitals);
+  const [form, setForm] = useState<VitalsForm>(emptyForm);
+  const [escalation, setEscalation] = useState<{ title: string; message: string; type: 'warning' | 'error' } | null>(null);
   const [selectedReading, setSelectedReading] = useState<VitalReading | null>(null);
   const [showAddVitals, setShowAddVitals] = useState(false);
   const [dateRange, setDateRange] = useState<'24h' | '48h' | '7d' | '30d'>('48h');
@@ -115,6 +145,36 @@ export default function VitalsPage() {
     );
   };
 
+  const formReading = formToReading(form);
+  const formNews2 = calculateNews2(formReading);
+  const formHasValues = vitalSigns.some(v => formReading[v.key] !== undefined);
+
+  const openRecordVitals = () => {
+    setForm(emptyForm);
+    setShowAddVitals(true);
+  };
+
+  const saveVitals = () => {
+    const reading: VitalReading = {
+      ...formReading,
+      id: Math.max(0, ...vitals.map(v => v.id)) + 1,
+      timestamp: formatTimestamp(new Date()),
+      recordedBy: 'Dr. Anderson',
+      location: 'Med-Surg 4W',
+    };
+    setVitals(prev => [reading, ...prev]);
+    setShowAddVitals(false);
+
+    if (formNews2.risk === 'high' || formNews2.risk === 'medium') {
+      const response = NEWS2_RESPONSES[formNews2.risk];
+      setEscalation({
+        title: formNews2.risk === 'high' ? 'NEWS2 Emergency Response' : 'NEWS2 Urgent Response',
+        message: `NEWS2 score of ${formNews2.total} (${response.label} risk) for ${selectedPatient.name}. ${response.action} Monitoring: ${response.monitoring}.`,
+        type: formNews2.risk === 'high' ? 'error' : 'warning',
+      });
+    }
+  };
+
   return (
     <div className="h-full flex flex-col overflow-hidden p-2">
       <div className="ehr-panel flex-1 flex flex-col overflow-hidden">
@@ -126,7 +186,7 @@ export default function VitalsPage() {
             <span className="text-[10px]">{selectedPatient.name} ({selectedPatient.mrn}) - {selectedPatient.age}yo {selectedPatient.gender} - Room {selectedPatient.room}</span>
           </div>
           <div className="flex items-center space-x-2">
-            <button className="ehr-button flex items-center space-x-1" onClick={() => setShowAddVitals(true)}>
+            <button className="ehr-button flex items-center space-x-1" onClick={openRecordVitals}>
               <Plus className="w-3 h-3" />
               <span>Record Vitals</span>
             </button>
@@ -162,8 +222,18 @@ export default function VitalsPage() {
             <span className="flex items-center"><span className="w-2 h-2 bg-green-500 inline-block mr-1"></span>Normal</span>
             <span className="flex items-center"><span className="w-2 h-2 bg-yellow-400 inline-block mr-1"></span>Abnormal</span>
             <span className="flex items-center"><span className="w-2 h-2 bg-red-500 inline-block mr-1"></span>Critical</span>
+            <span className="text-gray-400">|</span>
+            <span className="font-semibold">NEWS2:</span>
+            {(['low', 'low-medium', 'medium', 'high'] as const).map(risk => (
+              <span key={risk} className="flex items-center">
+                <span className="w-2 h-2 inline-block mr-1" style={{ background: NEWS2_COLORS[risk].border }}></span>
+                {NEWS2_RESPONSES[risk].label}
+              </span>
+            ))}
           </div>
         </div>
+
+        <News2SummaryPanel readings={vitals} />
 
         <div className="flex-1 overflow-auto bg-white border border-gray-400">
           <table className="w-full text-[11px]">
@@ -180,6 +250,22 @@ export default function VitalsPage() {
               </tr>
             </thead>
             <tbody>
+              <tr className="bg-[#eef2f8]" data-testid="news2-row">
+                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-[#eef2f8] z-10">
+                  <div>NEWS2 Score</div>
+                  <div className="text-[9px] text-gray-500 font-normal">Early Warning (RCP)</div>
+                </td>
+                <td className="px-2 py-1 border border-gray-300 text-center text-[9px] text-gray-500">auto</td>
+                {vitals.map((reading) => (
+                  <td
+                    key={reading.id}
+                    className="px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0]"
+                    onClick={() => setSelectedReading(reading)}
+                  >
+                    <News2Badge result={calculateNews2(reading)} />
+                  </td>
+                ))}
+              </tr>
               {vitalSigns.map((vital, vitalIdx) => (
                 <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}>
                   <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">
@@ -284,6 +370,24 @@ export default function VitalsPage() {
                 })}
               </div>
             </fieldset>
+            <fieldset className="ehr-fieldset">
+              <legend>NEWS2 Early Warning Score</legend>
+              {(() => {
+                const result = calculateNews2(selectedReading);
+                return (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <News2Badge result={result} />
+                      <span className="font-semibold" style={{ color: NEWS2_COLORS[result.risk].text }}>
+                        {NEWS2_RESPONSES[result.risk].label} risk
+                      </span>
+                      <span className="text-gray-600">- {NEWS2_RESPONSES[result.risk].monitoring}</span>
+                    </div>
+                    <News2Breakdown result={result} />
+                  </div>
+                );
+              })()}
+            </fieldset>
           </div>
         )}
       </Modal>
@@ -296,7 +400,7 @@ export default function VitalsPage() {
         footer={
           <>
             <button className="ehr-button" onClick={() => setShowAddVitals(false)}>Cancel</button>
-            <button className="ehr-button ehr-button-primary" onClick={() => setShowAddVitals(false)}>Save</button>
+            <button className="ehr-button ehr-button-primary" onClick={saveVitals} disabled={!formHasValues}>Save</button>
           </>
         }
       >
@@ -313,10 +417,58 @@ export default function VitalsPage() {
               {vitalSigns.map(vital => (
                 <div key={vital.key} className="flex items-center space-x-2">
                   <label className="text-[11px] text-gray-600 w-20">{vital.name}:</label>
-                  <input type="number" className="ehr-input flex-1 text-[11px]" placeholder={`${vital.normalRange.min}-${vital.normalRange.max}`} />
+                  <input
+                    type="number"
+                    name={vital.key}
+                    className="ehr-input flex-1 text-[11px]"
+                    placeholder={`${vital.normalRange.min}-${vital.normalRange.max}`}
+                    value={form.values[vital.key] ?? ''}
+                    onChange={(e) => setForm(prev => ({ ...prev, values: { ...prev.values, [vital.key]: e.target.value } }))}
+                  />
                   <span className="text-[10px] text-gray-500 w-10">{vital.unit}</span>
                 </div>
               ))}
+            </div>
+          </fieldset>
+          <fieldset className="ehr-fieldset">
+            <legend>NEWS2 Assessment</legend>
+            <div className="grid grid-cols-2 gap-3 mb-2">
+              <div className="flex items-center space-x-2">
+                <label className="text-[11px] text-gray-600 w-20">ACVPU:</label>
+                <select
+                  name="consciousness"
+                  className="ehr-input flex-1 text-[11px]"
+                  value={form.consciousness}
+                  onChange={(e) => setForm(prev => ({ ...prev, consciousness: e.target.value as Consciousness }))}
+                >
+                  {(Object.keys(CONSCIOUSNESS_LABELS) as Consciousness[]).map(level => (
+                    <option key={level} value={level}>{level} - {CONSCIOUSNESS_LABELS[level]}</option>
+                  ))}
+                </select>
+              </div>
+              <label className="flex items-center space-x-2 text-[11px] text-gray-600">
+                <input
+                  type="checkbox"
+                  name="supplementalO2"
+                  className="ehr-checkbox"
+                  checked={form.supplementalO2}
+                  onChange={(e) => setForm(prev => ({ ...prev, supplementalO2: e.target.checked }))}
+                />
+                <span>On supplemental oxygen</span>
+              </label>
+            </div>
+            <div
+              data-testid="news2-live"
+              className="flex items-center gap-2 p-1.5 text-[11px]"
+              style={{ background: NEWS2_COLORS[formNews2.risk].bg, border: `1px solid ${NEWS2_COLORS[formNews2.risk].border}` }}
+            >
+              <News2Badge result={formNews2} />
+              <span className="font-semibold" style={{ color: NEWS2_COLORS[formNews2.risk].text }}>
+                {NEWS2_RESPONSES[formNews2.risk].label} risk
+              </span>
+              <span className="text-gray-600 truncate">
+                {formNews2.complete ? NEWS2_RESPONSES[formNews2.risk].monitoring : `Incomplete - enter ${formNews2.missing.length} more parameter(s)`}
+              </span>
             </div>
           </fieldset>
           <fieldset className="ehr-fieldset">
@@ -325,6 +477,14 @@ export default function VitalsPage() {
           </fieldset>
         </div>
       </Modal>
+
+      <AlertDialog
+        isOpen={escalation !== null}
+        onClose={() => setEscalation(null)}
+        title={escalation?.title ?? ''}
+        message={escalation?.message ?? ''}
+        type={escalation?.type}
+      />
     </div>
   );
 }

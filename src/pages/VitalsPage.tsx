@@ -3,7 +3,7 @@ import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, Refr
 import { Modal, AlertDialog } from '../components/ui/Modal';
 import { News2Badge, News2Breakdown, News2SummaryPanel } from '../components/vitals/News2';
 import type { Consciousness, VitalReading } from '../types';
-import { calculateNews2, CONSCIOUSNESS_LABELS, NEWS2_COLORS, NEWS2_RESPONSES } from '../utils/news2';
+import { calculateNews2, CONSCIOUSNESS_LABELS, describeMissing, news2Colors, news2RiskLabel, NEWS2_COLORS, NEWS2_INDETERMINATE_COLORS, NEWS2_RESPONSES } from '../utils/news2';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -17,14 +17,14 @@ const vitalSigns = [
 ];
 
 const defaultVitals: VitalReading[] = [
-  { id: 1, timestamp: '2024-01-18 14:00', systolic: 158, diastolic: 94, heartRate: 98, temperature: 98.6, respiratoryRate: 20, spo2: 94, weight: 82.5, painLevel: 4, recordedBy: 'RN Smith', location: 'Med-Surg 4W' },
-  { id: 2, timestamp: '2024-01-18 10:00', systolic: 162, diastolic: 96, heartRate: 102, temperature: 99.1, respiratoryRate: 22, spo2: 93, weight: 82.5, painLevel: 5, recordedBy: 'RN Johnson', location: 'Med-Surg 4W' },
-  { id: 3, timestamp: '2024-01-18 06:00', systolic: 168, diastolic: 98, heartRate: 108, temperature: 99.8, respiratoryRate: 24, spo2: 92, weight: 82.8, painLevel: 6, recordedBy: 'RN Williams', location: 'Med-Surg 4W' },
-  { id: 4, timestamp: '2024-01-17 22:00', systolic: 172, diastolic: 100, heartRate: 112, temperature: 100.2, respiratoryRate: 26, spo2: 91, weight: 83.0, painLevel: 7, recordedBy: 'RN Davis', location: 'Med-Surg 4W' },
-  { id: 5, timestamp: '2024-01-17 18:00', systolic: 178, diastolic: 102, heartRate: 118, temperature: 100.8, respiratoryRate: 28, spo2: 90, weight: 83.2, painLevel: 8, recordedBy: 'RN Brown', location: 'ED' },
-  { id: 6, timestamp: '2024-01-17 14:00', systolic: 182, diastolic: 108, heartRate: 124, temperature: 101.4, respiratoryRate: 30, spo2: 88, weight: 83.5, painLevel: 9, recordedBy: 'RN Miller', location: 'ED' },
-  { id: 7, timestamp: '2024-01-17 10:00', systolic: 145, diastolic: 88, heartRate: 88, temperature: 98.4, respiratoryRate: 18, spo2: 96, weight: 82.0, painLevel: 2, recordedBy: 'RN Wilson', location: 'Clinic' },
-  { id: 8, timestamp: '2024-01-16 14:00', systolic: 138, diastolic: 84, heartRate: 76, temperature: 98.2, respiratoryRate: 16, spo2: 98, weight: 82.0, painLevel: 0, recordedBy: 'RN Taylor', location: 'Clinic' },
+  { id: 1, timestamp: '2024-01-18 14:00', systolic: 158, diastolic: 94, heartRate: 98, temperature: 98.6, respiratoryRate: 20, spo2: 94, weight: 82.5, painLevel: 4, recordedBy: 'RN Smith', location: 'Med-Surg 4W', consciousness: 'A', supplementalO2: false },
+  { id: 2, timestamp: '2024-01-18 10:00', systolic: 162, diastolic: 96, heartRate: 102, temperature: 99.1, respiratoryRate: 22, spo2: 93, weight: 82.5, painLevel: 5, recordedBy: 'RN Johnson', location: 'Med-Surg 4W', consciousness: 'A', supplementalO2: false },
+  { id: 3, timestamp: '2024-01-18 06:00', systolic: 168, diastolic: 98, heartRate: 108, temperature: 99.8, respiratoryRate: 24, spo2: 92, weight: 82.8, painLevel: 6, recordedBy: 'RN Williams', location: 'Med-Surg 4W', consciousness: 'A', supplementalO2: false },
+  { id: 4, timestamp: '2024-01-17 22:00', systolic: 172, diastolic: 100, heartRate: 112, temperature: 100.2, respiratoryRate: 26, spo2: 91, weight: 83.0, painLevel: 7, recordedBy: 'RN Davis', location: 'Med-Surg 4W', consciousness: 'A', supplementalO2: false },
+  { id: 5, timestamp: '2024-01-17 18:00', systolic: 178, diastolic: 102, heartRate: 118, temperature: 100.8, respiratoryRate: 28, spo2: 90, weight: 83.2, painLevel: 8, recordedBy: 'RN Brown', location: 'ED', consciousness: 'A', supplementalO2: false },
+  { id: 6, timestamp: '2024-01-17 14:00', systolic: 182, diastolic: 108, heartRate: 124, temperature: 101.4, respiratoryRate: 30, spo2: 88, weight: 83.5, painLevel: 9, recordedBy: 'RN Miller', location: 'ED', consciousness: 'A', supplementalO2: false },
+  { id: 7, timestamp: '2024-01-17 10:00', systolic: 145, diastolic: 88, heartRate: 88, temperature: 98.4, respiratoryRate: 18, spo2: 96, weight: 82.0, painLevel: 2, recordedBy: 'RN Wilson', location: 'Clinic', consciousness: 'A', supplementalO2: false },
+  { id: 8, timestamp: '2024-01-16 14:00', systolic: 138, diastolic: 84, heartRate: 76, temperature: 98.2, respiratoryRate: 16, spo2: 98, weight: 82.0, painLevel: 0, recordedBy: 'RN Taylor', location: 'Clinic', consciousness: 'A', supplementalO2: false },
 ];
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
@@ -165,11 +165,13 @@ export default function VitalsPage() {
     setVitals(prev => [reading, ...prev]);
     setShowAddVitals(false);
 
-    if (formNews2.risk === 'high' || formNews2.risk === 'medium') {
+    if (formNews2.risk !== 'low') {
       const response = NEWS2_RESPONSES[formNews2.risk];
+      const titles = { high: 'NEWS2 Emergency Response', medium: 'NEWS2 Urgent Response', 'low-medium': 'NEWS2 Urgent Ward Review' };
+      const partial = formNews2.complete ? '' : ` Incomplete set (missing ${describeMissing(formNews2)}); score may be higher.`;
       setEscalation({
-        title: formNews2.risk === 'high' ? 'NEWS2 Emergency Response' : 'NEWS2 Urgent Response',
-        message: `NEWS2 score of ${formNews2.total} (${response.label} risk) for ${selectedPatient.name}. ${response.action} Monitoring: ${response.monitoring}.`,
+        title: titles[formNews2.risk],
+        message: `NEWS2 score of ${formNews2.total} (${news2RiskLabel(formNews2)}) for ${selectedPatient.name}. ${response.action} Monitoring: ${response.monitoring}.${partial}`,
         type: formNews2.risk === 'high' ? 'error' : 'warning',
       });
     }
@@ -230,6 +232,10 @@ export default function VitalsPage() {
                 {NEWS2_RESPONSES[risk].label}
               </span>
             ))}
+            <span className="flex items-center">
+              <span className="w-2 h-2 inline-block mr-1" style={{ background: NEWS2_INDETERMINATE_COLORS.border }}></span>
+              Incomplete*
+            </span>
           </div>
         </div>
 
@@ -378,10 +384,12 @@ export default function VitalsPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-[11px]">
                       <News2Badge result={result} />
-                      <span className="font-semibold" style={{ color: NEWS2_COLORS[result.risk].text }}>
-                        {NEWS2_RESPONSES[result.risk].label} risk
+                      <span className="font-semibold" style={{ color: news2Colors(result).text }}>
+                        {news2RiskLabel(result)}
                       </span>
-                      <span className="text-gray-600">- {NEWS2_RESPONSES[result.risk].monitoring}</span>
+                      <span className="text-gray-600">
+                        - {result.complete ? NEWS2_RESPONSES[result.risk].monitoring : `Incomplete set, missing ${describeMissing(result)}`}
+                      </span>
                     </div>
                     <News2Breakdown result={result} />
                   </div>
@@ -460,11 +468,11 @@ export default function VitalsPage() {
             <div
               data-testid="news2-live"
               className="flex items-center gap-2 p-1.5 text-[11px]"
-              style={{ background: NEWS2_COLORS[formNews2.risk].bg, border: `1px solid ${NEWS2_COLORS[formNews2.risk].border}` }}
+              style={{ background: news2Colors(formNews2).bg, border: `1px solid ${news2Colors(formNews2).border}` }}
             >
               <News2Badge result={formNews2} />
-              <span className="font-semibold" style={{ color: NEWS2_COLORS[formNews2.risk].text }}>
-                {NEWS2_RESPONSES[formNews2.risk].label} risk
+              <span className="font-semibold" style={{ color: news2Colors(formNews2).text }}>
+                {news2RiskLabel(formNews2)}
               </span>
               <span className="text-gray-600 truncate">
                 {formNews2.complete ? NEWS2_RESPONSES[formNews2.risk].monitoring : `Incomplete - enter ${formNews2.missing.length} more parameter(s)`}

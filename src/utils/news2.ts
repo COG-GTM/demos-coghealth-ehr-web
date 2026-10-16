@@ -33,7 +33,7 @@ export interface News2Response {
   action: string;
 }
 
-const LABELS: Record<News2Parameter, string> = {
+export const NEWS2_LABELS: Record<News2Parameter, string> = {
   respiratoryRate: 'Resp Rate',
   spo2: 'SpO2 (Scale 1)',
   supplementalO2: 'Air or Oxygen',
@@ -105,7 +105,7 @@ export function calculateNews2(reading: Partial<VitalReading>): News2Result {
   const components: News2Component[] = [];
   const missing: News2Parameter[] = [];
   const add = (parameter: News2Parameter, value: string, points: number) =>
-    components.push({ parameter, label: LABELS[parameter], value, points });
+    components.push({ parameter, label: NEWS2_LABELS[parameter], value, points });
 
   if (reading.respiratoryRate !== undefined) {
     add('respiratoryRate', `${reading.respiratoryRate}/min`, scoreRespiratoryRate(reading.respiratoryRate));
@@ -115,8 +115,9 @@ export function calculateNews2(reading: Partial<VitalReading>): News2Result {
     add('spo2', `${reading.spo2}%`, scoreSpo2(reading.spo2));
   } else missing.push('spo2');
 
-  const onOxygen = reading.supplementalO2 ?? false;
-  add('supplementalO2', onOxygen ? 'Oxygen' : 'Air', scoreSupplementalO2(onOxygen));
+  if (reading.supplementalO2 !== undefined) {
+    add('supplementalO2', reading.supplementalO2 ? 'Oxygen' : 'Air', scoreSupplementalO2(reading.supplementalO2));
+  } else missing.push('supplementalO2');
 
   if (reading.systolic !== undefined) {
     add('systolic', `${reading.systolic} mmHg`, scoreSystolic(reading.systolic));
@@ -126,8 +127,9 @@ export function calculateNews2(reading: Partial<VitalReading>): News2Result {
     add('heartRate', `${reading.heartRate} bpm`, scoreHeartRate(reading.heartRate));
   } else missing.push('heartRate');
 
-  const consciousness = reading.consciousness ?? 'A';
-  add('consciousness', CONSCIOUSNESS_LABELS[consciousness], scoreConsciousness(consciousness));
+  if (reading.consciousness !== undefined) {
+    add('consciousness', CONSCIOUSNESS_LABELS[reading.consciousness], scoreConsciousness(reading.consciousness));
+  } else missing.push('consciousness');
 
   if (reading.temperature !== undefined) {
     const tempC = fahrenheitToCelsius(reading.temperature);
@@ -184,3 +186,20 @@ export const NEWS2_COLORS: Record<News2Risk, { bg: string; border: string; text:
   medium: { bg: '#ffe0b2', border: '#ef6c00', text: '#8a3c00' },
   high: { bg: '#ffcdd2', border: '#c62828', text: '#8b0000' },
 };
+
+export const NEWS2_INDETERMINATE_COLORS = { bg: '#f3f4f6', border: '#9ca3af', text: '#4b5563' };
+
+// A partial total is a lower bound: unrecorded parameters can only add points.
+export function news2Colors(result: News2Result) {
+  return result.complete || result.risk !== 'low' ? NEWS2_COLORS[result.risk] : NEWS2_INDETERMINATE_COLORS;
+}
+
+export function news2RiskLabel(result: News2Result): string {
+  const label = NEWS2_RESPONSES[result.risk].label;
+  if (result.complete) return `${label} risk`;
+  return result.risk === 'low' ? 'Risk indeterminate' : `At least ${label} risk`;
+}
+
+export function describeMissing(result: News2Result): string {
+  return result.missing.map(p => NEWS2_LABELS[p]).join(', ');
+}

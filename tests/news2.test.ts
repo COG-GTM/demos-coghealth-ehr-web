@@ -1,5 +1,6 @@
 import {
   calculateNews2,
+  news2RiskLabel,
   classifyRisk,
   scoreConsciousness,
   scoreHeartRate,
@@ -49,7 +50,10 @@ describe('NEWS2 risk classification', () => {
 
 describe('calculateNews2', () => {
   test('healthy adult on room air scores 0', () => {
-    const result = calculateNews2({ respiratoryRate: 16, spo2: 98, systolic: 120, heartRate: 72, temperature: 98.6 });
+    const result = calculateNews2({
+      respiratoryRate: 16, spo2: 98, systolic: 120, heartRate: 72, temperature: 98.6,
+      supplementalO2: false, consciousness: 'A',
+    });
     expect(result.total).toBe(0);
     expect(result.risk).toBe('low');
     expect(result.complete).toBe(true);
@@ -74,6 +78,19 @@ describe('calculateNews2', () => {
   test('reports missing parameters as incomplete', () => {
     const result = calculateNews2({ heartRate: 72 });
     expect(result.complete).toBe(false);
-    expect(result.missing).toEqual(['respiratoryRate', 'spo2', 'systolic', 'temperature']);
+    expect(result.missing).toEqual(['respiratoryRate', 'spo2', 'supplementalO2', 'systolic', 'consciousness', 'temperature']);
+  });
+
+  test('unrecorded oxygen and consciousness make the set incomplete', () => {
+    const result = calculateNews2({ respiratoryRate: 16, spo2: 98, systolic: 120, heartRate: 72, temperature: 98.6 });
+    expect(result.complete).toBe(false);
+    expect(result.missing).toEqual(['supplementalO2', 'consciousness']);
+    expect(news2RiskLabel(result)).toBe('Risk indeterminate');
+  });
+
+  test('partial total is reported as a lower bound', () => {
+    const result = calculateNews2({ respiratoryRate: 30, spo2: 88, heartRate: 124 });
+    expect(result.total).toBe(8);
+    expect(news2RiskLabel(result)).toBe('At least High risk');
   });
 });

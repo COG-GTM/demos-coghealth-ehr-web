@@ -131,6 +131,7 @@ export function acknowledgeLabPanel(panel: LabPanel, note: string): LabAcknowled
     .join(', ');
 
   const acknowledgments = getLabAcknowledgments();
+  const existing = acknowledgments[panel.id];
   acknowledgments[panel.id] = acknowledgment;
   localStorage.setItem(ACK_STORAGE_KEY, JSON.stringify(acknowledgments));
 
@@ -138,7 +139,8 @@ export function acknowledgeLabPanel(panel: LabPanel, note: string): LabAcknowled
     logLabAcknowledgment(panel, criticalValues, trimmedNote);
   } catch (error) {
     const current = getLabAcknowledgments();
-    delete current[panel.id];
+    if (existing) current[panel.id] = existing;
+    else delete current[panel.id];
     localStorage.setItem(ACK_STORAGE_KEY, JSON.stringify(current));
     throw error;
   }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FlaskConical, AlertTriangle, ChevronDown, ChevronRight, Printer, RefreshCw, Filter, Calendar, CheckCircle2 } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
@@ -10,6 +10,8 @@ import {
   getLabAcknowledgments,
   hasCriticalResult,
   type LabAcknowledgmentMap,
+  subscribeToLabAcknowledgments,
+  ACK_NOTE_MAX_LENGTH,
 } from '../services/labService';
 
 type LabFilterStatus = 'all' | 'abnormal' | 'critical' | 'unacknowledged';
@@ -30,12 +32,20 @@ export default function LabResultsPage() {
   const [labPanels] = useState<LabPanel[]>(defaultLabPanels);
   const [expandedPanels, setExpandedPanels] = useState<number[]>([1, 3]);
   const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
-  const [searchParams] = useSearchParams();
-  const initialFilter = searchParams.get('filter') as LabFilterStatus | null;
-  const [filterStatus, setFilterStatus] = useState<LabFilterStatus>(
-    initialFilter && FILTER_STATUSES.includes(initialFilter) ? initialFilter : 'all'
-  );
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filterParam = searchParams.get('filter') as LabFilterStatus | null;
+  const filterStatus: LabFilterStatus =
+    filterParam && FILTER_STATUSES.includes(filterParam) ? filterParam : 'all';
+  const setFilterStatus = (status: LabFilterStatus) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (status === 'all') next.delete('filter');
+      else next.set('filter', status);
+      return next;
+    }, { replace: true });
+  };
   const [acknowledgments, setAcknowledgments] = useState<LabAcknowledgmentMap>(getLabAcknowledgments);
+  useEffect(() => subscribeToLabAcknowledgments(setAcknowledgments), []);
   const [ackPanel, setAckPanel] = useState<LabPanel | null>(null);
   const [ackNote, setAckNote] = useState('');
   const [filterPatient, setFilterPatient] = useState<string>('all');
@@ -405,6 +415,7 @@ export default function LabResultsPage() {
                 className="ehr-input w-full text-[11px]"
                 rows={3}
                 value={ackNote}
+                maxLength={ACK_NOTE_MAX_LENGTH}
                 onChange={(e) => setAckNote(e.target.value)}
                 placeholder="e.g. Called patient, repeat BMP ordered"
               />

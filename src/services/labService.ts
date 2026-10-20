@@ -97,6 +97,7 @@ export const defaultLabPanels: LabPanel[] = [
 ];
 
 const ACK_STORAGE_KEY = 'coghealth_lab_acknowledgments';
+export const ACK_NOTE_MAX_LENGTH = 500;
 
 export type LabAcknowledgmentMap = Record<number, LabAcknowledgment>;
 
@@ -125,16 +126,28 @@ export function acknowledgeLabPanel(panel: LabPanel, note: string): LabAcknowled
     acknowledgedAt: new Date().toISOString(),
     ...(trimmedNote && { note: trimmedNote }),
   };
-  const acknowledgments = getLabAcknowledgments();
-  acknowledgments[panel.id] = acknowledgment;
-  localStorage.setItem(ACK_STORAGE_KEY, JSON.stringify(acknowledgments));
-
   const criticalValues = getCriticalResults(panel)
     .map(r => `${r.testName} ${r.value} ${r.unit}`.trim())
     .join(', ');
   logLabAcknowledgment(panel, criticalValues, trimmedNote);
 
+  const acknowledgments = getLabAcknowledgments();
+  acknowledgments[panel.id] = acknowledgment;
+  localStorage.setItem(ACK_STORAGE_KEY, JSON.stringify(acknowledgments));
+
   return acknowledgment;
+}
+
+export function subscribeToLabAcknowledgments(
+  onChange: (acknowledgments: LabAcknowledgmentMap) => void
+): () => void {
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === ACK_STORAGE_KEY || event.key === null) {
+      onChange(getLabAcknowledgments());
+    }
+  };
+  window.addEventListener('storage', handleStorage);
+  return () => window.removeEventListener('storage', handleStorage);
 }
 
 export function getUnacknowledgedCriticalPanels(

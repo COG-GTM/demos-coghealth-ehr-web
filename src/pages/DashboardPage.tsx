@@ -6,6 +6,12 @@ import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { patientService } from '../services/patientService';
+import {
+  defaultLabPanels,
+  getCriticalResults,
+  getLabAcknowledgments,
+  getUnacknowledgedCriticalPanels,
+} from '../services/labService';
 import type { Patient } from '../types';
 import { 
   FileText,
@@ -26,6 +32,14 @@ import {
   Radio,
   ClipboardList
 } from 'lucide-react';
+
+interface CriticalAlert {
+  id: string;
+  type: string;
+  patient: string;
+  alert: string;
+  action: string;
+}
 
 type InboxTab = 'all' | 'results' | 'messages' | 'rxRefills' | 'orders' | 'cosign';
 type WorklistFilter = 'all' | 'inpatient' | 'outpatient' | 'critical';
@@ -135,7 +149,7 @@ export default function DashboardPage() {
   const [worklistPatients, setWorklistPatients] = useState<WorklistPatient[]>([]);
   const [unsignedNotes, setUnsignedNotes] = useState<{id: number; patientName: string; type: string; date: string; daysOld: number}[]>([]);
   const [pendingOrders, setPendingOrders] = useState<{id: number; patientName: string; order: string; type: string; status: string}[]>([]);
-  const [criticalAlerts, setCriticalAlerts] = useState<{id: number; type: string; patient: string; alert: string; action: string; time: string}[]>([]);
+  const [otherCriticalAlerts, setOtherCriticalAlerts] = useState<CriticalAlert[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -160,13 +174,12 @@ export default function DashboardPage() {
           type: ['Lab', 'Imaging', 'Medication'][i % 3],
           status: ['draft', 'pending-approval', 'pending-signature'][i % 3],
         })));
-        setCriticalAlerts(patients.slice(0, 3).map((p, i) => ({
-          id: p.id || i,
-          type: ['lab', 'vital', 'imaging'][i % 3],
+        setOtherCriticalAlerts(patients.slice(0, 2).map((p, i) => ({
+          id: `${['vital', 'imaging'][i]}-${p.id || i}`,
+          type: ['vital', 'imaging'][i],
           patient: `${p.lastName}, ${p.firstName}`,
-          alert: ['Critical lab value', 'Elevated BP', 'Abnormal finding'][i % 3],
+          alert: ['Elevated BP', 'Abnormal finding'][i],
           action: 'Review required',
-          time: `${(i + 1) * 5} min ago`,
         })));
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
@@ -176,6 +189,17 @@ export default function DashboardPage() {
     };
     fetchData();
   }, []);
+
+  const criticalAlerts = useMemo<CriticalAlert[]>(() => {
+    const labAlerts = getUnacknowledgedCriticalPanels(defaultLabPanels, getLabAcknowledgments()).map(panel => ({
+      id: `lab-${panel.id}`,
+      type: 'lab',
+      patient: panel.patientName,
+      alert: getCriticalResults(panel).map(r => `${r.testName} ${r.value}`).join(', '),
+      action: 'Acknowledge required',
+    }));
+    return [...labAlerts, ...otherCriticalAlerts];
+  }, [otherCriticalAlerts]);
 
   const togglePanel = (panel: string) => {
     setExpandedPanels(prev => ({ ...prev, [panel]: !prev[panel] }));
@@ -332,7 +356,7 @@ export default function DashboardPage() {
                   <strong>{alert.patient}:</strong> {alert.alert} - {alert.action}
                 </span>
               ))}
-              <button className="ehr-button text-[10px] px-2 py-0.5">Review All</button>
+              <button className="ehr-button text-[10px] px-2 py-0.5" onClick={() => navigate('/labs?filter=unacknowledged')}>Review All</button>
             </div>
           </div>
         </div>

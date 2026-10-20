@@ -69,4 +69,17 @@ describe('labService acknowledgments', () => {
     const after = getUnacknowledgedCriticalPanels(defaultLabPanels, getLabAcknowledgments()).map(p => p.id);
     expect(after).toEqual([3]);
   });
+
+  test('rolls back the acknowledgment if the audit write fails', () => {
+    const realSetItem = localStorage.setItem.bind(localStorage);
+    const spy = jest.spyOn(localStorage, 'setItem').mockImplementation((key: string, value: string) => {
+      if (key === 'coghealth_audit_log') throw new Error('QuotaExceededError');
+      realSetItem(key, value);
+    });
+
+    expect(() => acknowledgeLabPanel(bmp, 'note')).toThrow('QuotaExceededError');
+    expect(getLabAcknowledgments()[1]).toBeUndefined();
+    expect(getAuditLog().filter(e => e.eventType === 'LAB_ACKNOWLEDGE')).toHaveLength(0);
+    spy.mockRestore();
+  });
 });

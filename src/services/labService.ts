@@ -129,11 +129,19 @@ export function acknowledgeLabPanel(panel: LabPanel, note: string): LabAcknowled
   const criticalValues = getCriticalResults(panel)
     .map(r => `${r.testName} ${r.value} ${r.unit}`.trim())
     .join(', ');
-  logLabAcknowledgment(panel, criticalValues, trimmedNote);
 
+  const previous = localStorage.getItem(ACK_STORAGE_KEY);
   const acknowledgments = getLabAcknowledgments();
   acknowledgments[panel.id] = acknowledgment;
   localStorage.setItem(ACK_STORAGE_KEY, JSON.stringify(acknowledgments));
+
+  try {
+    logLabAcknowledgment(panel, criticalValues, trimmedNote);
+  } catch (error) {
+    if (previous === null) localStorage.removeItem(ACK_STORAGE_KEY);
+    else localStorage.setItem(ACK_STORAGE_KEY, previous);
+    throw error;
+  }
 
   return acknowledgment;
 }

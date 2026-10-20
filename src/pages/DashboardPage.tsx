@@ -211,6 +211,13 @@ export default function DashboardPage() {
     () => [...labCriticalAlerts, ...nonLabCriticalAlerts],
     [labCriticalAlerts, nonLabCriticalAlerts],
   );
+  const visibleCriticalAlerts = useMemo(
+    () => [
+      ...labCriticalAlerts.slice(0, Math.max(1, 2 - nonLabCriticalAlerts.length)),
+      ...nonLabCriticalAlerts,
+    ].slice(0, 2),
+    [labCriticalAlerts, nonLabCriticalAlerts],
+  );
 
   const togglePanel = (panel: string) => {
     setExpandedPanels(prev => ({ ...prev, [panel]: !prev[panel] }));
@@ -362,7 +369,7 @@ export default function DashboardPage() {
               <span className="font-semibold text-[11px]">CRITICAL ALERTS ({criticalAlerts.length})</span>
             </div>
             <div className="flex items-center space-x-4">
-              {criticalAlerts.slice(0, 2).map((alert) => (
+              {visibleCriticalAlerts.map((alert) => (
                 <span key={alert.id} className="text-[11px]">
                   <strong>{alert.patient}:</strong> {alert.alert} - {alert.action}
                 </span>

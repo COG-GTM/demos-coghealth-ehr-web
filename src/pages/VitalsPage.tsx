@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar } from 'lucide-react';
-import { Modal } from '../components/ui/Modal';
-import type { VitalReading } from '../types';
+import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar, BellRing, CheckCircle } from 'lucide-react';
+import { Modal, ConfirmDialog, AlertDialog } from '../components/ui/Modal';
+import { logAuditEvent } from '../services/auditService';
+import { calculateNews2, consciousnessLabels, getNews2Response, news2ParameterLabels, news2RiskStyles, type News2Result } from '../utils/news2';
+import type { Consciousness, VitalReading } from '../types';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -19,16 +21,130 @@ const defaultVitals: VitalReading[] = [
   { id: 2, timestamp: '2024-01-18 10:00', systolic: 162, diastolic: 96, heartRate: 102, temperature: 99.1, respiratoryRate: 22, spo2: 93, weight: 82.5, painLevel: 5, recordedBy: 'RN Johnson', location: 'Med-Surg 4W' },
   { id: 3, timestamp: '2024-01-18 06:00', systolic: 168, diastolic: 98, heartRate: 108, temperature: 99.8, respiratoryRate: 24, spo2: 92, weight: 82.8, painLevel: 6, recordedBy: 'RN Williams', location: 'Med-Surg 4W' },
   { id: 4, timestamp: '2024-01-17 22:00', systolic: 172, diastolic: 100, heartRate: 112, temperature: 100.2, respiratoryRate: 26, spo2: 91, weight: 83.0, painLevel: 7, recordedBy: 'RN Davis', location: 'Med-Surg 4W' },
-  { id: 5, timestamp: '2024-01-17 18:00', systolic: 178, diastolic: 102, heartRate: 118, temperature: 100.8, respiratoryRate: 28, spo2: 90, weight: 83.2, painLevel: 8, recordedBy: 'RN Brown', location: 'ED' },
-  { id: 6, timestamp: '2024-01-17 14:00', systolic: 182, diastolic: 108, heartRate: 124, temperature: 101.4, respiratoryRate: 30, spo2: 88, weight: 83.5, painLevel: 9, recordedBy: 'RN Miller', location: 'ED' },
+  { id: 5, timestamp: '2024-01-17 18:00', systolic: 178, diastolic: 102, heartRate: 118, temperature: 100.8, respiratoryRate: 28, spo2: 90, weight: 83.2, painLevel: 8, onSupplementalO2: true, recordedBy: 'RN Brown', location: 'ED' },
+  { id: 6, timestamp: '2024-01-17 14:00', systolic: 182, diastolic: 108, heartRate: 124, temperature: 101.4, respiratoryRate: 30, spo2: 88, weight: 83.5, painLevel: 9, onSupplementalO2: true, recordedBy: 'RN Miller', location: 'ED' },
   { id: 7, timestamp: '2024-01-17 10:00', systolic: 145, diastolic: 88, heartRate: 88, temperature: 98.4, respiratoryRate: 18, spo2: 96, weight: 82.0, painLevel: 2, recordedBy: 'RN Wilson', location: 'Clinic' },
   { id: 8, timestamp: '2024-01-16 14:00', systolic: 138, diastolic: 84, heartRate: 76, temperature: 98.2, respiratoryRate: 16, spo2: 98, weight: 82.0, painLevel: 0, recordedBy: 'RN Taylor', location: 'Clinic' },
 ];
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
 
+type VitalFormValues = Partial<Record<(typeof vitalSigns)[number]['key'], string>>;
+
+interface VitalForm {
+  values: VitalFormValues;
+  consciousness: Consciousness;
+  onSupplementalO2: boolean;
+  notes: string;
+}
+
+const emptyVitalForm: VitalForm = { values: {}, consciousness: 'A', onSupplementalO2: false, notes: '' };
+
+function parseVitalForm(form: VitalForm): Partial<VitalReading> {
+  const reading: Partial<VitalReading> = { consciousness: form.consciousness, onSupplementalO2: form.onSupplementalO2 };
+  vitalSigns.forEach(({ key }) => {
+    const raw = form.values[key];
+    if (raw !== undefined && raw.trim() !== '' && !Number.isNaN(Number(raw))) {
+      reading[key] = Number(raw);
+    }
+  });
+  return reading;
+}
+
+function formatTimestamp(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function getEscalationTarget(result: News2Result): string {
+  return result.risk === 'HIGH' ? 'Rapid Response Team' : 'Attending Provider (Dr. Sarah Anderson)';
+}
+
+function Sparkline({ data, vitalKey, abnormal }: { data: (number | undefined)[]; vitalKey: string; abnormal?: boolean }) {
+  const values = data.filter((v): v is number => v !== undefined);
+  if (values.length < 2) return null;
+  
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const height = 20;
+  const width = 60;
+  
+  const points = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * width;
+    const y = height - ((v - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
+
+  const vital = vitalSigns.find(v => v.key === vitalKey);
+  const lastValue = values[0];
+  const isAbnormal = abnormal ?? (vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max));
+
+  return (
+    <svg width={width} height={height} className="inline-block ml-1">
+      <polyline
+        points={points}
+        fill="none"
+        stroke={isAbnormal ? '#dc2626' : '#2563eb'}
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
+function News2Breakdown({ result }: { result: News2Result }) {
+  const response = getNews2Response(result);
+  const style = news2RiskStyles[result.risk];
+  return (
+    <div className="space-y-2" data-testid="news2-breakdown">
+      <table className="w-full text-[11px] bg-white border border-gray-400">
+        <thead>
+          <tr className="bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8]">
+            <th className="text-left px-2 py-0.5 border border-gray-300">Parameter</th>
+            <th className="text-left px-2 py-0.5 border border-gray-300">Value</th>
+            <th className="text-center px-2 py-0.5 border border-gray-300 w-14">Points</th>
+          </tr>
+        </thead>
+        <tbody>
+          {result.components.map(c => (
+            <tr key={c.key}>
+              <td className="px-2 py-0.5 border border-gray-300">{c.label}</td>
+              <td className="px-2 py-0.5 border border-gray-300 font-mono">{c.display}</td>
+              <td
+                className="px-2 py-0.5 border border-gray-300 text-center font-mono font-bold"
+                style={c.points === 3 ? { background: '#ffcccc', color: '#990000' } : c.points > 0 ? { background: '#fff3cd', color: '#664d00' } : undefined}
+              >
+                {c.points}
+              </td>
+            </tr>
+          ))}
+          {result.missing.map(key => (
+            <tr key={key} className="text-gray-400 italic">
+              <td className="px-2 py-0.5 border border-gray-300">{news2ParameterLabels[key]}</td>
+              <td className="px-2 py-0.5 border border-gray-300">not recorded</td>
+              <td className="px-2 py-0.5 border border-gray-300 text-center">-</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="p-2 border text-[11px]" style={{ background: style.background, color: style.color, borderColor: style.border }}>
+        <div className="font-bold">
+          NEWS2 Total: <span data-testid="news2-breakdown-total">{result.total}</span> — {response.label}
+          {!result.complete && <span className="font-normal italic"> (incomplete — missing {result.missing.length} parameter{result.missing.length === 1 ? '' : 's'})</span>}
+        </div>
+        <div>Monitoring: {response.monitoring}</div>
+        <div>Response: {response.action}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function VitalsPage() {
-  const [vitals] = useState<VitalReading[]>(defaultVitals);
+  const [vitals, setVitals] = useState<VitalReading[]>(defaultVitals);
+  const [vitalForm, setVitalForm] = useState<VitalForm>(emptyVitalForm);
+  const [escalationReadingId, setEscalationReadingId] = useState<number | null>(null);
+  const [escalations, setEscalations] = useState<Record<number, { target: string; time: string }>>({});
+  const [escalationConfirmation, setEscalationConfirmation] = useState<string | null>(null);
   const [selectedReading, setSelectedReading] = useState<VitalReading | null>(null);
   const [showAddVitals, setShowAddVitals] = useState(false);
   const [dateRange, setDateRange] = useState<'24h' | '48h' | '7d' | '30d'>('48h');
@@ -66,6 +182,64 @@ export default function VitalsPage() {
     return diff > 0 ? 'up' : 'down';
   };
 
+  const news2Scores = vitals.map(r => calculateNews2(r));
+  const latestReading = vitals[0];
+  const latestNews2 = news2Scores[0];
+  const previousNews2 = news2Scores[1];
+  const peakIdx = news2Scores.reduce((best, s, i) => (s.total > news2Scores[best].total ? i : best), 0);
+  const formPreview = calculateNews2(parseVitalForm(vitalForm));
+  const formHasValues = Object.values(vitalForm.values).some(v => v !== undefined && v.trim() !== '');
+  const escalationReading = vitals.find(r => r.id === escalationReadingId) ?? null;
+  const escalationNews2 = escalationReading ? calculateNews2(escalationReading) : null;
+
+  const closeAddVitals = () => {
+    setShowAddVitals(false);
+    setVitalForm(emptyVitalForm);
+  };
+
+  const saveVitals = () => {
+    const parsed = parseVitalForm(vitalForm);
+    const reading: VitalReading = {
+      ...parsed,
+      id: Math.max(0, ...vitals.map(v => v.id)) + 1,
+      timestamp: formatTimestamp(new Date()),
+      recordedBy: 'Dr. Anderson',
+      location: 'Med-Surg 4W',
+    };
+    const result = calculateNews2(reading);
+    setVitals(prev => [reading, ...prev]);
+    logAuditEvent('VITALS_RECORD', {
+      patientMrn: selectedPatient.mrn,
+      patientName: selectedPatient.name,
+      resourceType: 'VitalReading',
+      resourceId: String(reading.id),
+      action: 'Vital signs recorded',
+      details: `NEWS2 ${result.total} (${result.risk})`,
+    });
+    closeAddVitals();
+    if (result.risk !== 'LOW') {
+      setEscalationReadingId(reading.id);
+    }
+  };
+
+  const confirmEscalation = () => {
+    if (!escalationReading || !escalationNews2) return;
+    const target = getEscalationTarget(escalationNews2);
+    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    setEscalations(prev => ({ ...prev, [escalationReading.id]: { target, time } }));
+    logAuditEvent('CLINICAL_ESCALATION', {
+      patientMrn: selectedPatient.mrn,
+      patientName: selectedPatient.name,
+      resourceType: 'VitalReading',
+      resourceId: String(escalationReading.id),
+      action: `Escalated to ${target}`,
+      details: `NEWS2 ${escalationNews2.total} (${escalationNews2.risk})`,
+    });
+    setEscalationConfirmation(
+      `${target} notified for ${selectedPatient.name} (${selectedPatient.mrn}), Room ${selectedPatient.room}. NEWS2 ${escalationNews2.total} — ${getNews2Response(escalationNews2).label}.`
+    );
+  };
+
   const TrendIcon = ({ trend, vital }: { trend: string | null; vital: string }) => {
     if (!trend) return null;
     const isGoodUp = vital === 'spo2';
@@ -83,37 +257,6 @@ export default function VitalsPage() {
     return null;
   };
 
-  const Sparkline = ({ data, vitalKey }: { data: (number | undefined)[]; vitalKey: string }) => {
-    const values = data.filter((v): v is number => v !== undefined);
-    if (values.length < 2) return null;
-    
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
-    const height = 20;
-    const width = 60;
-    
-    const points = values.map((v, i) => {
-      const x = (i / (values.length - 1)) * width;
-      const y = height - ((v - min) / range) * height;
-      return `${x},${y}`;
-    }).join(' ');
-
-    const vital = vitalSigns.find(v => v.key === vitalKey);
-    const lastValue = values[0];
-    const isAbnormal = vital && (lastValue < vital.normalRange.min || lastValue > vital.normalRange.max);
-
-    return (
-      <svg width={width} height={height} className="inline-block ml-1">
-        <polyline
-          points={points}
-          fill="none"
-          stroke={isAbnormal ? '#dc2626' : '#2563eb'}
-          strokeWidth="1.5"
-        />
-      </svg>
-    );
-  };
 
   return (
     <div className="h-full flex flex-col overflow-hidden p-2">
@@ -165,6 +308,61 @@ export default function VitalsPage() {
           </div>
         </div>
 
+        {latestReading && latestNews2 && (() => {
+          const style = news2RiskStyles[latestNews2.risk];
+          const response = getNews2Response(latestNews2);
+          const delta = previousNews2 ? latestNews2.total - previousNews2.total : 0;
+          const escalation = escalations[latestReading.id];
+          return (
+            <div
+              className="flex items-center justify-between px-2 py-1.5 border-2 mb-1 text-[11px]"
+              style={{ background: style.background, color: style.color, borderColor: style.border }}
+              data-testid="news2-banner"
+            >
+              <div className="flex items-center space-x-3">
+                <div
+                  className="w-10 h-10 flex flex-col items-center justify-center border-2 bg-white font-bold"
+                  style={{ borderColor: style.border }}
+                >
+                  <span className="text-[8px] leading-none">NEWS2</span>
+                  <span className="text-[18px] leading-none" data-testid="news2-latest-score">{latestNews2.total}</span>
+                </div>
+                <div>
+                  <div className="font-bold flex items-center space-x-2">
+                    {latestNews2.risk !== 'LOW' && <AlertTriangle className="w-3.5 h-3.5" />}
+                    <span data-testid="news2-latest-risk">{response.label}</span>
+                    <span className="font-normal">· Early Warning Score as of {latestReading.timestamp}</span>
+                    {previousNews2 && (
+                      <span className="font-normal flex items-center">
+                        {delta > 0 ? <TrendingUp className="w-3 h-3 mr-0.5" /> : delta < 0 ? <TrendingDown className="w-3 h-3 mr-0.5" /> : <Minus className="w-3 h-3 mr-0.5" />}
+                        {delta > 0 ? `Worsening (+${delta})` : delta < 0 ? `Improving (${delta})` : 'Unchanged'} vs previous
+                      </span>
+                    )}
+                  </div>
+                  <div>{response.monitoring} · {response.action}</div>
+                  {peakIdx !== 0 && (
+                    <div className="text-[10px] opacity-80">Peak this window: NEWS2 {news2Scores[peakIdx].total} at {vitals[peakIdx].timestamp}</div>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                {escalation ? (
+                  <span className="flex items-center space-x-1 font-semibold" data-testid="news2-escalated">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>{escalation.target} notified at {escalation.time}</span>
+                  </span>
+                ) : latestNews2.risk !== 'LOW' ? (
+                  <button className="ehr-button flex items-center space-x-1" onClick={() => setEscalationReadingId(latestReading.id)}>
+                    <BellRing className="w-3 h-3" />
+                    <span>{latestNews2.risk === 'HIGH' ? 'Call Rapid Response' : 'Notify Provider'}</span>
+                  </button>
+                ) : null}
+                <button className="ehr-button" onClick={() => setSelectedReading(latestReading)}>Score Details</button>
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="flex-1 overflow-auto bg-white border border-gray-400">
           <table className="w-full text-[11px]">
             <thead className="sticky top-0">
@@ -180,6 +378,31 @@ export default function VitalsPage() {
               </tr>
             </thead>
             <tbody>
+              <tr className="bg-[#eef3fa]" data-testid="news2-row">
+                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-[#eef3fa] z-10">
+                  <div>NEWS2 Score</div>
+                  <div className="text-[9px] text-gray-500 font-normal">Early warning (0-20)</div>
+                </td>
+                <td className="px-2 py-1 border border-gray-300 text-center">
+                  <Sparkline data={news2Scores.map(s => s.total)} vitalKey="news2" abnormal={latestNews2 ? latestNews2.risk !== 'LOW' : false} />
+                </td>
+                {vitals.map((reading, readingIdx) => {
+                  const score = news2Scores[readingIdx];
+                  const style = news2RiskStyles[score.risk];
+                  return (
+                    <td
+                      key={reading.id}
+                      className="px-2 py-1 border border-gray-300 text-center cursor-pointer font-mono font-bold"
+                      style={{ background: style.background, color: style.color }}
+                      title={`${getNews2Response(score).label}${score.complete ? '' : ' (incomplete)'}`}
+                      onClick={() => setSelectedReading(reading)}
+                    >
+                      {score.total}{!score.complete && '*'}
+                      {escalations[reading.id] && <BellRing className="w-3 h-3 inline ml-0.5" />}
+                    </td>
+                  );
+                })}
+              </tr>
               {vitalSigns.map((vital, vitalIdx) => (
                 <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}>
                   <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">
@@ -284,19 +507,23 @@ export default function VitalsPage() {
                 })}
               </div>
             </fieldset>
+            <fieldset className="ehr-fieldset">
+              <legend>NEWS2 Early Warning Score</legend>
+              <News2Breakdown result={calculateNews2(selectedReading)} />
+            </fieldset>
           </div>
         )}
       </Modal>
 
       <Modal
         isOpen={showAddVitals}
-        onClose={() => setShowAddVitals(false)}
+        onClose={closeAddVitals}
         title="Record Vital Signs"
-        width="md"
+        width="lg"
         footer={
           <>
-            <button className="ehr-button" onClick={() => setShowAddVitals(false)}>Cancel</button>
-            <button className="ehr-button ehr-button-primary" onClick={() => setShowAddVitals(false)}>Save</button>
+            <button className="ehr-button" onClick={closeAddVitals}>Cancel</button>
+            <button className="ehr-button ehr-button-primary" onClick={saveVitals} disabled={!formHasValues}>Save</button>
           </>
         }
       >
@@ -313,18 +540,84 @@ export default function VitalsPage() {
               {vitalSigns.map(vital => (
                 <div key={vital.key} className="flex items-center space-x-2">
                   <label className="text-[11px] text-gray-600 w-20">{vital.name}:</label>
-                  <input type="number" className="ehr-input flex-1 text-[11px]" placeholder={`${vital.normalRange.min}-${vital.normalRange.max}`} />
+                  <input
+                    type="number"
+                    name={vital.key}
+                    className="ehr-input flex-1 text-[11px]"
+                    placeholder={`${vital.normalRange.min}-${vital.normalRange.max}`}
+                    value={vitalForm.values[vital.key] ?? ''}
+                    onChange={(e) => setVitalForm(prev => ({ ...prev, values: { ...prev.values, [vital.key]: e.target.value } }))}
+                  />
                   <span className="text-[10px] text-gray-500 w-10">{vital.unit}</span>
                 </div>
               ))}
             </div>
           </fieldset>
           <fieldset className="ehr-fieldset">
+            <legend>Assessment</legend>
+            <div className="grid grid-cols-2 gap-3 text-[11px]">
+              <div className="flex items-center space-x-2">
+                <label className="text-gray-600 w-20" htmlFor="consciousness">Level (ACVPU):</label>
+                <select
+                  id="consciousness"
+                  className="ehr-input flex-1 text-[11px]"
+                  value={vitalForm.consciousness}
+                  onChange={(e) => setVitalForm(prev => ({ ...prev, consciousness: e.target.value as Consciousness }))}
+                >
+                  {(Object.keys(consciousnessLabels) as Consciousness[]).map(level => (
+                    <option key={level} value={level}>{level} - {consciousnessLabels[level]}</option>
+                  ))}
+                </select>
+              </div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  className="ehr-checkbox"
+                  checked={vitalForm.onSupplementalO2}
+                  onChange={(e) => setVitalForm(prev => ({ ...prev, onSupplementalO2: e.target.checked }))}
+                />
+                <span>On supplemental oxygen</span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset className="ehr-fieldset">
+            <legend>Live NEWS2 Score</legend>
+            {formHasValues ? (
+              <News2Breakdown result={formPreview} />
+            ) : (
+              <div className="text-[11px] text-gray-500 italic">Enter vital signs to calculate the NEWS2 early warning score.</div>
+            )}
+          </fieldset>
+          <fieldset className="ehr-fieldset">
             <legend>Notes</legend>
-            <textarea className="ehr-input w-full h-16 text-[11px]" placeholder="Additional notes..."></textarea>
+            <textarea
+              className="ehr-input w-full h-16 text-[11px]"
+              placeholder="Additional notes..."
+              value={vitalForm.notes}
+              onChange={(e) => setVitalForm(prev => ({ ...prev, notes: e.target.value }))}
+            ></textarea>
           </fieldset>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={escalationReading !== null && escalationNews2 !== null && !escalations[escalationReading.id]}
+        onClose={() => setEscalationReadingId(null)}
+        onConfirm={confirmEscalation}
+        title="NEWS2 Deterioration Alert"
+        message={escalationNews2 ? `NEWS2 score is ${escalationNews2.total} (${getNews2Response(escalationNews2).label}) for ${selectedPatient.name}. ${getNews2Response(escalationNews2).action}. Notify ${getEscalationTarget(escalationNews2)} now?` : ''}
+        confirmText={escalationNews2?.risk === 'HIGH' ? 'Call Rapid Response' : 'Notify Provider'}
+        cancelText="Not Now"
+        type={escalationNews2?.risk === 'HIGH' ? 'danger' : 'warning'}
+      />
+
+      <AlertDialog
+        isOpen={escalationConfirmation !== null}
+        onClose={() => setEscalationConfirmation(null)}
+        title="Escalation Sent"
+        message={escalationConfirmation ?? ''}
+        type="success"
+      />
     </div>
   );
 }

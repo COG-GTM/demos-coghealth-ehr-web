@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar, BellRing, CheckCircle } from 'lucide-react';
 import { Modal, ConfirmDialog, AlertDialog } from '../components/ui/Modal';
 import { logAuditEvent } from '../services/auditService';
-import { calculateNews2, consciousnessLabels, getNews2Response, news2ParameterLabels, news2RiskStyles, type News2Result } from '../utils/news2';
+import { calculateNews2, consciousnessLabels, getNews2Response, isNews2Actionable, news2ParameterLabels, news2RiskStyles, type News2Result } from '../utils/news2';
 import type { Consciousness, VitalReading } from '../types';
 
 const vitalSigns = [
@@ -217,7 +217,7 @@ export default function VitalsPage() {
       details: `NEWS2 ${result.total} (${result.risk})`,
     });
     closeAddVitals();
-    if (result.risk !== 'LOW') {
+    if (isNews2Actionable(result.risk)) {
       setEscalationReadingId(reading.id);
     }
   };
@@ -329,7 +329,7 @@ export default function VitalsPage() {
                 </div>
                 <div>
                   <div className="font-bold flex items-center space-x-2">
-                    {latestNews2.risk !== 'LOW' && <AlertTriangle className="w-3.5 h-3.5" />}
+                    {isNews2Actionable(latestNews2.risk) && <AlertTriangle className="w-3.5 h-3.5" />}
                     <span data-testid="news2-latest-risk">{response.label}</span>
                     <span className="font-normal">· Early Warning Score as of {latestReading.timestamp}</span>
                     {previousNews2 && (
@@ -351,7 +351,7 @@ export default function VitalsPage() {
                     <CheckCircle className="w-3.5 h-3.5" />
                     <span>{escalation.target} notified at {escalation.time}</span>
                   </span>
-                ) : latestNews2.risk !== 'LOW' ? (
+                ) : isNews2Actionable(latestNews2.risk) ? (
                   <button className="ehr-button flex items-center space-x-1" onClick={() => setEscalationReadingId(latestReading.id)}>
                     <BellRing className="w-3 h-3" />
                     <span>{latestNews2.risk === 'HIGH' ? 'Call Rapid Response' : 'Notify Provider'}</span>
@@ -384,7 +384,7 @@ export default function VitalsPage() {
                   <div className="text-[9px] text-gray-500 font-normal">Early warning (0-20)</div>
                 </td>
                 <td className="px-2 py-1 border border-gray-300 text-center">
-                  <Sparkline data={news2Scores.map(s => s.total)} vitalKey="news2" abnormal={latestNews2 ? latestNews2.risk !== 'LOW' : false} />
+                  <Sparkline data={news2Scores.map(s => s.total)} vitalKey="news2" abnormal={latestNews2 ? isNews2Actionable(latestNews2.risk) : false} />
                 </td>
                 {vitals.map((reading, readingIdx) => {
                   const score = news2Scores[readingIdx];
@@ -488,6 +488,9 @@ export default function VitalsPage() {
                 <div><span className="text-gray-500">Date/Time:</span> <span className="ml-1 font-semibold">{selectedReading.timestamp}</span></div>
                 <div><span className="text-gray-500">Recorded By:</span> <span className="ml-1">{selectedReading.recordedBy}</span></div>
                 <div><span className="text-gray-500">Location:</span> <span className="ml-1">{selectedReading.location}</span></div>
+                {selectedReading.notes && (
+                  <div className="col-span-2" data-testid="reading-notes"><span className="text-gray-500">Notes:</span> <span className="ml-1 whitespace-pre-wrap">{selectedReading.notes}</span></div>
+                )}
               </div>
             </fieldset>
             <fieldset className="ehr-fieldset">
@@ -510,6 +513,35 @@ export default function VitalsPage() {
             <fieldset className="ehr-fieldset">
               <legend>NEWS2 Early Warning Score</legend>
               <News2Breakdown result={calculateNews2(selectedReading)} />
+              {(() => {
+                const result = calculateNews2(selectedReading);
+                const escalation = escalations[selectedReading.id];
+                if (escalation) {
+                  return (
+                    <div className="mt-2 flex items-center space-x-1 text-[11px] font-semibold text-green-800" data-testid="detail-escalated">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      <span>{escalation.target} notified at {escalation.time}</span>
+                    </div>
+                  );
+                }
+                if (!isNews2Actionable(result.risk)) return null;
+                return (
+                  <div className="mt-2 flex items-center justify-between text-[11px]">
+                    <span className="text-red-800 font-semibold">Escalation pending for this reading</span>
+                    <button
+                      className="ehr-button flex items-center space-x-1"
+                      data-testid="detail-escalate"
+                      onClick={() => {
+                        setEscalationReadingId(selectedReading.id);
+                        setSelectedReading(null);
+                      }}
+                    >
+                      <BellRing className="w-3 h-3" />
+                      <span>{result.risk === 'HIGH' ? 'Call Rapid Response' : 'Notify Provider'}</span>
+                    </button>
+                  </div>
+                );
+              })()}
             </fieldset>
           </div>
         )}

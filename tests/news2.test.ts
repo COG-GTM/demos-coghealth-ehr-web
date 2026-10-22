@@ -2,6 +2,7 @@ import {
   calculateNews2,
   fahrenheitToCelsius,
   getNews2Response,
+  isNews2Actionable,
   scoreHeartRate,
   scoreRespiratoryRate,
   scoreSpo2,
@@ -70,5 +71,16 @@ describe('calculateNews2', () => {
     expect(result.complete).toBe(false);
     expect(result.missing).toEqual(['spo2', 'systolic', 'temperature']);
     expect(result.total).toBe(3);
+    expect(result.risk).toBe('LOW_MEDIUM');
+  });
+
+  it('does not report LOW risk when required parameters are missing', () => {
+    const result = calculateNews2({ weight: 70 });
+    expect(result.total).toBe(0);
+    expect(result.risk).toBe('INCOMPLETE');
+    expect(isNews2Actionable(result.risk)).toBe(false);
+    const response = getNews2Response(result);
+    expect(response.label).toBe('INCOMPLETE');
+    expect(response.action).not.toMatch(/routine/i);
   });
 });

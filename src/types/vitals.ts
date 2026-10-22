@@ -14,6 +14,7 @@ export interface VitalReading {
   painLevel?: number;
   onSupplementalO2?: boolean;
   consciousness?: Consciousness;
+  notes?: string;
   recordedBy: string;
   location: string;
 }

@@ -1,6 +1,6 @@
 import type { Consciousness, VitalReading } from '../types';
 
-export type News2Risk = 'LOW' | 'LOW_MEDIUM' | 'MEDIUM' | 'HIGH';
+export type News2Risk = 'INCOMPLETE' | 'LOW' | 'LOW_MEDIUM' | 'MEDIUM' | 'HIGH';
 
 export type News2ParameterKey =
   | 'respiratoryRate'
@@ -139,14 +139,23 @@ export function calculateNews2(reading: Partial<VitalReading>): News2Result {
   else if (total >= 5) risk = 'MEDIUM';
   else if (hasRedScore) risk = 'LOW_MEDIUM';
 
+  // A partial score can only rise once missing parameters are added, so an
+  // elevated partial score is still actionable, but a low one is not reassuring.
+  const complete = REQUIRED_KEYS.every(k => !missing.includes(k));
+  if (!complete && risk === 'LOW') risk = 'INCOMPLETE';
+
   return {
     total,
     risk,
     components,
     missing,
-    complete: REQUIRED_KEYS.every(k => !missing.includes(k)),
+    complete,
     hasRedScore,
   };
+}
+
+export function isNews2Actionable(risk: News2Risk): boolean {
+  return risk === 'LOW_MEDIUM' || risk === 'MEDIUM' || risk === 'HIGH';
 }
 
 export function getNews2Response(result: News2Result): News2Response {
@@ -169,6 +178,12 @@ export function getNews2Response(result: News2Result): News2Response {
         monitoring: 'Minimum 1-hourly observations',
         action: 'Single parameter scored 3: urgent ward-based review by provider',
       };
+    case 'INCOMPLETE':
+      return {
+        label: 'INCOMPLETE',
+        monitoring: `Record missing parameters: ${result.missing.map(k => news2ParameterLabels[k]).join(', ')}`,
+        action: 'Risk cannot be determined from a partial score',
+      };
     default:
       return result.total === 0
         ? { label: 'LOW RISK', monitoring: 'Minimum 12-hourly observations', action: 'Continue routine monitoring' }
@@ -177,6 +192,7 @@ export function getNews2Response(result: News2Result): News2Response {
 }
 
 export const news2RiskStyles: Record<News2Risk, { background: string; color: string; border: string }> = {
+  INCOMPLETE: { background: '#e8e8e8', color: '#444444', border: '#888888' },
   LOW: { background: '#d4edda', color: '#155724', border: '#28a745' },
   LOW_MEDIUM: { background: '#fff3cd', color: '#664d00', border: '#cc9900' },
   MEDIUM: { background: '#ffe0b2', color: '#8a3b00', border: '#e67e22' },

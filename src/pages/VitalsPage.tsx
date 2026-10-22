@@ -42,6 +42,7 @@ const emptyVitalForm: VitalForm = { values: {}, consciousness: 'A', onSupplement
 
 function parseVitalForm(form: VitalForm): Partial<VitalReading> {
   const reading: Partial<VitalReading> = { consciousness: form.consciousness, onSupplementalO2: form.onSupplementalO2 };
+  if (form.notes.trim() !== '') reading.notes = form.notes.trim();
   vitalSigns.forEach(({ key }) => {
     const raw = form.values[key];
     if (raw !== undefined && raw.trim() !== '' && !Number.isNaN(Number(raw))) {

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Activity, TrendingUp, TrendingDown, Minus, AlertTriangle, Printer, RefreshCw, Plus, Calendar, Siren } from 'lucide-react';
 import { Modal, AlertDialog } from '../components/ui/Modal';
 import type { Consciousness, VitalReading } from '../types';
-import { calculateNews2, news2RiskLabels, news2RiskStyles, type News2Result } from '../utils/news2';
+import { calculateNews2, news2ParameterLabels, news2RiskLabels, news2RiskStyles, type News2Result } from '../utils/news2';
 
 const vitalSigns = [
   { name: 'BP Systolic', key: 'systolic' as const, unit: 'mmHg', normalRange: { min: 90, max: 140 }, criticalLow: 80, criticalHigh: 180 },
@@ -16,14 +16,14 @@ const vitalSigns = [
 ];
 
 const defaultVitals: VitalReading[] = [
-  { id: 1, timestamp: '2024-01-18 14:00', systolic: 158, diastolic: 94, heartRate: 98, temperature: 98.6, respiratoryRate: 20, spo2: 94, weight: 82.5, painLevel: 4, recordedBy: 'RN Smith', location: 'Med-Surg 4W' },
-  { id: 2, timestamp: '2024-01-18 10:00', systolic: 162, diastolic: 96, heartRate: 102, temperature: 99.1, respiratoryRate: 22, spo2: 93, weight: 82.5, painLevel: 5, recordedBy: 'RN Johnson', location: 'Med-Surg 4W' },
-  { id: 3, timestamp: '2024-01-18 06:00', systolic: 168, diastolic: 98, heartRate: 108, temperature: 99.8, respiratoryRate: 24, spo2: 92, weight: 82.8, painLevel: 6, recordedBy: 'RN Williams', location: 'Med-Surg 4W' },
-  { id: 4, timestamp: '2024-01-17 22:00', systolic: 172, diastolic: 100, heartRate: 112, temperature: 100.2, respiratoryRate: 26, spo2: 91, weight: 83.0, painLevel: 7, onOxygen: true, recordedBy: 'RN Davis', location: 'Med-Surg 4W' },
-  { id: 5, timestamp: '2024-01-17 18:00', systolic: 178, diastolic: 102, heartRate: 118, temperature: 100.8, respiratoryRate: 28, spo2: 90, weight: 83.2, painLevel: 8, onOxygen: true, recordedBy: 'RN Brown', location: 'ED' },
+  { id: 1, timestamp: '2024-01-18 14:00', systolic: 158, diastolic: 94, heartRate: 98, temperature: 98.6, respiratoryRate: 20, spo2: 94, weight: 82.5, painLevel: 4, onOxygen: false, consciousness: 'A', recordedBy: 'RN Smith', location: 'Med-Surg 4W' },
+  { id: 2, timestamp: '2024-01-18 10:00', systolic: 162, diastolic: 96, heartRate: 102, temperature: 99.1, respiratoryRate: 22, spo2: 93, weight: 82.5, painLevel: 5, onOxygen: false, consciousness: 'A', recordedBy: 'RN Johnson', location: 'Med-Surg 4W' },
+  { id: 3, timestamp: '2024-01-18 06:00', systolic: 168, diastolic: 98, heartRate: 108, temperature: 99.8, respiratoryRate: 24, spo2: 92, weight: 82.8, painLevel: 6, onOxygen: false, consciousness: 'A', recordedBy: 'RN Williams', location: 'Med-Surg 4W' },
+  { id: 4, timestamp: '2024-01-17 22:00', systolic: 172, diastolic: 100, heartRate: 112, temperature: 100.2, respiratoryRate: 26, spo2: 91, weight: 83.0, painLevel: 7, onOxygen: true, consciousness: 'A', recordedBy: 'RN Davis', location: 'Med-Surg 4W' },
+  { id: 5, timestamp: '2024-01-17 18:00', systolic: 178, diastolic: 102, heartRate: 118, temperature: 100.8, respiratoryRate: 28, spo2: 90, weight: 83.2, painLevel: 8, onOxygen: true, consciousness: 'A', recordedBy: 'RN Brown', location: 'ED' },
   { id: 6, timestamp: '2024-01-17 14:00', systolic: 182, diastolic: 108, heartRate: 124, temperature: 101.4, respiratoryRate: 30, spo2: 88, weight: 83.5, painLevel: 9, onOxygen: true, consciousness: 'C', recordedBy: 'RN Miller', location: 'ED' },
-  { id: 7, timestamp: '2024-01-17 10:00', systolic: 145, diastolic: 88, heartRate: 88, temperature: 98.4, respiratoryRate: 18, spo2: 96, weight: 82.0, painLevel: 2, recordedBy: 'RN Wilson', location: 'Clinic' },
-  { id: 8, timestamp: '2024-01-16 14:00', systolic: 138, diastolic: 84, heartRate: 76, temperature: 98.2, respiratoryRate: 16, spo2: 98, weight: 82.0, painLevel: 0, recordedBy: 'RN Taylor', location: 'Clinic' },
+  { id: 7, timestamp: '2024-01-17 10:00', systolic: 145, diastolic: 88, heartRate: 88, temperature: 98.4, respiratoryRate: 18, spo2: 96, weight: 82.0, painLevel: 2, onOxygen: false, consciousness: 'A', recordedBy: 'RN Wilson', location: 'Clinic' },
+  { id: 8, timestamp: '2024-01-16 14:00', systolic: 138, diastolic: 84, heartRate: 76, temperature: 98.2, respiratoryRate: 16, spo2: 98, weight: 82.0, painLevel: 0, onOxygen: false, consciousness: 'A', recordedBy: 'RN Taylor', location: 'Clinic' },
 ];
 
 const patientInfo = { name: 'Smith, John', mrn: 'MRN001234', age: 58, gender: 'M', room: '412A' };
@@ -49,6 +49,7 @@ const formToReading = (form: VitalsForm, id: number): VitalReading => {
     location: 'Med-Surg 4W',
     onOxygen: form.onOxygen,
     consciousness: form.consciousness,
+    notes: form.notes.trim() || undefined,
   };
   vitalSigns.forEach(v => {
     const raw = form[v.key];
@@ -104,8 +105,11 @@ export default function VitalsPage() {
   const [selectedPatient] = useState(patientInfo);
 
   const news2Scores = useMemo(() => vitals.map(calculateNews2), [vitals]);
-  const latestNews2 = news2Scores[0];
-  const previousNews2 = news2Scores[1];
+  const completeIdx = news2Scores.map((r, i) => (r.complete ? i : -1)).filter(i => i >= 0);
+  const latestIdx = completeIdx[0];
+  const latestNews2 = latestIdx !== undefined ? news2Scores[latestIdx] : undefined;
+  const previousNews2 = completeIdx[1] !== undefined ? news2Scores[completeIdx[1]] : undefined;
+  const newestIncomplete = news2Scores[0] && !news2Scores[0].complete;
   const news2Delta = latestNews2 && previousNews2 ? latestNews2.total - previousNews2.total : 0;
   const formPreview = useMemo(() => calculateNews2(formToReading(form, 0)), [form]);
 
@@ -268,11 +272,17 @@ export default function VitalsPage() {
                   {latestNews2.risk === 'HIGH' && <Siren className="w-4 h-4 mr-1" />}
                   NEWS2 Early Warning Score
                 </div>
-                <div><span className="font-semibold">{news2RiskLabels[latestNews2.risk]} clinical risk</span> · {vitals[0].timestamp}</div>
+                <div><span className="font-semibold">{news2RiskLabels[latestNews2.risk]} clinical risk</span> · {vitals[latestIdx].timestamp}</div>
+                {newestIncomplete && (
+                  <div className="flex items-center font-semibold" data-testid="news2-incomplete-warning">
+                    <AlertTriangle className="w-3 h-3 mr-1" />
+                    Latest reading ({vitals[0].timestamp}) is incomplete and not scored
+                  </div>
+                )}
                 {previousNews2 && (
                   <div className="flex items-center" data-testid="news2-trend">
                     {news2Delta > 0 ? <TrendingUp className="w-3 h-3 mr-1 text-red-600" /> : news2Delta < 0 ? <TrendingDown className="w-3 h-3 mr-1 text-green-700" /> : <Minus className="w-3 h-3 mr-1" />}
-                    {news2Delta > 0 ? `Worsening (+${news2Delta})` : news2Delta < 0 ? `Improving (${news2Delta})` : 'Unchanged'} since previous reading
+                    {news2Delta > 0 ? `Worsening (+${news2Delta})` : news2Delta < 0 ? `Improving (${news2Delta})` : 'Unchanged'} since previous complete reading
                   </div>
                 )}
               </div>
@@ -289,7 +299,7 @@ export default function VitalsPage() {
               </div>
             </div>
             <div className="ml-auto flex flex-col items-end">
-              <News2Chart scores={[...news2Scores].reverse().map(r => r.total)} />
+              <News2Chart scores={news2Scores.filter(r => r.complete).reverse().map(r => r.total)} />
               <span className="text-[9px] text-gray-600">NEWS2 trend (oldest → newest) · dashed: 5 / 7</span>
             </div>
           </div>
@@ -323,7 +333,7 @@ export default function VitalsPage() {
                     key={reading.id}
                     className="px-2 py-1 border border-gray-300 text-center cursor-pointer hover:bg-[#e0e8f0]"
                     onClick={() => setSelectedReading(reading)}
-                    title={`${news2RiskLabels[news2Scores[idx].risk]} risk`}
+                    title={news2Scores[idx].complete ? `${news2RiskLabels[news2Scores[idx].risk]} risk` : 'Incomplete: not risk-classified'}
                   >
                     <News2Badge result={news2Scores[idx]} />
                   </td>
@@ -414,6 +424,9 @@ export default function VitalsPage() {
                 <div><span className="text-gray-500">Date/Time:</span> <span className="ml-1 font-semibold">{selectedReading.timestamp}</span></div>
                 <div><span className="text-gray-500">Recorded By:</span> <span className="ml-1">{selectedReading.recordedBy}</span></div>
                 <div><span className="text-gray-500">Location:</span> <span className="ml-1">{selectedReading.location}</span></div>
+                {selectedReading.notes && (
+                  <div className="col-span-2"><span className="text-gray-500">Notes:</span> <span className="ml-1 whitespace-pre-wrap">{selectedReading.notes}</span></div>
+                )}
               </div>
             </fieldset>
             <fieldset className="ehr-fieldset">
@@ -512,7 +525,7 @@ export default function VitalsPage() {
             >
               <News2Badge result={formPreview} />
               <div>
-                <div className="font-semibold">Live NEWS2: {news2RiskLabels[formPreview.risk]} risk</div>
+                <div className="font-semibold">Live NEWS2: {formPreview.complete ? `${news2RiskLabels[formPreview.risk]} risk` : 'Incomplete'}</div>
                 <div className="text-[10px]">
                   {formPreview.missing.length > 0
                     ? `Incomplete — enter ${formPreview.missing.length} more parameter(s) for a full score`
@@ -563,8 +576,17 @@ function News2Breakdown({ result }: { result: News2Result }) {
       <div className="mt-2 flex items-center space-x-2 p-1.5 border text-[11px]" style={{ background: style.background, borderColor: style.border, color: style.color }}>
         <News2Badge result={result} />
         <div>
-          <div className="font-semibold">{news2RiskLabels[result.risk]} clinical risk{result.hasRedScore && result.risk === 'LOW_MEDIUM' ? ' (single parameter scored 3)' : ''}</div>
-          <div className="text-[10px]">{result.response} · {result.frequency}</div>
+          {result.complete ? (
+            <>
+              <div className="font-semibold">{news2RiskLabels[result.risk]} clinical risk{result.hasRedScore && result.risk === 'LOW_MEDIUM' ? ' (single parameter scored 3)' : ''}</div>
+              <div className="text-[10px]">{result.response} · {result.frequency}</div>
+            </>
+          ) : (
+            <>
+              <div className="font-semibold">Incomplete: partial score only, not risk-classified</div>
+              <div className="text-[10px]">Missing: {result.missing.map(m => news2ParameterLabels[m]).join(', ')}</div>
+            </>
+          )}
         </div>
       </div>
     </fieldset>

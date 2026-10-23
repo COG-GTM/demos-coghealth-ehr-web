@@ -40,7 +40,7 @@ describe('NEWS2 risk thresholds', () => {
 
 describe('calculateNews2', () => {
   test('healthy adult on room air scores 0', () => {
-    const r = calculateNews2({ ...base, respiratoryRate: 16, spo2: 98, systolic: 120, heartRate: 72, temperature: 98.6 });
+    const r = calculateNews2({ ...base, respiratoryRate: 16, spo2: 98, systolic: 120, heartRate: 72, temperature: 98.6, onOxygen: false, consciousness: 'A' });
     expect(r.total).toBe(0);
     expect(r.risk).toBe('NONE');
     expect(r.missing).toEqual([]);
@@ -56,8 +56,16 @@ describe('calculateNews2', () => {
     expect(r.hasRedScore).toBe(true);
   });
 
-  test('reports missing parameters', () => {
+  test('incomplete readings are not risk-classified', () => {
     const r = calculateNews2({ ...base, heartRate: 80 });
-    expect(r.missing).toEqual(['respiratoryRate', 'spo2', 'systolic', 'temperature']);
+    expect(r.missing).toEqual(['respiratoryRate', 'spo2', 'onOxygen', 'systolic', 'consciousness', 'temperature']);
+    expect(r.complete).toBe(false);
+    expect(r.risk).toBe('INCOMPLETE');
+  });
+
+  test('unassessed oxygen / consciousness are missing, not assumed normal', () => {
+    const r = calculateNews2({ ...base, respiratoryRate: 16, spo2: 98, systolic: 120, heartRate: 72, temperature: 98.6 });
+    expect(r.missing).toEqual(['onOxygen', 'consciousness']);
+    expect(r.risk).toBe('INCOMPLETE');
   });
 });

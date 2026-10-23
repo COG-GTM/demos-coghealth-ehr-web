@@ -9,7 +9,7 @@ export type News2Parameter =
   | 'consciousness'
   | 'temperature';
 
-export type News2RiskLevel = 'NONE' | 'LOW' | 'LOW_MEDIUM' | 'MEDIUM' | 'HIGH';
+export type News2RiskLevel = 'INCOMPLETE' | 'NONE' | 'LOW' | 'LOW_MEDIUM' | 'MEDIUM' | 'HIGH';
 
 export interface News2Component {
   parameter: News2Parameter;
@@ -22,6 +22,7 @@ export interface News2Result {
   total: number;
   components: News2Component[];
   missing: News2Parameter[];
+  complete: boolean;
   hasRedScore: boolean;
   risk: News2RiskLevel;
   response: string;
@@ -65,6 +66,7 @@ const consciousnessLabels: Record<Consciousness, string> = {
 };
 
 const riskDetails: Record<News2RiskLevel, { response: string; frequency: string }> = {
+  INCOMPLETE: { response: 'Score not valid: record all NEWS2 parameters', frequency: 'Complete the observation set' },
   NONE: { response: 'Continue routine NEWS monitoring', frequency: 'Minimum 12-hourly' },
   LOW: { response: 'Inform registered nurse to assess patient', frequency: 'Minimum 4–6 hourly' },
   LOW_MEDIUM: { response: 'Urgent ward-based review by clinician', frequency: 'Minimum 1-hourly' },
@@ -72,7 +74,18 @@ const riskDetails: Record<News2RiskLevel, { response: string; frequency: string 
   HIGH: { response: 'EMERGENCY: notify rapid response team immediately', frequency: 'Continuous monitoring' },
 };
 
+export const news2ParameterLabels: Record<News2Parameter, string> = {
+  respiratoryRate: 'Resp Rate',
+  spo2: 'SpO2',
+  onOxygen: 'Air/Oxygen',
+  systolic: 'BP Systolic',
+  heartRate: 'Pulse',
+  consciousness: 'AVPU',
+  temperature: 'Temperature',
+};
+
 export const news2RiskLabels: Record<News2RiskLevel, string> = {
+  INCOMPLETE: 'Incomplete',
   NONE: 'Low',
   LOW: 'Low',
   LOW_MEDIUM: 'Low-Medium',
@@ -102,31 +115,40 @@ export function calculateNews2(reading: VitalReading): News2Result {
 
   add('respiratoryRate', 'Resp Rate', reading.respiratoryRate, v => `${v} /min`, scoreRespiratoryRate);
   add('spo2', 'SpO2 (Scale 1)', reading.spo2, v => `${v} %`, scoreSpo2);
-  components.push({
-    parameter: 'onOxygen',
-    label: 'Air or Oxygen',
-    value: reading.onOxygen ? 'Supplemental O2' : 'Room air',
-    points: reading.onOxygen ? 2 : 0,
-  });
+  if (reading.onOxygen === undefined) {
+    missing.push('onOxygen');
+  } else {
+    components.push({
+      parameter: 'onOxygen',
+      label: 'Air or Oxygen',
+      value: reading.onOxygen ? 'Supplemental O2' : 'Room air',
+      points: reading.onOxygen ? 2 : 0,
+    });
+  }
   add('systolic', 'BP Systolic', reading.systolic, v => `${v} mmHg`, scoreSystolic);
   add('heartRate', 'Pulse', reading.heartRate, v => `${v} bpm`, scoreHeartRate);
-  const consciousness = reading.consciousness ?? 'A';
-  components.push({
-    parameter: 'consciousness',
-    label: 'Consciousness',
-    value: consciousnessLabels[consciousness],
-    points: scoreConsciousness(consciousness),
-  });
+  if (reading.consciousness === undefined) {
+    missing.push('consciousness');
+  } else {
+    components.push({
+      parameter: 'consciousness',
+      label: 'Consciousness',
+      value: consciousnessLabels[reading.consciousness],
+      points: scoreConsciousness(reading.consciousness),
+    });
+  }
   add('temperature', 'Temperature', reading.temperature, v => `${fahrenheitToCelsius(v).toFixed(1)} °C`, v => scoreTemperatureC(fahrenheitToCelsius(v)));
 
   const total = components.reduce((sum, c) => sum + c.points, 0);
   const hasRedScore = components.some(c => c.points === 3);
-  const risk = getNews2Risk(total, hasRedScore);
+  const complete = missing.length === 0;
+  const risk = complete ? getNews2Risk(total, hasRedScore) : 'INCOMPLETE';
 
-  return { total, components, missing, hasRedScore, risk, ...riskDetails[risk] };
+  return { total, components, missing, complete, hasRedScore, risk, ...riskDetails[risk] };
 }
 
 export const news2RiskStyles: Record<News2RiskLevel, { background: string; color: string; border: string }> = {
+  INCOMPLETE: { background: '#eeeeee', color: '#555555', border: '#999999' },
   NONE: { background: '#e6f4e6', color: '#1f5f1f', border: '#7fbf7f' },
   LOW: { background: '#e6f4e6', color: '#1f5f1f', border: '#7fbf7f' },
   LOW_MEDIUM: { background: '#fff3cd', color: '#664d00', border: '#e0b84d' },

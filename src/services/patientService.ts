@@ -13,6 +13,9 @@ export const patientService = {
   getById: (id: number) => 
     api.get<Patient>(`/v1/patients/${id}`),
 
+  getByIds: (ids: number[]) =>
+    api.post<Patient[]>('/v1/patients/batch', { ids }),
+
   getByMrn: (mrn: string) => 
     api.get<Patient>(`/v1/patients/mrn/${mrn}`),
 

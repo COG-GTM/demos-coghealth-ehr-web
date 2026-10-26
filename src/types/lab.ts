@@ -21,3 +21,11 @@ export interface LabPanel {
   status: 'final' | 'preliminary' | 'pending';
   results: LabResult[];
 }
+
+export interface LabAcknowledgment {
+  panelId: number;
+  acknowledgedBy: string;
+  acknowledgedById: string;
+  acknowledgedAt: string;
+  note: string;
+}

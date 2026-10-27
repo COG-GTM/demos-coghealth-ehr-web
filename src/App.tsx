@@ -14,12 +14,14 @@ import {
   Lock,
   Shield,
   FlaskConical,
-  Activity
+  Activity,
+  Stethoscope
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import PatientSearchPage from './pages/PatientSearchPage';
 import PatientChartPage from './pages/PatientChartPage';
 import DashboardPage from './pages/DashboardPage';
+import ProviderDirectoryPage from './pages/ProviderDirectoryPage';
 import SchedulePage from './pages/SchedulePage';
 import MedicationsPage from './pages/MedicationsPage';
 import ReportsPage from './pages/ReportsPage';
@@ -117,6 +119,7 @@ function Navigation({ onSessionWarning, onSessionExpired, onLogout }: Navigation
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/patients', icon: Users, label: 'Patients' },
+    { path: '/directory', icon: Stethoscope, label: 'Directory' },
     { path: '/schedule', icon: Calendar, label: 'Schedule' },
     { path: '/labs', icon: FlaskConical, label: 'Lab Results' },
     { path: '/vitals', icon: Activity, label: 'Vitals' },
@@ -291,6 +294,7 @@ function App() {
             <Route path="/" element={<DashboardPage />} />
             <Route path="/patients" element={<PatientSearchPage />} />
             <Route path="/patients/:id" element={<PatientChartPage />} />
+            <Route path="/directory" element={<ProviderDirectoryPage />} />
             <Route path="/schedule" element={<SchedulePage />} />
             <Route path="/labs" element={<LabResultsPage />} />
             <Route path="/vitals" element={<VitalsPage />} />
@@ -317,7 +321,7 @@ function App() {
             <span className="text-gray-400">|</span>
             <span>Last Sync: Just now</span>
             <span className="text-gray-400">|</span>
-            <span className="text-gray-500">CogHealth EHR v4.2.1 - For Demo Use Only</span>
+            <span className="text-gray-500">CogHealth EHR v4.2.1 — Authorized Use Only</span>
           </div>
         </div>
 

@@ -1,110 +1,70 @@
 import { useState } from 'react';
-import { FlaskConical, AlertTriangle, ChevronDown, ChevronRight, Printer, RefreshCw, Filter, Calendar } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { FlaskConical, AlertTriangle, ChevronDown, ChevronRight, Printer, RefreshCw, Filter, Calendar, CheckCircle2 } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
+import { useLabAcknowledgments } from '../hooks/useLabAcknowledgments';
+import {
+  acknowledgeLabPanel,
+  defaultLabPanels,
+  formatAcknowledgedAt,
+  getCriticalResults,
+  getUnacknowledgedCriticalPanels,
+  hasCriticalResult,
+  MAX_ACKNOWLEDGMENT_NOTE_LENGTH,
+} from '../services/labService';
 import type { LabPanel, LabResult } from '../types';
 
-const defaultLabPanels: LabPanel[] = [
-  {
-    id: 1,
-    panelName: 'Basic Metabolic Panel (BMP)',
-    patientName: 'Smith, John',
-    patientMrn: 'MRN001234',
-    collectedAt: '01/18/2024 08:30',
-    resultedAt: '01/18/2024 10:15',
-    status: 'final',
-    results: [
-      { id: 1, testName: 'Sodium', value: '138', unit: 'mEq/L', referenceRange: '136-145', status: 'normal', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 10:15', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 2, testName: 'Potassium', value: '6.8', unit: 'mEq/L', referenceRange: '3.5-5.0', status: 'critical', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 10:15', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 3, testName: 'Chloride', value: '102', unit: 'mEq/L', referenceRange: '98-106', status: 'normal', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 10:15', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 4, testName: 'CO2', value: '18', unit: 'mEq/L', referenceRange: '23-29', status: 'abnormal', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 10:15', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 5, testName: 'BUN', value: '42', unit: 'mg/dL', referenceRange: '7-20', status: 'abnormal', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 10:15', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 6, testName: 'Creatinine', value: '3.2', unit: 'mg/dL', referenceRange: '0.7-1.3', status: 'critical', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 10:15', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 7, testName: 'Glucose', value: '156', unit: 'mg/dL', referenceRange: '70-100', status: 'abnormal', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 10:15', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 8, testName: 'Calcium', value: '9.1', unit: 'mg/dL', referenceRange: '8.5-10.5', status: 'normal', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 10:15', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-    ]
-  },
-  {
-    id: 2,
-    panelName: 'Complete Blood Count (CBC)',
-    patientName: 'Smith, John',
-    patientMrn: 'MRN001234',
-    collectedAt: '01/18/2024 08:30',
-    resultedAt: '01/18/2024 09:45',
-    status: 'final',
-    results: [
-      { id: 9, testName: 'WBC', value: '12.4', unit: 'K/uL', referenceRange: '4.5-11.0', status: 'abnormal', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 09:45', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 10, testName: 'RBC', value: '3.8', unit: 'M/uL', referenceRange: '4.5-5.5', status: 'abnormal', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 09:45', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 11, testName: 'Hemoglobin', value: '10.2', unit: 'g/dL', referenceRange: '13.5-17.5', status: 'abnormal', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 09:45', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 12, testName: 'Hematocrit', value: '31.5', unit: '%', referenceRange: '38.8-50.0', status: 'abnormal', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 09:45', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 13, testName: 'Platelets', value: '245', unit: 'K/uL', referenceRange: '150-400', status: 'normal', collectedAt: '01/18/2024 08:30', resultedAt: '01/18/2024 09:45', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-    ]
-  },
-  {
-    id: 3,
-    panelName: 'Cardiac Enzymes',
-    patientName: 'Martinez, Ana',
-    patientMrn: 'MRN001241',
-    collectedAt: '01/18/2024 06:00',
-    resultedAt: '01/18/2024 07:30',
-    status: 'final',
-    results: [
-      { id: 14, testName: 'Troponin I', value: '2.4', unit: 'ng/mL', referenceRange: '<0.04', status: 'critical', collectedAt: '01/18/2024 06:00', resultedAt: '01/18/2024 07:30', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 15, testName: 'CK-MB', value: '28', unit: 'ng/mL', referenceRange: '0-5', status: 'critical', collectedAt: '01/18/2024 06:00', resultedAt: '01/18/2024 07:30', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 16, testName: 'BNP', value: '890', unit: 'pg/mL', referenceRange: '<100', status: 'abnormal', collectedAt: '01/18/2024 06:00', resultedAt: '01/18/2024 07:30', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-    ]
-  },
-  {
-    id: 4,
-    panelName: 'Lipid Panel',
-    patientName: 'Johnson, Sarah',
-    patientMrn: 'MRN001235',
-    collectedAt: '01/17/2024 07:00',
-    resultedAt: '01/17/2024 14:00',
-    status: 'final',
-    results: [
-      { id: 17, testName: 'Total Cholesterol', value: '242', unit: 'mg/dL', referenceRange: '<200', status: 'abnormal', collectedAt: '01/17/2024 07:00', resultedAt: '01/17/2024 14:00', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 18, testName: 'LDL', value: '165', unit: 'mg/dL', referenceRange: '<100', status: 'abnormal', collectedAt: '01/17/2024 07:00', resultedAt: '01/17/2024 14:00', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 19, testName: 'HDL', value: '38', unit: 'mg/dL', referenceRange: '>40', status: 'abnormal', collectedAt: '01/17/2024 07:00', resultedAt: '01/17/2024 14:00', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 20, testName: 'Triglycerides', value: '195', unit: 'mg/dL', referenceRange: '<150', status: 'abnormal', collectedAt: '01/17/2024 07:00', resultedAt: '01/17/2024 14:00', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-    ]
-  },
-  {
-    id: 5,
-    panelName: 'Hemoglobin A1c',
-    patientName: 'Johnson, Sarah',
-    patientMrn: 'MRN001235',
-    collectedAt: '01/17/2024 07:00',
-    resultedAt: '01/17/2024 16:00',
-    status: 'final',
-    results: [
-      { id: 21, testName: 'HbA1c', value: '9.2', unit: '%', referenceRange: '<5.7', status: 'abnormal', collectedAt: '01/17/2024 07:00', resultedAt: '01/17/2024 16:00', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-    ]
-  },
-  {
-    id: 6,
-    panelName: 'Urinalysis',
-    patientName: 'Williams, Michael',
-    patientMrn: 'MRN001236',
-    collectedAt: '01/16/2024 10:00',
-    resultedAt: '01/16/2024 11:30',
-    status: 'final',
-    results: [
-      { id: 22, testName: 'Color', value: 'Yellow', unit: '', referenceRange: 'Yellow', status: 'normal', collectedAt: '01/16/2024 10:00', resultedAt: '01/16/2024 11:30', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 23, testName: 'Clarity', value: 'Clear', unit: '', referenceRange: 'Clear', status: 'normal', collectedAt: '01/16/2024 10:00', resultedAt: '01/16/2024 11:30', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 24, testName: 'pH', value: '6.0', unit: '', referenceRange: '5.0-8.0', status: 'normal', collectedAt: '01/16/2024 10:00', resultedAt: '01/16/2024 11:30', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 25, testName: 'Protein', value: 'Negative', unit: '', referenceRange: 'Negative', status: 'normal', collectedAt: '01/16/2024 10:00', resultedAt: '01/16/2024 11:30', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-      { id: 26, testName: 'Glucose', value: 'Negative', unit: '', referenceRange: 'Negative', status: 'normal', collectedAt: '01/16/2024 10:00', resultedAt: '01/16/2024 11:30', orderedBy: 'Dr. Anderson', performingLab: 'Main Lab' },
-    ]
-  },
-];
+const FILTER_OPTIONS = ['all', 'abnormal', 'critical', 'unacknowledged'] as const;
+type FilterStatus = typeof FILTER_OPTIONS[number];
+
+function parseFilter(value: string | null): FilterStatus {
+  return FILTER_OPTIONS.includes(value as FilterStatus) ? value as FilterStatus : 'all';
+}
 
 export default function LabResultsPage() {
   const [labPanels] = useState<LabPanel[]>(defaultLabPanels);
   const [expandedPanels, setExpandedPanels] = useState<number[]>([1, 3]);
   const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
-  const [filterStatus, setFilterStatus] = useState<'all' | 'abnormal' | 'critical'>('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filterStatus = parseFilter(searchParams.get('filter'));
+  const acknowledgments = useLabAcknowledgments();
+  const [acknowledgingPanel, setAcknowledgingPanel] = useState<LabPanel | null>(null);
+  const [acknowledgmentNote, setAcknowledgmentNote] = useState('');
+  const [acknowledgmentError, setAcknowledgmentError] = useState<string | null>(null);
   const [filterPatient, setFilterPatient] = useState<string>('all');
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'all'>('week');
+
+  const setFilterStatus = (value: FilterStatus) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value === 'all') next.delete('filter');
+      else next.set('filter', value);
+      return next;
+    }, { replace: true });
+  };
+
+  const openAcknowledgeDialog = (panel: LabPanel) => {
+    setAcknowledgingPanel(panel);
+    setAcknowledgmentNote('');
+    setAcknowledgmentError(null);
+  };
+
+  const closeAcknowledgeDialog = () => {
+    setAcknowledgingPanel(null);
+    setAcknowledgmentNote('');
+    setAcknowledgmentError(null);
+  };
+
+  const confirmAcknowledgment = () => {
+    if (!acknowledgingPanel) return;
+    try {
+      acknowledgeLabPanel(acknowledgingPanel, acknowledgmentNote);
+      closeAcknowledgeDialog();
+    } catch (error) {
+      console.error('Failed to acknowledge lab panel:', error);
+      setAcknowledgmentError('The acknowledgment could not be saved. Please try again.');
+    }
+  };
 
   const togglePanel = (panelId: number) => {
     setExpandedPanels(prev =>
@@ -142,10 +102,15 @@ export default function LabResultsPage() {
       return panel.results.some(r => r.status === 'abnormal' || r.status === 'critical');
     }
     if (filterStatus === 'critical') {
-      return panel.results.some(r => r.status === 'critical');
+      return hasCriticalResult(panel);
+    }
+    if (filterStatus === 'unacknowledged') {
+      return hasCriticalResult(panel) && !acknowledgments[panel.id];
     }
     return true;
   });
+
+  const unacknowledgedCount = getUnacknowledgedCriticalPanels(labPanels, acknowledgments).length;
 
   const criticalCount = labPanels.reduce((acc, p) => acc + p.results.filter(r => r.status === 'critical').length, 0);
   const abnormalCount = labPanels.reduce((acc, p) => acc + p.results.filter(r => r.status === 'abnormal').length, 0);
@@ -178,12 +143,13 @@ export default function LabResultsPage() {
             </div>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
+              onChange={(e) => setFilterStatus(parseFilter(e.target.value))}
               className="ehr-input text-[10px] py-0.5"
             >
               <option value="all">All Results</option>
               <option value="abnormal">Abnormal Only</option>
               <option value="critical">Critical Only</option>
+              <option value="unacknowledged">Unacknowledged Critical</option>
             </select>
             <select
               value={filterPatient}
@@ -216,6 +182,9 @@ export default function LabResultsPage() {
             <span className="px-2 py-0.5 bg-red-100 text-red-800 border border-red-300">
               {criticalCount} Critical
             </span>
+            <span className="px-2 py-0.5 bg-orange-100 text-orange-800 border border-orange-300">
+              {unacknowledgedCount} Unacknowledged
+            </span>
             <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 border border-yellow-300">
               {abnormalCount} Abnormal
             </span>
@@ -228,8 +197,11 @@ export default function LabResultsPage() {
               No lab results match the selected filters
             </div>
           ) : (
-            filteredPanels.map(panel => (
-              <div key={panel.id} className="border-b border-gray-300">
+            filteredPanels.map(panel => {
+              const acknowledgment = acknowledgments[panel.id];
+              const isCritical = hasCriticalResult(panel);
+              return (
+              <div key={panel.id} className="border-b border-gray-300" data-testid={`lab-panel-${panel.id}`}>
                 <div
                   className="flex items-center justify-between px-2 py-1.5 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] cursor-pointer hover:from-[#fff] hover:to-[#f0f0f0]"
                   onClick={() => togglePanel(panel.id)}
@@ -243,11 +215,30 @@ export default function LabResultsPage() {
                     <FlaskConical className="w-3.5 h-3.5 text-blue-600" />
                     <span className="font-semibold text-[11px]">{panel.panelName}</span>
                     {getStatusBadge(panel.status)}
-                    {panel.results.some(r => r.status === 'critical') && (
+                    {isCritical && (
                       <span className="flex items-center space-x-0.5 text-red-600">
                         <AlertTriangle className="w-3 h-3" />
                         <span className="text-[9px] font-bold">CRITICAL</span>
                       </span>
+                    )}
+                    {isCritical && acknowledgment && (
+                      <span
+                        className="flex items-center space-x-1 px-1.5 py-0.5 text-[9px] bg-green-100 text-green-800 border border-green-300"
+                        title={acknowledgment.note ? `Note: ${acknowledgment.note}` : undefined}
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span className="font-bold">ACKNOWLEDGED</span>
+                        <span>· {acknowledgment.acknowledgedBy} · {formatAcknowledgedAt(acknowledgment.acknowledgedAt)}</span>
+                      </span>
+                    )}
+                    {isCritical && !acknowledgment && (
+                      <button
+                        type="button"
+                        className="ehr-button text-[10px] px-2 py-0.5"
+                        onClick={(e) => { e.stopPropagation(); openAcknowledgeDialog(panel); }}
+                      >
+                        Acknowledge
+                      </button>
                     )}
                   </div>
                   <div className="flex items-center space-x-4 text-[10px] text-gray-600">
@@ -260,6 +251,12 @@ export default function LabResultsPage() {
                     <span>Resulted: {panel.resultedAt}</span>
                   </div>
                 </div>
+
+                {isCritical && acknowledgment?.note && (
+                  <div className="px-6 py-1 text-[10px] bg-green-50 border-t border-green-200 text-gray-700">
+                    <span className="font-semibold">Acknowledgment note:</span> {acknowledgment.note}
+                  </div>
+                )}
 
                 {expandedPanels.includes(panel.id) && (
                   <table className="w-full text-[11px]">
@@ -298,7 +295,8 @@ export default function LabResultsPage() {
                   </table>
                 )}
               </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -307,6 +305,69 @@ export default function LabResultsPage() {
           <span>Last updated: {new Date().toLocaleTimeString()}</span>
         </div>
       </div>
+
+      <Modal
+        isOpen={acknowledgingPanel !== null}
+        onClose={closeAcknowledgeDialog}
+        title="Acknowledge Critical Result"
+        width="md"
+        footer={
+          <>
+            <button type="button" className="ehr-button px-4" onClick={closeAcknowledgeDialog}>
+              Cancel
+            </button>
+            <button type="button" className="ehr-button ehr-button-primary px-4" onClick={confirmAcknowledgment}>
+              Acknowledge
+            </button>
+          </>
+        }
+      >
+        {acknowledgingPanel && (
+          <div className="space-y-3">
+            <div className="text-[11px]">
+              <span className="font-semibold">{acknowledgingPanel.panelName}</span>
+              <span className="text-gray-600"> — {acknowledgingPanel.patientName} ({acknowledgingPanel.patientMrn})</span>
+            </div>
+            <fieldset className="ehr-fieldset">
+              <legend>Critical Values</legend>
+              <table className="w-full text-[11px]">
+                <thead>
+                  <tr className="text-left text-gray-600">
+                    <th className="pb-1">Test</th>
+                    <th className="pb-1">Result</th>
+                    <th className="pb-1">Reference Range</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getCriticalResults(acknowledgingPanel).map(result => (
+                    <tr key={result.id} style={getStatusStyle(result.status)}>
+                      <td className="px-1 py-0.5">{result.testName}</td>
+                      <td className="px-1 py-0.5 font-mono">{result.value} {result.unit}</td>
+                      <td className="px-1 py-0.5">{result.referenceRange}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </fieldset>
+            <div>
+              <label htmlFor="acknowledgment-note" className="block text-[11px] text-gray-700 mb-1">
+                Note (optional)
+              </label>
+              <textarea
+                id="acknowledgment-note"
+                className="ehr-input w-full h-16 resize-none"
+                maxLength={MAX_ACKNOWLEDGMENT_NOTE_LENGTH}
+                value={acknowledgmentNote}
+                onChange={(e) => setAcknowledgmentNote(e.target.value)}
+                placeholder="e.g. Called patient, repeat BMP ordered"
+              />
+            </div>
+            {acknowledgmentError && (
+              <div className="ehr-alert-critical p-2 text-[11px]" role="alert">{acknowledgmentError}</div>
+            )}
+          </div>
+        )}
+      </Modal>
 
       <Modal
         isOpen={selectedResult !== null}

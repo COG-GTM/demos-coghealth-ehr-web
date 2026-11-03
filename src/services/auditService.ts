@@ -1,3 +1,5 @@
+import type { LabPanel } from '../types';
+
 export type AuditEventType = 
   | 'LOGIN'
   | 'LOGOUT'
@@ -12,6 +14,7 @@ export type AuditEventType =
   | 'NOTE_CREATE'
   | 'NOTE_SIGN'
   | 'PRESCRIPTION_CREATE'
+  | 'LAB_ACKNOWLEDGE'
   | 'SETTINGS_CHANGE'
   | 'FAILED_LOGIN';
 
@@ -33,6 +36,12 @@ export interface AuditEvent {
   details?: string;
   success: boolean;
 }
+
+export const CURRENT_USER = {
+  id: 'USR001',
+  name: 'Dr. Sarah Anderson',
+  role: 'Physician',
+};
 
 const AUDIT_LOG_KEY = 'coghealth_audit_log';
 const MAX_LOG_ENTRIES = 1000;
@@ -67,9 +76,9 @@ export function logAuditEvent(
     id: generateId(),
     timestamp: new Date().toISOString(),
     eventType,
-    userId: 'USR001',
-    userName: 'Dr. Sarah Anderson',
-    userRole: 'Physician',
+    userId: CURRENT_USER.id,
+    userName: CURRENT_USER.name,
+    userRole: CURRENT_USER.role,
     ipAddress: '192.168.1.100',
     sessionId: getSessionId(),
     patientId: options.patientId,
@@ -160,6 +169,21 @@ export function logOrder(patientId: string, orderType: string, orderDetails: str
     resourceType: orderType,
     action: 'Order created',
     details: orderDetails,
+  });
+}
+
+export function logLabAcknowledgment(
+  panel: LabPanel,
+  criticalValues: string,
+  note?: string
+): void {
+  logAuditEvent('LAB_ACKNOWLEDGE', {
+    patientMrn: panel.patientMrn,
+    patientName: panel.patientName,
+    resourceType: 'LabPanel',
+    resourceId: String(panel.id),
+    action: `Acknowledged critical result: ${panel.panelName}`,
+    details: note ? `${criticalValues} - Note: ${note}` : criticalValues,
   });
 }
 

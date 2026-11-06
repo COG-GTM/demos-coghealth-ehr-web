@@ -7,6 +7,8 @@ import { OrderDialog } from '../components/ui/OrderDialog';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { patientService } from '../services/patientService';
 import type { Patient } from '../types';
+import { inboxPriorityLabel, inboxStatusLabels, inboxTypeLabel } from './inboxA11y';
+import type { InboxItemPriority, InboxItemType } from './inboxA11y';
 import { 
   FileText,
   Pill,
@@ -32,8 +34,8 @@ type WorklistFilter = 'all' | 'inpatient' | 'outpatient' | 'critical';
 
 interface InboxItem {
   id: number;
-  type: 'lab' | 'imaging' | 'message' | 'refill' | 'order' | 'cosign' | 'consult';
-  priority: 'critical' | 'high' | 'normal' | 'low';
+  type: InboxItemType;
+  priority: InboxItemPriority;
   patientName: string;
   patientMrn: string;
   title: string;
@@ -245,16 +247,26 @@ export default function DashboardPage() {
   }, [worklistPatients, worklistFilter, worklistSort, worklistSortAsc]);
 
   const getInboxIcon = (type: string) => {
-    switch (type) {
-      case 'lab': return <FlaskConical className="w-3 h-3" />;
-      case 'imaging': return <Radio className="w-3 h-3" />;
-      case 'message': return <MessageSquare className="w-3 h-3" />;
-      case 'refill': return <Pill className="w-3 h-3" />;
-      case 'order': return <ClipboardList className="w-3 h-3" />;
-      case 'cosign': return <Edit3 className="w-3 h-3" />;
-      case 'consult': return <Stethoscope className="w-3 h-3" />;
-      default: return <FileText className="w-3 h-3" />;
-    }
+    const iconProps = { className: 'w-3 h-3', 'aria-hidden': true } as const;
+    const icon = (() => {
+      switch (type) {
+        case 'lab': return <FlaskConical {...iconProps} />;
+        case 'imaging': return <Radio {...iconProps} />;
+        case 'message': return <MessageSquare {...iconProps} />;
+        case 'refill': return <Pill {...iconProps} />;
+        case 'order': return <ClipboardList {...iconProps} />;
+        case 'cosign': return <Edit3 {...iconProps} />;
+        case 'consult': return <Stethoscope {...iconProps} />;
+        default: return <FileText {...iconProps} />;
+      }
+    })();
+    const label = inboxTypeLabel(type);
+    return (
+      <span className="inline-flex" title={label}>
+        {icon}
+        <span className="sr-only">{label}</span>
+      </span>
+    );
   };
 
   const getStatusStyle = (status: string) => {
@@ -403,7 +415,7 @@ export default function DashboardPage() {
                   <table className="w-full text-[11px]">
                     <thead className="sticky top-0">
                       <tr>
-                        <th className="px-1 py-1 text-left w-6"></th>
+                        <th className="px-1 py-1 text-left w-6"><span className="sr-only">Status</span></th>
                         <th className="px-1 py-1 text-left w-6">Type</th>
                         <th className="px-1 py-1 text-left">Patient</th>
                         <th className="px-1 py-1 text-left">Subject</th>
@@ -412,32 +424,46 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredInbox.map((item, idx) => (
+                      {filteredInbox.map((item, idx) => {
+                        const isCritical = item.priority === 'critical';
+                        const priorityLabel = inboxPriorityLabel(item.priority);
+                        const secondaryText = isCritical ? 'text-gray-800' : 'text-gray-500';
+                        return (
                         <tr 
                           key={item.id} 
-                          className={`cursor-pointer ${item.priority === 'critical' ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''} ${!item.read ? 'font-semibold' : ''}`}
+                          className={`cursor-pointer ${isCritical ? 'ehr-alert-critical' : idx % 2 === 1 ? 'bg-gray-50' : ''} ${!item.read ? 'font-semibold' : ''}`}
                         >
                           <td className="px-1 py-0.5">
-                            {!item.read && <span className="w-2 h-2 bg-gray-600 inline-block border border-gray-700" />}
-                            {item.flagged && <Flag className="w-3 h-3 text-red-600 inline" />}
+                            {!item.read && <span className="w-2 h-2 bg-gray-600 inline-block border border-gray-700" title="Unread" aria-hidden="true" />}
+                            {item.flagged && <span title="Flagged"><Flag className="w-3 h-3 text-red-600 inline" aria-hidden="true" /></span>}
+                            {inboxStatusLabels(item).map(label => <span key={label} className="sr-only">{label}</span>)}
                           </td>
                           <td className="px-1 py-0.5">{getInboxIcon(item.type)}</td>
                           <td className="px-1 py-0.5">
                             <span>{item.patientName}</span>
-                            <span className="text-gray-500 ml-1 text-[10px]">{item.patientMrn}</span>
+                            <span className={`${secondaryText} ml-1 text-[10px]`}>{item.patientMrn}</span>
                           </td>
                           <td className="px-1 py-0.5">
-                            <div className={item.priority === 'critical' ? 'text-red-800' : ''}>{item.title}</div>
-                            <div className="text-gray-500 text-[10px] truncate max-w-[300px]">{item.detail}</div>
+                            <div className={isCritical ? 'text-red-800' : ''}>
+                              {isCritical && (
+                                <span className="inline-block mr-1 px-0.5 border border-red-800 bg-white text-red-800 text-[9px] font-bold leading-tight">
+                                  CRITICAL<span className="sr-only"> priority:</span>
+                                </span>
+                              )}
+                              {!isCritical && priorityLabel && <span className="sr-only">{priorityLabel}: </span>}
+                              {item.title}
+                            </div>
+                            <div className={`${secondaryText} text-[10px] truncate max-w-[300px]`}>{item.detail}</div>
                           </td>
-                          <td className="px-1 py-0.5 text-gray-500">{item.timestamp}</td>
+                          <td className={`px-1 py-0.5 ${secondaryText}`}>{item.timestamp}</td>
                           <td className="px-1 py-0.5 text-center">
                             <button className="ehr-toolbar-button p-0.5" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View"><Eye className="w-3 h-3" /></button>
                             <button className="ehr-toolbar-button p-0.5" onClick={() => markAsRead(item.id)} title="Mark Read"><CheckCircle2 className="w-3 h-3" /></button>
-                            <button className="ehr-toolbar-button p-0.5" onClick={() => toggleFlag(item.id)} title="Flag"><Flag className={`w-3 h-3 ${item.flagged ? 'text-red-600' : ''}`} /></button>
+                            <button className="ehr-toolbar-button p-0.5" onClick={() => toggleFlag(item.id)} title="Flag" aria-pressed={item.flagged}><Flag className={`w-3 h-3 ${item.flagged ? 'text-red-600' : ''}`} aria-hidden="true" /></button>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

@@ -22,7 +22,6 @@ import {
   RefreshCw,
   X
 } from 'lucide-react';
-type PatientFlag = 'FALL_RISK' | 'ALLERGY' | 'ISOLATION' | 'DNR' | 'VIP' | 'DIFFICULT_IV';
 
 import { AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
@@ -31,6 +30,15 @@ import { OrderDialog } from '../components/ui/OrderDialog';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { patientService } from '../services/patientService';
 import type { Patient } from '../types';
+import {
+  flagConfig,
+  flagLabel,
+  hiddenFlagsLabel,
+  alertsLabel,
+  openEncountersLabel,
+  MAX_VISIBLE_FLAGS,
+  type PatientFlag,
+} from './patientFlags';
 
 interface PatientListItem {
   id: number;
@@ -97,15 +105,6 @@ function mapPatientToListItem(patient: Patient): PatientListItem {
     location: 'Main Clinic',
   };
 }
-
-const flagConfig: Record<string, { label: string; color: string; bg: string }> = {
-  FALL_RISK: { label: 'Fall Risk', color: 'text-gray-800', bg: 'bg-gray-200' },
-  ALLERGY: { label: 'Allergy', color: 'text-gray-800', bg: 'bg-gray-200' },
-  ISOLATION: { label: 'Isolation', color: 'text-gray-800', bg: 'bg-gray-200' },
-  DNR: { label: 'DNR/DNI', color: 'text-gray-800', bg: 'bg-gray-300' },
-  VIP: { label: 'VIP', color: 'text-gray-700', bg: 'bg-gray-100' },
-  DIFFICULT_IV: { label: 'Diff IV', color: 'text-gray-700', bg: 'bg-gray-100' },
-};
 
 interface FilterState {
   status: string[];
@@ -564,21 +563,29 @@ export default function PatientSearchPage() {
                     >
                       <td className="px-1 py-0.5">
                         <div className="flex items-center space-x-0.5">
-                          {patient.flags.slice(0, 3).map((flag) => (
+                          {patient.flags.slice(0, MAX_VISIBLE_FLAGS).map((flag) => (
                             <span
                               key={flag}
                               className={`px-0.5 py-0 text-[9px] font-medium ${isSelected ? 'bg-white/30 text-white' : `${flagConfig[flag].bg} ${flagConfig[flag].color}`}`}
-                              title={flagConfig[flag].label}
+                              title={flagLabel(flag)}
                             >
-                              {flag === 'FALL_RISK' && <AlertTriangle className="w-2.5 h-2.5 inline" />}
-                              {flag === 'ALLERGY' && <AlertCircle className="w-2.5 h-2.5 inline" />}
-                              {flag === 'DNR' && 'DNR'}
-                              {flag === 'VIP' && <Star className="w-2.5 h-2.5 inline" />}
-                              {flag === 'ISOLATION' && <Flag className="w-2.5 h-2.5 inline" />}
-                              {flag === 'DIFFICULT_IV' && 'IV'}
+                              <span aria-hidden="true">
+                                {flag === 'FALL_RISK' && <AlertTriangle className="w-2.5 h-2.5 inline" aria-hidden="true" />}
+                                {flag === 'ALLERGY' && <AlertCircle className="w-2.5 h-2.5 inline" aria-hidden="true" />}
+                                {flag === 'DNR' && 'DNR'}
+                                {flag === 'VIP' && <Star className="w-2.5 h-2.5 inline" aria-hidden="true" />}
+                                {flag === 'ISOLATION' && <Flag className="w-2.5 h-2.5 inline" aria-hidden="true" />}
+                                {flag === 'DIFFICULT_IV' && 'IV'}
+                              </span>
+                              <span className="sr-only">{flagLabel(flag)}</span>
                             </span>
                           ))}
-                          {patient.flags.length > 3 && <span className="text-[9px]">+{patient.flags.length - 3}</span>}
+                          {patient.flags.length > MAX_VISIBLE_FLAGS && (
+                            <span className="text-[9px]" title={hiddenFlagsLabel(patient.flags)}>
+                              <span aria-hidden="true">+{patient.flags.length - MAX_VISIBLE_FLAGS}</span>
+                              <span className="sr-only">{hiddenFlagsLabel(patient.flags)}</span>
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-1 py-0.5 font-mono">{patient.mrn}</td>
@@ -602,18 +609,28 @@ export default function PatientSearchPage() {
                       <td className="px-1 py-0.5">
                         <div className="flex items-center justify-center space-x-0.5">
                           {patient.openEncounters > 0 && (
-                            <span className={`px-0.5 text-[9px] border border-gray-400 ${isSelected ? 'bg-white/30' : 'bg-gray-100 text-gray-700'}`} title="Open encounters">
-                              {patient.openEncounters}E
+                            <span className={`px-0.5 text-[9px] border border-gray-400 ${isSelected ? 'bg-white/30' : 'bg-gray-100 text-gray-700'}`} title={openEncountersLabel(patient.openEncounters)}>
+                              <span aria-hidden="true">{patient.openEncounters}E</span>
+                              <span className="sr-only">{openEncountersLabel(patient.openEncounters)}</span>
                             </span>
                           )}
                           {patient.recentLabs && (
-                            <span title="Recent labs"><Activity className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600'}`} /></span>
+                            <span title="Recent labs">
+                              <Activity className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600'}`} aria-hidden="true" />
+                              <span className="sr-only">Recent labs</span>
+                            </span>
                           )}
                           {patient.recentImaging && (
-                            <span title="Recent imaging"><FileText className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600'}`} /></span>
+                            <span title="Recent imaging">
+                              <FileText className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600'}`} aria-hidden="true" />
+                              <span className="sr-only">Recent imaging</span>
+                            </span>
                           )}
                           {patient.alerts.length > 0 && (
-                            <span title={patient.alerts.join(', ')}><AlertTriangle className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600'}`} /></span>
+                            <span title={alertsLabel(patient.alerts)}>
+                              <AlertTriangle className={`w-3 h-3 ${isSelected ? 'text-gray-200' : 'text-gray-600'}`} aria-hidden="true" />
+                              <span className="sr-only">{alertsLabel(patient.alerts)}</span>
+                            </span>
                           )}
                         </div>
                       </td>

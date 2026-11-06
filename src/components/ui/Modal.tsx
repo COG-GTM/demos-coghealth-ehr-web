@@ -47,7 +47,10 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
           >
             <span className="text-white font-semibold text-[11px]">{title}</span>
             <button 
+              type="button"
               onClick={onClose}
+              aria-label={`Close ${title}`}
+              title="Close"
               className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20"
             >
               <X className="w-3.5 h-3.5" />

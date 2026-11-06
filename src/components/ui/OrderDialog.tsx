@@ -184,7 +184,7 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
                         <div className="font-medium">{order.code}</div>
                         <div className="text-[10px] text-gray-500 truncate max-w-[180px]">{order.name}</div>
                       </div>
-                      <button onClick={() => removeOrder(order.id)} className="text-red-600 hover:text-red-800">
+                      <button type="button" onClick={() => removeOrder(order.id)} aria-label={`Remove ${order.code} ${order.name}`} title="Remove" className="text-red-600 hover:text-red-800">
                         <X className="w-3 h-3" />
                       </button>
                     </div>

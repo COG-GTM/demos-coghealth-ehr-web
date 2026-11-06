@@ -79,6 +79,7 @@ export default function PatientSearch({ onSelectPatient }: PatientSearchProps) {
         <div className="flex space-x-4">
           <div className="flex-1">
             <Input
+              aria-label="Search patients by name, MRN, or date of birth"
               placeholder="Search by name, MRN, or date of birth..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

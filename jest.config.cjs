@@ -8,6 +8,7 @@ module.exports = {
       tsconfig: {
         module: 'commonjs',
         esModuleInterop: true,
+        jsx: 'react-jsx',
       }
     }]
   },

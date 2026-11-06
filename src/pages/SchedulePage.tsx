@@ -27,6 +27,7 @@ import { Modal, AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
+import { copayStatusLabel, isSystolicHigh } from '../utils/clinicalIndicators';
 
 interface ScheduleAppointment {
   id: number;
@@ -473,10 +474,13 @@ export default function SchedulePage() {
                         <td className="flex items-center">
                           ${selectedAppointment.copay || 0}
                           {selectedAppointment.copayCollected ? (
-                            <CheckCircle2 className="w-3 h-3 ml-1 text-green-600" />
+                            <CheckCircle2 className="w-3 h-3 ml-1 text-green-600" aria-hidden="true" />
                           ) : (
-                            <XCircle className="w-3 h-3 ml-1 text-red-600" />
+                            <XCircle className="w-3 h-3 ml-1 text-red-600" aria-hidden="true" />
                           )}
+                          <span className={`ml-1 ${selectedAppointment.copayCollected ? 'text-green-700' : 'text-red-700'}`}>
+                            {copayStatusLabel(selectedAppointment.copayCollected)}
+                          </span>
                         </td>
                       </tr>
                     </tbody>
@@ -547,8 +551,14 @@ export default function SchedulePage() {
                         <div className="grid grid-cols-5 gap-1 text-center text-[10px]">
                           <div className="p-1 bg-gray-100 border border-gray-300">
                             <div className="text-gray-500">BP</div>
-                            <div className={`font-semibold ${parseInt(selectedAppointment.lastVitals.bp) > 140 ? 'text-red-600' : ''}`}>
+                            <div className={`font-semibold ${isSystolicHigh(selectedAppointment.lastVitals.bp) ? 'text-red-600' : ''}`}>
                               {selectedAppointment.lastVitals.bp}
+                              {isSystolicHigh(selectedAppointment.lastVitals.bp) && (
+                                <>
+                                  <span className="ml-0.5" aria-hidden="true">(H)</span>
+                                  <span className="sr-only"> high</span>
+                                </>
+                              )}
                             </div>
                           </div>
                           <div className="p-1 bg-gray-100 border border-gray-300">
@@ -620,7 +630,15 @@ export default function SchedulePage() {
                           <div key={i} className={`flex items-center justify-between px-2 py-1 text-[10px] ${i % 2 === 1 ? 'bg-gray-50' : ''}`}>
                             <span>{lab.name}</span>
                             <div className="flex items-center space-x-2">
-                              <span className={lab.abnormal ? 'text-red-600 font-semibold' : ''}>{lab.value}</span>
+                              <span className={lab.abnormal ? 'text-red-600 font-semibold' : ''}>
+                                {lab.value}
+                                {lab.abnormal && (
+                                  <>
+                                    <span className="ml-0.5" aria-hidden="true">(A)</span>
+                                    <span className="sr-only"> abnormal</span>
+                                  </>
+                                )}
+                              </span>
                               <span className="text-gray-400">{lab.date}</span>
                             </div>
                           </div>

@@ -167,12 +167,15 @@ export default function VitalsPage() {
 
         <div className="flex-1 overflow-auto bg-white border border-gray-400">
           <table className="w-full text-[11px]">
+            <caption className="sr-only">
+              Vital signs flowsheet for {selectedPatient.name} ({selectedPatient.mrn}): one row per vital sign, one column per reading time
+            </caption>
             <thead className="sticky top-0">
               <tr className="bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0]">
-                <th className="text-left px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
-                <th className="text-center px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] min-w-[50px]">Trend</th>
+                <th scope="col" className="text-left px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] sticky left-0 z-10 min-w-[100px]">Vital Sign</th>
+                <th scope="col" className="text-center px-2 py-1 border border-gray-400 bg-gradient-to-b from-[#f8f8f8] to-[#e8e8e8] min-w-[50px]">Trend</th>
                 {vitals.map((reading) => (
-                  <th key={reading.id} className="text-center px-2 py-1 border border-gray-400 min-w-[80px]">
+                  <th key={reading.id} scope="col" className="text-center px-2 py-1 border border-gray-400 min-w-[80px]">
                     <div className="text-[10px] font-normal text-gray-600">{reading.timestamp.split(' ')[0]}</div>
                     <div className="font-semibold">{reading.timestamp.split(' ')[1]}</div>
                   </th>
@@ -182,10 +185,10 @@ export default function VitalsPage() {
             <tbody>
               {vitalSigns.map((vital, vitalIdx) => (
                 <tr key={vital.key} className={vitalIdx % 2 === 0 ? 'bg-white' : 'bg-[#f8f8f8]'}>
-                  <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">
+                  <th scope="row" className="text-left px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-inherit z-10">
                     <div>{vital.name}</div>
                     <div className="text-[9px] text-gray-500 font-normal">{vital.unit} ({vital.normalRange.min}-{vital.normalRange.max})</div>
-                  </td>
+                  </th>
                   <td className="px-2 py-1 border border-gray-300 text-center">
                     <Sparkline 
                       data={vitals.map(r => r[vital.key] as number | undefined)} 
@@ -219,7 +222,7 @@ export default function VitalsPage() {
                 </tr>
               ))}
               <tr className="bg-gray-100">
-                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Recorded By</td>
+                <th scope="row" className="text-left px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Recorded By</th>
                 <td className="px-2 py-1 border border-gray-300"></td>
                 {vitals.map((reading) => (
                   <td key={reading.id} className="px-2 py-1 border border-gray-300 text-center text-[10px] text-gray-600">
@@ -228,7 +231,7 @@ export default function VitalsPage() {
                 ))}
               </tr>
               <tr className="bg-gray-100">
-                <td className="px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Location</td>
+                <th scope="row" className="text-left px-2 py-1 border border-gray-300 font-semibold sticky left-0 bg-gray-100 z-10">Location</th>
                 <td className="px-2 py-1 border border-gray-300"></td>
                 {vitals.map((reading) => (
                   <td key={reading.id} className="px-2 py-1 border border-gray-300 text-center text-[10px] text-gray-600">

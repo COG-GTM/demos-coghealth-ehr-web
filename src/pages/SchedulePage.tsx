@@ -314,7 +314,7 @@ export default function SchedulePage() {
           <span>Waiting: <strong>{stats.waiting}</strong></span>
           <span>Upcoming: <strong>{stats.upcoming}</strong></span>
         </div>
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1" role="group" aria-label="Filter appointments by status">
           {[
             { key: 'all', label: 'All' },
             { key: 'waiting', label: 'Waiting' },
@@ -323,7 +323,9 @@ export default function SchedulePage() {
           ].map((filter) => (
             <button
               key={filter.key}
+              type="button"
               onClick={() => setStatusFilter(filter.key as StatusFilter)}
+              aria-pressed={statusFilter === filter.key}
               className={`ehr-tab ${statusFilter === filter.key ? 'active' : ''}`}
             >
               {filter.label}

@@ -110,7 +110,8 @@ td {
 }
 
 .ehr-header {
-  background: linear-gradient(to bottom, #6699cc 0%, #336699 100%);
+  /* Top stop kept dark enough for white text to stay >= 4.5:1 (WCAG 1.4.3) */
+  background: linear-gradient(to bottom, #3d6fa3 0%, #336699 100%);
   color: white;
   padding: 4px 8px;
   font-weight: 600;

@@ -452,7 +452,7 @@ export default function SchedulePage() {
                 <span>{selectedAppointment.patientName}</span>
                 <button 
                   onClick={() => navigate(`/patients/${selectedAppointment.patientId}`)}
-                  className="text-white/80 hover:text-white flex items-center text-[10px]"
+                  className="text-white hover:underline flex items-center text-[10px]"
                 >
                   <ExternalLink className="w-3 h-3 mr-0.5" /> Chart
                 </button>

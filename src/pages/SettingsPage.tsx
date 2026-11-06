@@ -157,8 +157,9 @@ export default function SettingsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">First Name</label>
+                    <label htmlFor="settings-first-name" className="block text-[10px] text-gray-600 mb-0.5">First Name</label>
                     <input
+                      id="settings-first-name"
                       type="text"
                       value={profile.firstName}
                       onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
@@ -166,8 +167,9 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Last Name</label>
+                    <label htmlFor="settings-last-name" className="block text-[10px] text-gray-600 mb-0.5">Last Name</label>
                     <input
+                      id="settings-last-name"
                       type="text"
                       value={profile.lastName}
                       onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
@@ -175,8 +177,9 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Email</label>
+                    <label htmlFor="settings-email" className="block text-[10px] text-gray-600 mb-0.5">Email</label>
                     <input
+                      id="settings-email"
                       type="email"
                       value={profile.email}
                       onChange={(e) => setProfile({ ...profile, email: e.target.value })}
@@ -184,8 +187,9 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Phone</label>
+                    <label htmlFor="settings-phone" className="block text-[10px] text-gray-600 mb-0.5">Phone</label>
                     <input
+                      id="settings-phone"
                       type="tel"
                       value={profile.phone}
                       onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
@@ -193,8 +197,9 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">NPI Number</label>
+                    <label htmlFor="settings-npi" className="block text-[10px] text-gray-600 mb-0.5">NPI Number</label>
                     <input
+                      id="settings-npi"
                       type="text"
                       value={profile.npi}
                       onChange={(e) => setProfile({ ...profile, npi: e.target.value })}
@@ -202,8 +207,9 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Specialty</label>
+                    <label htmlFor="settings-specialty" className="block text-[10px] text-gray-600 mb-0.5">Specialty</label>
                     <select
+                      id="settings-specialty"
                       value={profile.specialty}
                       onChange={(e) => setProfile({ ...profile, specialty: e.target.value })}
                       className="ehr-input w-full"
@@ -406,8 +412,9 @@ export default function SettingsPage() {
                 <legend>Display Options</legend>
                 <div className="space-y-2">
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Font Size</label>
+                    <label htmlFor="settings-font-size" className="block text-[10px] text-gray-600 mb-0.5">Font Size</label>
                     <select
+                      id="settings-font-size"
                       value={appearance.fontSize}
                       onChange={(e) => setAppearance({ ...appearance, fontSize: e.target.value })}
                       className="ehr-input w-48"
@@ -440,24 +447,24 @@ export default function SettingsPage() {
                 <legend>Practice Information</legend>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Practice Name</label>
-                    <input type="text" defaultValue="Anderson Family Medicine" className="ehr-input w-full" />
+                    <label htmlFor="settings-practice-name" className="block text-[10px] text-gray-600 mb-0.5">Practice Name</label>
+                    <input id="settings-practice-name" type="text" defaultValue="Anderson Family Medicine" className="ehr-input w-full" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Tax ID</label>
-                    <input type="text" defaultValue="12-3456789" className="ehr-input w-full font-mono" />
+                    <label htmlFor="settings-tax-id" className="block text-[10px] text-gray-600 mb-0.5">Tax ID</label>
+                    <input id="settings-tax-id" type="text" defaultValue="12-3456789" className="ehr-input w-full font-mono" />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Address</label>
-                    <input type="text" defaultValue="123 Medical Center Drive, Suite 100" className="ehr-input w-full" />
+                    <label htmlFor="settings-address" className="block text-[10px] text-gray-600 mb-0.5">Address</label>
+                    <input id="settings-address" type="text" defaultValue="123 Medical Center Drive, Suite 100" className="ehr-input w-full" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">City</label>
-                    <input type="text" defaultValue="Springfield" className="ehr-input w-full" />
+                    <label htmlFor="settings-city" className="block text-[10px] text-gray-600 mb-0.5">City</label>
+                    <input id="settings-city" type="text" defaultValue="Springfield" className="ehr-input w-full" />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">State</label>
-                    <select className="ehr-input w-full">
+                    <label htmlFor="settings-state" className="block text-[10px] text-gray-600 mb-0.5">State</label>
+                    <select id="settings-state" className="ehr-input w-full">
                       <option>Illinois</option>
                       <option>California</option>
                       <option>New York</option>
@@ -483,12 +490,12 @@ export default function SettingsPage() {
                     {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((day) => (
                       <div key={day} className="flex items-center space-x-2 text-[11px]">
                         <span className="w-20 text-gray-600">{day}</span>
-                        <select className="ehr-input text-[10px]">
+                        <select aria-label={`${day} opening time`} className="ehr-input text-[10px]">
                           <option>8:00 AM</option>
                           <option>9:00 AM</option>
                         </select>
                         <span className="text-gray-400">to</span>
-                        <select className="ehr-input text-[10px]">
+                        <select aria-label={`${day} closing time`} className="ehr-input text-[10px]">
                           <option>5:00 PM</option>
                           <option>6:00 PM</option>
                         </select>

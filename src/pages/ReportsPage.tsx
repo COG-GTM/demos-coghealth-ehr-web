@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface Report {
   id: number;
@@ -51,6 +52,7 @@ const categoryConfig = {
 type CategoryFilter = 'all' | 'clinical' | 'operational' | 'financial' | 'compliance';
 
 export default function ReportsPage() {
+  useDocumentTitle('Reports');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['clinical', 'operational', 'financial', 'compliance']));
   const [showPrintDialog, setShowPrintDialog] = useState(false);

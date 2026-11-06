@@ -25,6 +25,7 @@ import type { MedicationOrderStatus } from '../types';
 import { AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface MedicationOrderExtended {
   id: number;
@@ -241,6 +242,7 @@ type FilterStatus = 'all' | 'active' | 'pending' | 'discontinued' | 'controlled'
 type ViewMode = 'all' | 'by-patient';
 
 export default function MedicationsPage() {
+  useDocumentTitle('Medications');
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');

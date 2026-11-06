@@ -27,6 +27,7 @@ import { Modal, AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface ScheduleAppointment {
   id: number;
@@ -193,6 +194,7 @@ const flagConfig: Record<string, { label: string; color: string; bg: string }> =
 type StatusFilter = 'all' | 'waiting' | 'in-progress' | 'completed';
 
 export default function SchedulePage() {
+  useDocumentTitle('Schedule');
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date('2024-01-18'));
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');

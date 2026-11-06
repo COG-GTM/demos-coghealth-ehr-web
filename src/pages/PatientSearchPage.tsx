@@ -31,6 +31,7 @@ import { OrderDialog } from '../components/ui/OrderDialog';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { patientService } from '../services/patientService';
 import type { Patient } from '../types';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface PatientListItem {
   id: number;
@@ -120,6 +121,7 @@ interface FilterState {
 }
 
 export default function PatientSearchPage() {
+  useDocumentTitle('Patients');
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<PatientListItem[]>([]);

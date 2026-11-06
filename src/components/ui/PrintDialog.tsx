@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Printer, FileText, Download } from 'lucide-react';
 import { Modal } from './Modal';
 
@@ -19,6 +19,8 @@ interface PrintOptions {
 }
 
 export function PrintDialog({ isOpen, onClose, title, documentName, onPrint }: PrintDialogProps) {
+  const copiesId = useId();
+  const orientationId = useId();
   const [options, setOptions] = useState<PrintOptions>({
     copies: 1,
     orientation: 'portrait',
@@ -68,8 +70,9 @@ export function PrintDialog({ isOpen, onClose, title, documentName, onPrint }: P
           <legend>Print Options</legend>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] text-gray-600 mb-0.5">Copies</label>
+              <label htmlFor={copiesId} className="block text-[10px] text-gray-600 mb-0.5">Copies</label>
               <input
+                id={copiesId}
                 type="number"
                 min="1"
                 max="99"
@@ -79,8 +82,9 @@ export function PrintDialog({ isOpen, onClose, title, documentName, onPrint }: P
               />
             </div>
             <div>
-              <label className="block text-[10px] text-gray-600 mb-0.5">Orientation</label>
+              <label htmlFor={orientationId} className="block text-[10px] text-gray-600 mb-0.5">Orientation</label>
               <select
+                id={orientationId}
                 value={options.orientation}
                 onChange={(e) => setOptions({ ...options, orientation: e.target.value as 'portrait' | 'landscape' })}
                 className="ehr-input w-full"

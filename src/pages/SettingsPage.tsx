@@ -371,7 +371,7 @@ export default function SettingsPage() {
                       <tr key={idx} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
                         <td className="px-2 py-1">{activity.action}</td>
                         <td className="px-2 py-1 text-gray-500">{activity.location}</td>
-                        <td className="px-2 py-1 text-gray-400 text-right">{activity.time}</td>
+                        <td className="px-2 py-1 text-gray-600 text-right">{activity.time}</td>
                       </tr>
                     ))}
                   </tbody>

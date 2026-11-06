@@ -282,15 +282,15 @@ export default function SchedulePage() {
             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
           </button>
           <span className="text-gray-400">|</span>
-          <button onClick={() => changeDate(-1)} className="ehr-toolbar-button p-1">
-            <ChevronLeft className="w-4 h-4" />
+          <button type="button" onClick={() => changeDate(-1)} className="ehr-toolbar-button p-1" aria-label="Previous day" title="Previous day">
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" focusable="false" />
           </button>
-          <button className="ehr-toolbar-button flex items-center px-2">
-            <Calendar className="w-3.5 h-3.5 mr-1" />
+          <button type="button" className="ehr-toolbar-button flex items-center px-2">
+            <Calendar className="w-3.5 h-3.5 mr-1" aria-hidden="true" focusable="false" />
             {formatDate(selectedDate)}
           </button>
-          <button onClick={() => changeDate(1)} className="ehr-toolbar-button p-1">
-            <ChevronRight className="w-4 h-4" />
+          <button type="button" onClick={() => changeDate(1)} className="ehr-toolbar-button p-1" aria-label="Next day" title="Next day">
+            <ChevronRight className="w-4 h-4" aria-hidden="true" focusable="false" />
           </button>
           <button onClick={() => setSelectedDate(new Date('2024-01-18'))} className="ehr-button text-[10px] px-2 py-0.5">
             Today

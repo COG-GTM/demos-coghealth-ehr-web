@@ -359,6 +359,7 @@ export default function DashboardPage() {
             {expandedPanels.inbox && (
               <>
                 <div className="ehr-subheader flex items-center space-x-1">
+                  <div role="group" aria-label="Inbox category" className="flex items-center space-x-1">
                   {[
                     { key: 'all', label: 'All', count: inboxCounts.all },
                     { key: 'results', label: 'Results', count: inboxCounts.results },
@@ -369,12 +370,15 @@ export default function DashboardPage() {
                   ].map((tab) => (
                     <button
                       key={tab.key}
+                      type="button"
+                      aria-pressed={inboxTab === tab.key}
                       onClick={() => setInboxTab(tab.key as InboxTab)}
                       className={`ehr-tab ${inboxTab === tab.key ? 'active' : ''}`}
                     >
                       {tab.label} {tab.count > 0 && <span className="ml-1 text-[9px]">({tab.count})</span>}
                     </button>
                   ))}
+                  </div>
                   <span className="text-gray-400 mx-1">|</span>
                   <select 
                     value={inboxPriority} 
@@ -462,6 +466,7 @@ export default function DashboardPage() {
             {expandedPanels.worklist && (
               <>
                 <div className="ehr-subheader flex items-center space-x-1">
+                  <div role="group" aria-label="Worklist filter" className="flex items-center space-x-1">
                   {[
                     { key: 'all', label: 'All' },
                     { key: 'inpatient', label: 'Inpatient' },
@@ -470,12 +475,15 @@ export default function DashboardPage() {
                   ].map((filter) => (
                     <button
                       key={filter.key}
+                      type="button"
+                      aria-pressed={worklistFilter === filter.key}
                       onClick={() => setWorklistFilter(filter.key as WorklistFilter)}
                       className={`ehr-tab ${worklistFilter === filter.key ? 'active' : ''}`}
                     >
                       {filter.label}
                     </button>
                   ))}
+                  </div>
                   <span className="text-gray-400 mx-1">|</span>
                   <span className="text-[10px] text-gray-600">Sort:</span>
                   <select 

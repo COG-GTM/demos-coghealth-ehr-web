@@ -174,20 +174,26 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                   className="ehr-input flex-1"
                 />
               </div>
-              <div className="flex-1 overflow-auto border border-gray-300 bg-white">
-                {filteredMeds.map((med) => (
-                  <div
-                    key={med.name}
-                    onClick={() => selectMedication(med)}
-                    className={`px-2 py-1 text-[11px] cursor-pointer border-b border-gray-200 ${
-                      selectedMed?.name === med.name ? 'bg-blue-100' : 'hover:bg-blue-50'
-                    }`}
-                  >
-                    <div className="font-medium">{med.name}</div>
-                    <div className="text-[10px] text-gray-500">{med.class} • {med.form}</div>
-                  </div>
-                ))}
-              </div>
+              <ul aria-label="Medications" className="flex-1 overflow-auto border border-gray-300 bg-white">
+                {filteredMeds.map((med) => {
+                  const isSelected = selectedMed?.name === med.name;
+                  return (
+                    <li key={med.name} className="border-b border-gray-200">
+                      <button
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => selectMedication(med)}
+                        className={`block w-full text-left px-2 py-1 text-[11px] cursor-pointer focus-visible:outline-1 focus-visible:outline-dotted focus-visible:outline-black focus-visible:-outline-offset-2 ${
+                          isSelected ? 'bg-blue-100' : 'hover:bg-blue-50'
+                        }`}
+                      >
+                        <span className="block font-medium">{med.name}</span>
+                        <span className="block text-[10px] text-gray-500">{med.class} • {med.form}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             </fieldset>
           </div>
 

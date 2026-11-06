@@ -1,3 +1,5 @@
+export type ConsciousnessLevel = 'A' | 'C' | 'V' | 'P' | 'U';
+
 export interface VitalReading {
   id: number;
   timestamp: string;
@@ -10,6 +12,8 @@ export interface VitalReading {
   weight?: number;
   height?: number;
   painLevel?: number;
+  consciousness?: ConsciousnessLevel;
+  supplementalO2?: boolean;
   recordedBy: string;
   location: string;
 }

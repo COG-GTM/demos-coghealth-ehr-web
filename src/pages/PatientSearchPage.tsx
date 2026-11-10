@@ -30,6 +30,7 @@ import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { patientService } from '../services/patientService';
+import { PatientRegistrationDialog } from '../components/ui/PatientRegistrationDialog';
 import type { Patient } from '../types';
 
 interface PatientListItem {
@@ -150,6 +151,7 @@ export default function PatientSearchPage() {
   const [showRxDialog, setShowRxDialog] = useState(false);
   const [showLabDialog, setShowLabDialog] = useState(false);
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
+  const [showRegistration, setShowRegistration] = useState(false);
 
   const fetchPatients = async (query = '') => {
     setLoading(true);
@@ -275,7 +277,7 @@ export default function PatientSearchPage() {
             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
           </button>
           <span className="text-gray-400">|</span>
-          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'New Patient', message: 'Patient registration form would open here.', type: 'info' })}>
+          <button className="ehr-toolbar-button flex items-center" onClick={() => setShowRegistration(true)}>
             <Plus className="w-3.5 h-3.5 mr-1" /> New Patient
           </button>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPrintDialog(true)}>
@@ -820,6 +822,17 @@ export default function PatientSearchPage() {
           />
         </>
       )}
+
+      <PatientRegistrationDialog
+        isOpen={showRegistration}
+        onClose={() => setShowRegistration(false)}
+        onSubmit={async (patient) => {
+          await patientService.create(patient);
+          setShowRegistration(false);
+          setShowAlert({ title: 'Patient Registered', message: `${patient.lastName}, ${patient.firstName} has been registered successfully.`, type: 'success' });
+          fetchPatients();
+        }}
+      />
 
       {showAlert && (
         <AlertDialog

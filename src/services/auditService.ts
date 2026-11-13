@@ -12,6 +12,7 @@ export type AuditEventType =
   | 'NOTE_CREATE'
   | 'NOTE_SIGN'
   | 'PRESCRIPTION_CREATE'
+  | 'LAB_RESULT_ACKNOWLEDGE'
   | 'SETTINGS_CHANGE'
   | 'FAILED_LOGIN';
 
@@ -160,6 +161,24 @@ export function logOrder(patientId: string, orderType: string, orderDetails: str
     resourceType: orderType,
     action: 'Order created',
     details: orderDetails,
+  });
+}
+
+export function logLabAcknowledgment(
+  panelId: number,
+  panelName: string,
+  patientMrn: string,
+  patientName: string,
+  criticalValues: string[],
+  note: string
+): void {
+  logAuditEvent('LAB_RESULT_ACKNOWLEDGE', {
+    patientMrn,
+    patientName,
+    resourceType: 'LabPanel',
+    resourceId: String(panelId),
+    action: 'Acknowledged critical lab result',
+    details: `${panelName}: ${criticalValues.join(', ')}${note ? ` | Note: ${note}` : ''}`,
   });
 }
 

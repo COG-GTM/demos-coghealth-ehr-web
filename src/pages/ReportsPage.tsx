@@ -103,8 +103,9 @@ export default function ReportsPage() {
           </button>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-gray-600">Category:</span>
+          <label htmlFor="report-category" className="text-gray-600">Category:</label>
           <select
+            id="report-category"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value as CategoryFilter)}
             className="ehr-input"

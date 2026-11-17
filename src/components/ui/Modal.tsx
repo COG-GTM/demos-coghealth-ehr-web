@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -17,17 +17,57 @@ const widthClasses = {
   xl: 'w-[800px]',
 };
 
+const FOCUSABLE_SELECTOR =
+  'a[href], area[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
+
+function trapFocus(e: KeyboardEvent, dialog: HTMLElement | null) {
+  if (!dialog) return;
+  const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+    el => !el.hasAttribute('hidden') && el.getClientRects().length > 0
+  );
+  if (focusable.length === 0) {
+    e.preventDefault();
+    dialog.focus();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+  const outside = !dialog.contains(active);
+  if (e.shiftKey && (active === first || active === dialog || outside)) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && (active === last || outside)) {
+    e.preventDefault();
+    first.focus();
+  }
+}
+
 export function Modal({ isOpen, onClose, title, children, width = 'md', footer }: ModalProps) {
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+    if (!isOpen) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+    return () => previouslyFocused?.focus();
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab') trapFocus(e, dialogRef.current);
     };
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
     }
     return () => {
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
   }, [isOpen, onClose]);
@@ -37,7 +77,15 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col`} style={{ fontFamily: 'Tahoma, sans-serif' }}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className={`relative ${widthClasses[width]} max-h-[90vh] flex flex-col focus:outline-none`}
+        style={{ fontFamily: 'Tahoma, sans-serif' }}
+      >
         {/* Window frame */}
         <div className="bg-white border-2 border-gray-400 shadow-lg flex flex-col" style={{ boxShadow: '2px 2px 8px rgba(0,0,0,0.3)' }}>
           {/* Title bar */}
@@ -45,8 +93,10 @@ export function Modal({ isOpen, onClose, title, children, width = 'md', footer }
             className="flex items-center justify-between px-2 py-1"
             style={{ background: 'linear-gradient(to bottom, #6699cc 0%, #336699 100%)' }}
           >
-            <span className="text-white font-semibold text-[11px]">{title}</span>
+            <span id={titleId} className="text-white font-semibold text-[11px]">{title}</span>
             <button 
+              type="button"
+              aria-label="Close"
               onClick={onClose}
               className="w-5 h-5 flex items-center justify-center text-white hover:bg-white/20"
             >

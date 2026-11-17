@@ -17,6 +17,17 @@
   --font-family-sans: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* White-text surfaces: every stop must keep >= 4.5:1 against white (WCAG 1.4.3). */
+:root {
+  --ehr-header-gradient: linear-gradient(to bottom, #3d6e9e 0%, #264d73 100%);
+  --ehr-primary-gradient: linear-gradient(to bottom, #2f6db5 0%, #1f4f94 100%);
+  --ehr-primary-hover-gradient: linear-gradient(to bottom, #3a76bc 0%, #2a5aa0 100%);
+  --ehr-primary-active-gradient: linear-gradient(to bottom, #1f4f94 0%, #2f6db5 100%);
+  --ehr-danger-gradient: linear-gradient(to bottom, #c0392b 0%, #962d22 100%);
+  --ehr-danger-hover-gradient: linear-gradient(to bottom, #c94a3b 0%, #a83426 100%);
+  --ehr-danger-active-gradient: linear-gradient(to bottom, #962d22 0%, #c0392b 100%);
+}
+
 body {
   font-size: 11px;
   background-color: #d4d0c8;
@@ -65,13 +76,31 @@ td {
 }
 
 .ehr-button-primary {
-  background: linear-gradient(to bottom, #4a90d9 0%, #2a5db0 100%);
+  background: var(--ehr-primary-gradient);
   border: 1px solid #1a4080;
   color: white;
 }
 
 .ehr-button-primary:hover {
-  background: linear-gradient(to bottom, #5aa0e9 0%, #3a6dc0 100%);
+  background: var(--ehr-primary-hover-gradient);
+}
+
+.ehr-button-primary:active {
+  background: var(--ehr-primary-active-gradient);
+}
+
+.ehr-button-danger {
+  background: var(--ehr-danger-gradient);
+  border: 1px solid #a02010;
+  color: white;
+}
+
+.ehr-button-danger:hover {
+  background: var(--ehr-danger-hover-gradient);
+}
+
+.ehr-button-danger:active {
+  background: var(--ehr-danger-active-gradient);
 }
 
 .ehr-input {
@@ -110,7 +139,7 @@ td {
 }
 
 .ehr-header {
-  background: linear-gradient(to bottom, #6699cc 0%, #336699 100%);
+  background: var(--ehr-header-gradient);
   color: white;
   padding: 4px 8px;
   font-weight: 600;

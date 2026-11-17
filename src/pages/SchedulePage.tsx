@@ -27,6 +27,7 @@ import { Modal, AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
+import { DisclosurePanel } from '../components/ui/DisclosurePanel';
 
 interface ScheduleAppointment {
   id: number;
@@ -530,131 +531,91 @@ export default function SchedulePage() {
 
                 {/* Vitals */}
                 {selectedAppointment.lastVitals && (
-                  <div className="ehr-panel">
-                    <div 
-                      className="ehr-header flex items-center justify-between cursor-pointer text-[11px]"
-                      onClick={(e) => { e.stopPropagation(); togglePanel('vitals'); }}
-                    >
-                      <div className="flex items-center">
-                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-white/50 text-[9px] font-bold">
-                          {expandedPanels.vitals ? '-' : '+'}
-                        </span>
-                        Vitals
-                      </div>
-                    </div>
-                    {expandedPanels.vitals && (
-                      <div className="bg-white p-2">
-                        <div className="grid grid-cols-5 gap-1 text-center text-[10px]">
-                          <div className="p-1 bg-gray-100 border border-gray-300">
-                            <div className="text-gray-500">BP</div>
-                            <div className={`font-semibold ${parseInt(selectedAppointment.lastVitals.bp) > 140 ? 'text-red-600' : ''}`}>
-                              {selectedAppointment.lastVitals.bp}
-                            </div>
-                          </div>
-                          <div className="p-1 bg-gray-100 border border-gray-300">
-                            <div className="text-gray-500">HR</div>
-                            <div className="font-semibold">{selectedAppointment.lastVitals.hr}</div>
-                          </div>
-                          <div className="p-1 bg-gray-100 border border-gray-300">
-                            <div className="text-gray-500">Temp</div>
-                            <div className="font-semibold">{selectedAppointment.lastVitals.temp}°</div>
-                          </div>
-                          <div className="p-1 bg-gray-100 border border-gray-300">
-                            <div className="text-gray-500">SpO2</div>
-                            <div className="font-semibold">{selectedAppointment.lastVitals.spo2}%</div>
-                          </div>
-                          <div className="p-1 bg-gray-100 border border-gray-300">
-                            <div className="text-gray-500">Wt</div>
-                            <div className="font-semibold">{selectedAppointment.lastVitals.weight}</div>
-                          </div>
+                  <DisclosurePanel
+                    title="Vitals"
+                    expanded={expandedPanels.vitals}
+                    onToggle={() => togglePanel('vitals')}
+                    contentClassName="bg-white p-2"
+                  >
+                    <div className="grid grid-cols-5 gap-1 text-center text-[10px]">
+                      <div className="p-1 bg-gray-100 border border-gray-300">
+                        <div className="text-gray-500">BP</div>
+                        <div className={`font-semibold ${parseInt(selectedAppointment.lastVitals.bp) > 140 ? 'text-red-600' : ''}`}>
+                          {selectedAppointment.lastVitals.bp}
                         </div>
                       </div>
-                    )}
-                  </div>
+                      <div className="p-1 bg-gray-100 border border-gray-300">
+                        <div className="text-gray-500">HR</div>
+                        <div className="font-semibold">{selectedAppointment.lastVitals.hr}</div>
+                      </div>
+                      <div className="p-1 bg-gray-100 border border-gray-300">
+                        <div className="text-gray-500">Temp</div>
+                        <div className="font-semibold">{selectedAppointment.lastVitals.temp}°</div>
+                      </div>
+                      <div className="p-1 bg-gray-100 border border-gray-300">
+                        <div className="text-gray-500">SpO2</div>
+                        <div className="font-semibold">{selectedAppointment.lastVitals.spo2}%</div>
+                      </div>
+                      <div className="p-1 bg-gray-100 border border-gray-300">
+                        <div className="text-gray-500">Wt</div>
+                        <div className="font-semibold">{selectedAppointment.lastVitals.weight}</div>
+                      </div>
+                    </div>
+                  </DisclosurePanel>
                 )}
 
                 {/* Prep Notes */}
                 {selectedAppointment.prepNotes && selectedAppointment.prepNotes.length > 0 && (
-                  <div className="ehr-panel">
-                    <div 
-                      className="ehr-header flex items-center justify-between cursor-pointer text-[11px]"
-                      onClick={(e) => { e.stopPropagation(); togglePanel('prep'); }}
-                    >
-                      <div className="flex items-center">
-                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-white/50 text-[9px] font-bold">
-                          {expandedPanels.prep ? '-' : '+'}
-                        </span>
-                        Prep Notes
+                  <DisclosurePanel
+                    title="Prep Notes"
+                    expanded={expandedPanels.prep}
+                    onToggle={() => togglePanel('prep')}
+                    contentClassName="bg-white p-2 text-[10px]"
+                  >
+                    {selectedAppointment.prepNotes.map((note, i) => (
+                      <div key={i} className="flex items-start mb-1">
+                        <span className="mr-1.5">•</span>
+                        {note}
                       </div>
-                    </div>
-                    {expandedPanels.prep && (
-                      <div className="bg-white p-2 text-[10px]">
-                        {selectedAppointment.prepNotes.map((note, i) => (
-                          <div key={i} className="flex items-start mb-1">
-                            <span className="mr-1.5">•</span>
-                            {note}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                    ))}
+                  </DisclosurePanel>
                 )}
 
                 {/* Recent Labs */}
                 {selectedAppointment.recentLabs && selectedAppointment.recentLabs.length > 0 && (
-                  <div className="ehr-panel">
-                    <div 
-                      className="ehr-header flex items-center justify-between cursor-pointer text-[11px]"
-                      onClick={(e) => { e.stopPropagation(); togglePanel('labs'); }}
-                    >
-                      <div className="flex items-center">
-                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-white/50 text-[9px] font-bold">
-                          {expandedPanels.labs ? '-' : '+'}
-                        </span>
-                        Recent Labs
+                  <DisclosurePanel
+                    title="Recent Labs"
+                    expanded={expandedPanels.labs}
+                    onToggle={() => togglePanel('labs')}
+                    contentClassName="bg-white"
+                  >
+                    {selectedAppointment.recentLabs.map((lab, i) => (
+                      <div key={i} className={`flex items-center justify-between px-2 py-1 text-[10px] ${i % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                        <span>{lab.name}</span>
+                        <div className="flex items-center space-x-2">
+                          <span className={lab.abnormal ? 'text-red-600 font-semibold' : ''}>{lab.value}</span>
+                          <span className="text-gray-400">{lab.date}</span>
+                        </div>
                       </div>
-                    </div>
-                    {expandedPanels.labs && (
-                      <div className="bg-white">
-                        {selectedAppointment.recentLabs.map((lab, i) => (
-                          <div key={i} className={`flex items-center justify-between px-2 py-1 text-[10px] ${i % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                            <span>{lab.name}</span>
-                            <div className="flex items-center space-x-2">
-                              <span className={lab.abnormal ? 'text-red-600 font-semibold' : ''}>{lab.value}</span>
-                              <span className="text-gray-400">{lab.date}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                    ))}
+                  </DisclosurePanel>
                 )}
 
                 {/* Medications */}
                 {selectedAppointment.medications && selectedAppointment.medications.length > 0 && (
-                  <div className="ehr-panel">
-                    <div 
-                      className="ehr-header flex items-center justify-between cursor-pointer text-[11px]"
-                      onClick={(e) => { e.stopPropagation(); togglePanel('meds'); }}
-                    >
-                      <div className="flex items-center">
-                        <span className="w-3 h-3 mr-1 flex items-center justify-center border border-white/50 text-[9px] font-bold">
-                          {expandedPanels.meds ? '-' : '+'}
-                        </span>
-                        Medications
+                  <DisclosurePanel
+                    title="Medications"
+                    expanded={expandedPanels.meds}
+                    onToggle={() => togglePanel('meds')}
+                    contentClassName="bg-white"
+                  >
+                    {selectedAppointment.medications.map((med, i) => (
+                      <div key={i} className={`flex items-center justify-between px-2 py-1 text-[10px] ${i % 2 === 1 ? 'bg-gray-50' : ''}`}>
+                        <span className="font-medium">{med.name}</span>
+                        <span className="text-gray-500">{med.dose}</span>
                       </div>
-                    </div>
-                    {expandedPanels.meds && (
-                      <div className="bg-white">
-                        {selectedAppointment.medications.map((med, i) => (
-                          <div key={i} className={`flex items-center justify-between px-2 py-1 text-[10px] ${i % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                            <span className="font-medium">{med.name}</span>
-                            <span className="text-gray-500">{med.dose}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                    ))}
+                  </DisclosurePanel>
                 )}
 
                 {/* Quick Actions */}

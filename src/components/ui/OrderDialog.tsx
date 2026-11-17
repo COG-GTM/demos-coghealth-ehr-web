@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Search, Plus, X, AlertTriangle } from 'lucide-react';
 import { Modal } from './Modal';
 
@@ -40,6 +40,10 @@ const labTests = [
   { code: 'PSA', name: 'Prostate Specific Antigen' },
 ];
 
+function orderItemLabel(item: { code: string; name: string }, isSelected: boolean) {
+  return isSelected ? `${item.code} – ${item.name}, already added` : `Add ${item.code} – ${item.name}`;
+}
+
 const imagingStudies = [
   { code: 'CXR', name: 'Chest X-Ray (PA & Lateral)' },
   { code: 'CXR-PORT', name: 'Chest X-Ray (Portable)' },
@@ -64,6 +68,17 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
   const [selectedOrders, setSelectedOrders] = useState<OrderItem[]>([]);
   const [priority, setPriority] = useState<'routine' | 'stat' | 'asap'>('routine');
   const [notes, setNotes] = useState('');
+  const [announcement, setAnnouncement] = useState('');
+  const pendingFocusIndex = useRef<number | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const removeButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  useEffect(() => {
+    if (pendingFocusIndex.current === null) return;
+    const next = removeButtonRefs.current[Math.min(pendingFocusIndex.current, selectedOrders.length - 1)];
+    pendingFocusIndex.current = null;
+    (next ?? searchInputRef.current)?.focus();
+  }, [selectedOrders]);
 
   const items = type === 'lab' ? labTests : imagingStudies;
   const filteredItems = items.filter(item => 
@@ -80,11 +95,17 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
         priority,
         notes: '',
       }]);
+      setAnnouncement(`Added ${item.code} – ${item.name}. ${selectedOrders.length + 1} selected.`);
     }
   };
 
   const removeOrder = (id: string) => {
+    const index = selectedOrders.findIndex(o => o.id === id);
+    if (index === -1) return;
+    const removed = selectedOrders[index];
     setSelectedOrders(selectedOrders.filter(o => o.id !== id));
+    setAnnouncement(`Removed ${removed.code} – ${removed.name}. ${selectedOrders.length - 1} selected.`);
+    pendingFocusIndex.current = index;
   };
 
   const handleSubmit = () => {
@@ -94,6 +115,7 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
       setSelectedOrders([]);
       setSearchQuery('');
       setNotes('');
+      setAnnouncement('');
       onClose();
     }
   };
@@ -120,6 +142,10 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
       }
     >
       <div className="space-y-3">
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {announcement}
+        </div>
+
         {/* Patient Info */}
         {patientName && (
           <div className="ehr-alert-info p-2 flex items-center justify-between">
@@ -136,35 +162,50 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
             <fieldset className="ehr-fieldset h-64 flex flex-col">
               <legend>Available {type === 'lab' ? 'Tests' : 'Studies'}</legend>
               <div className="flex items-center space-x-2 mb-2">
-                <Search className="w-3.5 h-3.5 text-gray-500" />
+                <Search className="w-3.5 h-3.5 text-gray-500" aria-hidden="true" />
                 <input
-                  type="text"
+                  ref={searchInputRef}
+                  type="search"
+                  aria-label={`Search ${type === 'lab' ? 'laboratory tests' : 'imaging studies'}`}
+                  aria-controls="order-dialog-available-items"
                   placeholder={`Search ${type === 'lab' ? 'tests' : 'studies'}...`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="ehr-input flex-1"
                 />
               </div>
-              <div className="flex-1 overflow-auto border border-gray-300 bg-white">
+              <ul
+                id="order-dialog-available-items"
+                aria-label={`Available ${type === 'lab' ? 'tests' : 'studies'}`}
+                className="flex-1 overflow-auto border border-gray-300 bg-white"
+              >
                 {filteredItems.map((item) => {
                   const isSelected = selectedOrders.some(o => o.code === item.code);
                   return (
-                    <div
-                      key={item.code}
-                      onClick={() => !isSelected && addOrder(item)}
-                      className={`px-2 py-1 text-[11px] cursor-pointer border-b border-gray-200 flex items-center justify-between ${
-                        isSelected ? 'bg-gray-200 text-gray-500' : 'hover:bg-blue-50'
-                      }`}
-                    >
-                      <div>
-                        <span className="font-mono text-[10px] text-gray-500 mr-2">{item.code}</span>
-                        <span>{item.name}</span>
-                      </div>
-                      {!isSelected && <Plus className="w-3 h-3 text-blue-600" />}
-                    </div>
+                    <li key={item.code} className="border-b border-gray-200">
+                      <button
+                        type="button"
+                        onClick={() => !isSelected && addOrder(item)}
+                        aria-label={orderItemLabel(item, isSelected)}
+                        aria-disabled={isSelected}
+                        className={`w-full text-left px-2 py-1 text-[11px] flex items-center justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 ${
+                          isSelected ? 'bg-gray-200 text-gray-500 cursor-default' : 'cursor-pointer hover:bg-blue-50 focus-visible:bg-blue-50'
+                        }`}
+                      >
+                        <span>
+                          <span className="font-mono text-[10px] text-gray-500 mr-2">{item.code}</span>
+                          <span>{item.name}</span>
+                        </span>
+                        {isSelected ? (
+                          <span className="text-[10px]" aria-hidden="true">Added</span>
+                        ) : (
+                          <Plus className="w-3 h-3 text-blue-600" aria-hidden="true" />
+                        )}
+                      </button>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             </fieldset>
           </div>
 
@@ -175,20 +216,28 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
               <div className="flex-1 overflow-auto border border-gray-300 bg-white">
                 {selectedOrders.length === 0 ? (
                   <div className="p-4 text-center text-gray-500 text-[11px]">
-                    Click items on the left to add orders
+                    Select items on the left to add orders
                   </div>
                 ) : (
-                  selectedOrders.map((order) => (
-                    <div key={order.id} className="px-2 py-1 text-[11px] border-b border-gray-200 flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">{order.code}</div>
-                        <div className="text-[10px] text-gray-500 truncate max-w-[180px]">{order.name}</div>
-                      </div>
-                      <button onClick={() => removeOrder(order.id)} className="text-red-600 hover:text-red-800">
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))
+                  <ul aria-label="Selected orders">
+                    {selectedOrders.map((order, index) => (
+                      <li key={order.id} className="px-2 py-1 text-[11px] border-b border-gray-200 flex items-center justify-between">
+                        <div>
+                          <div className="font-medium">{order.code}</div>
+                          <div className="text-[10px] text-gray-500 truncate max-w-[180px]">{order.name}</div>
+                        </div>
+                        <button
+                          type="button"
+                          ref={(el) => { removeButtonRefs.current[index] = el; }}
+                          onClick={() => removeOrder(order.id)}
+                          aria-label={`Remove ${order.code} – ${order.name}`}
+                          className="text-red-600 hover:text-red-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+                        >
+                          <X className="w-3 h-3" aria-hidden="true" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             </fieldset>

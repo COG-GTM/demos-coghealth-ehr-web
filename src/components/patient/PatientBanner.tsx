@@ -39,10 +39,10 @@ export default function PatientBanner({ patient, allergies = [] }: PatientBanner
           
           <div className="text-white">
             <div className="flex items-center space-x-2">
-              <span className="text-lg font-bold">
+              <h1 className="text-lg font-bold">
                 {patient.lastName}, {patient.firstName}
                 {patient.middleName && ` ${patient.middleName.charAt(0)}.`}
-              </span>
+              </h1>
               {patient.deceased && (
                 <span className="px-1.5 py-0.5 bg-gray-600 text-white text-[10px] font-bold border border-gray-500">DECEASED</span>
               )}

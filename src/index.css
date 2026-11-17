@@ -117,6 +117,28 @@ td {
   border-bottom: 1px solid #1a4080;
 }
 
+.ehr-header.ehr-header-collapsible {
+  padding: 0;
+}
+
+.ehr-panel-toggle {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 4px 8px;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ehr-panel-toggle:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -3px;
+}
+
 .ehr-subheader {
   background: linear-gradient(to bottom, #e8e8e8 0%, #d0d0d0 100%);
   color: #333;

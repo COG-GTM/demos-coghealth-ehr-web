@@ -237,16 +237,21 @@ export default function ReportsPage() {
                           </td>
                           <td className="px-2 py-1.5 text-center">
                             <button 
+                              type="button"
                               className="ehr-button text-[9px] px-1.5 py-0.5 mr-1"
+                              aria-label={`Download ${report.name} as PDF`}
+                              title={`Download ${report.name} as PDF`}
                               onClick={() => setShowAlert({ title: 'Download', message: `${report.name} has been downloaded as PDF.`, type: 'success' })}
                             >
-                              <Download className="w-3 h-3 inline" />
+                              <Download className="w-3 h-3 inline" aria-hidden="true" focusable="false" />
                             </button>
                             <button 
+                              type="button"
                               className="ehr-button ehr-button-primary text-[9px] px-1.5 py-0.5"
+                              aria-label={`Run ${report.name}`}
                               onClick={() => setShowAlert({ title: 'Report Running', message: `${report.name} is now running. Results will be available shortly.`, type: 'info' })}
                             >
-                              <Play className="w-3 h-3 inline mr-0.5" /> Run
+                              <Play className="w-3 h-3 inline mr-0.5" aria-hidden="true" focusable="false" /> Run
                             </button>
                           </td>
                         </tr>

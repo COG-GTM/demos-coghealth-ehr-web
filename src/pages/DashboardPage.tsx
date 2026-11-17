@@ -289,7 +289,7 @@ export default function DashboardPage() {
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'Refreshed', message: 'Dashboard data has been refreshed.', type: 'info' })}>
             <RefreshCw className="w-3.5 h-3.5 mr-1" /> Refresh
           </button>
-          <span className="text-gray-400">|</span>
+          <span className="text-gray-400" aria-hidden="true">|</span>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowRxDialog(true)}>
             <Pill className="w-3.5 h-3.5 mr-1" /> e-Prescribe
           </button>
@@ -305,7 +305,7 @@ export default function DashboardPage() {
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowAlert({ title: 'Referral', message: 'Select a patient first to create a referral.', type: 'info' })}>
             <Send className="w-3.5 h-3.5 mr-1" /> Referral
           </button>
-          <span className="text-gray-400">|</span>
+          <span className="text-gray-400" aria-hidden="true">|</span>
           <button className="ehr-toolbar-button flex items-center" onClick={() => setShowPrintDialog(true)}>
             <Printer className="w-3.5 h-3.5 mr-1" /> Print
           </button>
@@ -353,7 +353,7 @@ export default function DashboardPage() {
                   {expandedPanels.inbox ? '-' : '+'}
                 </span>
                 <span>Inbox</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{inboxCounts.all} unread</span>
+                <span className="ml-2 px-1.5 py-0.5 bg-black/20 text-[10px]">{inboxCounts.all} unread</span>
               </div>
             </div>
             {expandedPanels.inbox && (
@@ -375,7 +375,7 @@ export default function DashboardPage() {
                       {tab.label} {tab.count > 0 && <span className="ml-1 text-[9px]">({tab.count})</span>}
                     </button>
                   ))}
-                  <span className="text-gray-400 mx-1">|</span>
+                  <span className="text-gray-400 mx-1" aria-hidden="true">|</span>
                   <select 
                     value={inboxPriority} 
                     onChange={(e) => setInboxPriority(e.target.value as InboxPriority)}
@@ -424,13 +424,13 @@ export default function DashboardPage() {
                           <td className="px-1 py-0.5">{getInboxIcon(item.type)}</td>
                           <td className="px-1 py-0.5">
                             <span>{item.patientName}</span>
-                            <span className="text-gray-500 ml-1 text-[10px]">{item.patientMrn}</span>
+                            <span className={`${item.priority === 'critical' ? 'text-gray-700' : 'text-gray-600'} ml-1 text-[10px]`}>{item.patientMrn}</span>
                           </td>
                           <td className="px-1 py-0.5">
                             <div className={item.priority === 'critical' ? 'text-red-800' : ''}>{item.title}</div>
-                            <div className="text-gray-500 text-[10px] truncate max-w-[300px]">{item.detail}</div>
+                            <div className={`${item.priority === 'critical' ? 'text-gray-700' : 'text-gray-600'} text-[10px] truncate max-w-[300px]`}>{item.detail}</div>
                           </td>
-                          <td className="px-1 py-0.5 text-gray-500">{item.timestamp}</td>
+                          <td className={`px-1 py-0.5 ${item.priority === 'critical' ? 'text-gray-700' : 'text-gray-600'}`}>{item.timestamp}</td>
                           <td className="px-1 py-0.5 text-center">
                             <button className="ehr-toolbar-button p-0.5" onClick={() => { markAsRead(item.id); navigate(`/patients/1`); }} title="View"><Eye className="w-3 h-3" /></button>
                             <button className="ehr-toolbar-button p-0.5" onClick={() => markAsRead(item.id)} title="Mark Read"><CheckCircle2 className="w-3 h-3" /></button>
@@ -456,7 +456,7 @@ export default function DashboardPage() {
                   {expandedPanels.worklist ? '-' : '+'}
                 </span>
                 <span>Patient Worklist</span>
-                <span className="ml-2 px-1.5 py-0.5 bg-white/20 text-[10px]">{worklistPatients.length} patients</span>
+                <span className="ml-2 px-1.5 py-0.5 bg-black/20 text-[10px]">{worklistPatients.length} patients</span>
               </div>
             </div>
             {expandedPanels.worklist && (
@@ -476,7 +476,7 @@ export default function DashboardPage() {
                       {filter.label}
                     </button>
                   ))}
-                  <span className="text-gray-400 mx-1">|</span>
+                  <span className="text-gray-400 mx-1" aria-hidden="true">|</span>
                   <span className="text-[10px] text-gray-600">Sort:</span>
                   <select 
                     value={worklistSort} 
@@ -520,7 +520,7 @@ export default function DashboardPage() {
                         >
                           <td className="px-1 py-0.5">
                             <div className="font-semibold">{patient.name}</div>
-                            <div className="text-gray-500 text-[10px]">{patient.mrn} • {patient.age}{patient.gender}</div>
+                            <div className={`${patient.status === 'critical' ? 'text-gray-700' : 'text-gray-600'} text-[10px]`}>{patient.mrn} • {patient.age}{patient.gender}</div>
                             <div className="flex space-x-0.5 mt-0.5">
                               {patient.flags.map((flag) => {
                                 const style = getFlagStyle(flag);
@@ -534,11 +534,11 @@ export default function DashboardPage() {
                           </td>
                           <td className="px-1 py-0.5">
                             <div>{patient.room || patient.appointmentTime}</div>
-                            <div className="text-gray-500 text-[10px]">{patient.location}</div>
+                            <div className={`${patient.status === 'critical' ? 'text-gray-700' : 'text-gray-600'} text-[10px]`}>{patient.location}</div>
                           </td>
                           <td className="px-1 py-0.5">
                             <div>{patient.chiefComplaint}</div>
-                            {patient.admitDate && <div className="text-gray-500 text-[10px]">Admit: {patient.admitDate}</div>}
+                            {patient.admitDate && <div className={`${patient.status === 'critical' ? 'text-gray-700' : 'text-gray-600'} text-[10px]`}>Admit: {patient.admitDate}</div>}
                           </td>
                           <td className="px-1 py-0.5 text-[10px]">
                             {patient.lastVitals ? (
@@ -547,7 +547,7 @@ export default function DashboardPage() {
                                 <div>HR: {patient.lastVitals.hr} SpO2: {patient.lastVitals.spo2}%</div>
                               </>
                             ) : (
-                              <span className="text-gray-400">-</span>
+                              <span className={`${patient.status === 'critical' ? 'text-gray-700' : 'text-gray-600'}`}>-</span>
                             )}
                           </td>
                           <td className="px-1 py-0.5">
@@ -560,7 +560,7 @@ export default function DashboardPage() {
                                 ))}
                               </div>
                             ) : (
-                              <span className="text-gray-400 text-[10px]">None</span>
+                              <span className={`${patient.status === 'critical' ? 'text-gray-700' : 'text-gray-600'} text-[10px]`}>None</span>
                             )}
                           </td>
                           <td className="px-1 py-0.5">
@@ -690,7 +690,7 @@ export default function DashboardPage() {
                     <div key={i} className={`flex items-center justify-between py-1 px-2 text-[11px] ${
                       slot.status === 'current' ? 'bg-gray-200 border border-gray-400' :
                       slot.status === 'next' ? 'bg-gray-100' :
-                      slot.status === 'done' ? 'bg-gray-50 text-gray-400' : ''
+                      slot.status === 'done' ? 'bg-gray-50 text-gray-600' : ''
                     }`}>
                       <span>{slot.time}</span>
                       <span className={slot.status === 'current' ? 'font-semibold' : ''}>{slot.patient}</span>

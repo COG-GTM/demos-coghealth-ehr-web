@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Search, Plus, X, AlertTriangle } from 'lucide-react';
 import { Modal } from './Modal';
 
@@ -60,6 +60,7 @@ const imagingStudies = [
 ];
 
 export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, onSubmit }: OrderDialogProps) {
+  const notesLabelId = useId();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrders, setSelectedOrders] = useState<OrderItem[]>([]);
   const [priority, setPriority] = useState<'routine' | 'stat' | 'asap'>('routine');
@@ -136,9 +137,10 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
             <fieldset className="ehr-fieldset h-64 flex flex-col">
               <legend>Available {type === 'lab' ? 'Tests' : 'Studies'}</legend>
               <div className="flex items-center space-x-2 mb-2">
-                <Search className="w-3.5 h-3.5 text-gray-500" />
+                <Search className="w-3.5 h-3.5 text-gray-500" aria-hidden="true" />
                 <input
-                  type="text"
+                  type="search"
+                  aria-label={`Search ${type === 'lab' ? 'tests' : 'studies'}`}
                   placeholder={`Search ${type === 'lab' ? 'tests' : 'studies'}...`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -224,8 +226,9 @@ export function OrderDialog({ isOpen, onClose, type, patientName, patientMrn, on
         </div>
 
         <fieldset className="ehr-fieldset">
-          <legend>Clinical Notes / Indication</legend>
+          <legend id={notesLabelId}>Clinical Notes / Indication</legend>
           <textarea
+            aria-labelledby={notesLabelId}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Enter clinical indication or special instructions..."

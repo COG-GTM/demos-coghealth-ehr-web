@@ -65,13 +65,13 @@ td {
 }
 
 .ehr-button-primary {
-  background: linear-gradient(to bottom, #4a90d9 0%, #2a5db0 100%);
+  background: linear-gradient(to bottom, #2f6fbf 0%, #22549f 100%);
   border: 1px solid #1a4080;
   color: white;
 }
 
 .ehr-button-primary:hover {
-  background: linear-gradient(to bottom, #5aa0e9 0%, #3a6dc0 100%);
+  background: linear-gradient(to bottom, #2a66b8 0%, #1d4a8f 100%);
 }
 
 .ehr-input {

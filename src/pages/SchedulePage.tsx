@@ -27,6 +27,7 @@ import { Modal, AlertDialog } from '../components/ui/Modal';
 import { PrintDialog } from '../components/ui/PrintDialog';
 import { OrderDialog } from '../components/ui/OrderDialog';
 import { PrescriptionDialog } from '../components/ui/PrescriptionDialog';
+import { getScheduleRowTone, rowActionButtonStyle, SELECTED_ROW_BADGE } from './scheduleRowStyles';
 
 interface ScheduleAppointment {
   id: number;
@@ -354,33 +355,33 @@ export default function SchedulePage() {
                 const encounterType = encounterTypeConfig[apt.encounterType];
                 const isSelected = selectedAppointment?.id === apt.id;
                 const isUrgent = apt.encounterType === 'URGENT';
-                
+                const tone = getScheduleRowTone({ isSelected, isUrgent, isFinished: apt.status === 'FINISHED', isStriped: idx % 2 === 1 });
+                const badgeStyle = isSelected ? SELECTED_ROW_BADGE : undefined;
+
                 return (
                   <tr
                     key={apt.id}
                     onClick={() => setSelectedAppointment(apt)}
                     className={`cursor-pointer ${
-                      isSelected ? 'ehr-grid-row selected' : 
-                      isUrgent ? 'ehr-alert-critical' : 
-                      apt.status === 'FINISHED' ? 'opacity-50' : 
-                      idx % 2 === 1 ? 'bg-gray-50' : ''
+                      isSelected ? 'ehr-grid-row selected' :
+                      isUrgent ? 'ehr-alert-critical' : ''
                     }`}
-                    style={isSelected ? { background: '#316ac5', color: 'white' } : undefined}
+                    style={{ background: tone.background, color: tone.text }}
                   >
                     <td className="px-1 py-1">
                       <div className="font-semibold">{formatTime(apt.appointmentTime)}</div>
-                      <div className="text-[9px] text-gray-500">{apt.duration}m</div>
+                      <div className="text-[9px]" style={{ color: tone.secondary }}>{apt.duration}m</div>
                     </td>
                     <td className="px-1 py-1">
                       <div className="font-semibold">{apt.patientName}</div>
-                      <div className="text-[10px]" style={isSelected ? { color: '#ccc' } : { color: '#666' }}>
+                      <div className="text-[10px]" style={{ color: tone.secondary }}>
                         {apt.patientMrn} • {apt.patientAge}{apt.patientGender}
                       </div>
                       <div className="flex space-x-0.5 mt-0.5">
                         {apt.flags.map((flag) => {
                           const cfg = flagConfig[flag];
                           return (
-                            <span key={flag} className={`px-0.5 py-0 text-[9px] ${isSelected ? 'bg-white/30' : `${cfg.bg} ${cfg.color}`}`}>
+                            <span key={flag} className={`px-0.5 py-0 text-[9px] ${isSelected ? '' : `${cfg.bg} ${cfg.color}`}`} style={badgeStyle}>
                               {cfg.label}
                             </span>
                           );
@@ -390,14 +391,14 @@ export default function SchedulePage() {
                     <td className="px-1 py-1">
                       <div className="truncate max-w-[200px]">{apt.chiefComplaint}</div>
                       {apt.alerts.length > 0 && (
-                        <div className={`text-[10px] flex items-center ${isSelected ? 'text-yellow-200' : 'text-red-600'}`}>
+                        <div className="text-[10px] flex items-center" style={{ color: tone.alert }}>
                           <AlertTriangle className="w-3 h-3 mr-0.5" />
                           {apt.alerts[0]}
                         </div>
                       )}
                     </td>
                     <td className="px-1 py-1">
-                      <span className={`px-1 py-0.5 text-[9px] ${isSelected ? 'bg-white/30' : `${encounterType.bg} ${encounterType.color}`}`}>
+                      <span className={`px-1 py-0.5 text-[9px] ${isSelected ? '' : `${encounterType.bg} ${encounterType.color}`}`} style={badgeStyle}>
                         {encounterType.label}
                       </span>
                       {apt.encounterType === 'TELEHEALTH' && <Video className="w-3 h-3 inline ml-1" />}
@@ -410,7 +411,7 @@ export default function SchedulePage() {
                       ) : '-'}
                     </td>
                     <td className="px-1 py-1">
-                      <span className={`px-1 py-0.5 text-[9px] ${isSelected ? 'bg-white/30' : `${status.bg} ${status.color}`}`}>
+                      <span className={`px-1 py-0.5 text-[9px] ${isSelected ? '' : `${status.bg} ${status.color}`}`} style={badgeStyle}>
                         {status.label}
                       </span>
                     </td>
@@ -421,12 +422,12 @@ export default function SchedulePage() {
                         </button>
                       )}
                       {apt.status === 'ARRIVED' && (
-                        <button onClick={(e) => { e.stopPropagation(); handleRoom(apt); }} className="ehr-button text-[9px] px-1 py-0" style={{ background: 'linear-gradient(to bottom, #9966cc 0%, #663399 100%)', color: 'white', border: '1px solid #4a2080' }}>
+                        <button onClick={(e) => { e.stopPropagation(); handleRoom(apt); }} className="ehr-button text-[9px] px-1 py-0" style={rowActionButtonStyle('room')}>
                           Room
                         </button>
                       )}
                       {(apt.status === 'TRIAGED' || apt.status === 'ARRIVED') && (
-                        <button onClick={(e) => { e.stopPropagation(); handleStartVisit(apt); }} className="ehr-button text-[9px] px-1 py-0 ml-0.5" style={{ background: 'linear-gradient(to bottom, #66cc66 0%, #339933 100%)', color: 'white', border: '1px solid #206020' }}>
+                        <button onClick={(e) => { e.stopPropagation(); handleStartVisit(apt); }} className="ehr-button text-[9px] px-1 py-0 ml-0.5" style={rowActionButtonStyle('start')}>
                           Start
                         </button>
                       )}

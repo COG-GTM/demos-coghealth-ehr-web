@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Pill, Search, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Modal } from './Modal';
 
@@ -63,6 +63,15 @@ const sigTemplates = [
 ];
 
 export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, patientAllergies = [], onSubmit }: PrescriptionDialogProps) {
+  const fieldId = useId();
+  const ids = {
+    strength: `${fieldId}-strength`,
+    quantity: `${fieldId}-quantity`,
+    sig: `${fieldId}-sig`,
+    refills: `${fieldId}-refills`,
+    daw: `${fieldId}-daw`,
+    pharmacy: `${fieldId}-pharmacy`,
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMed, setSelectedMed] = useState<typeof commonMedications[0] | null>(null);
   const [prescription, setPrescription] = useState<Partial<PrescriptionData>>({
@@ -165,9 +174,10 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
             <fieldset className="ehr-fieldset h-56 flex flex-col">
               <legend>Select Medication</legend>
               <div className="flex items-center space-x-2 mb-2">
-                <Search className="w-3.5 h-3.5 text-gray-500" />
+                <Search className="w-3.5 h-3.5 text-gray-500" aria-hidden="true" />
                 <input
                   type="text"
+                  aria-label="Search medications"
                   placeholder="Search medications..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -204,8 +214,9 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">Strength</label>
+                      <label htmlFor={ids.strength} className="block text-[10px] text-gray-600 mb-0.5">Strength</label>
                       <select
+                        id={ids.strength}
                         value={prescription.strength}
                         onChange={(e) => setPrescription({ ...prescription, strength: e.target.value })}
                         className="ehr-input w-full"
@@ -216,8 +227,9 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">Quantity</label>
+                      <label htmlFor={ids.quantity} className="block text-[10px] text-gray-600 mb-0.5">Quantity</label>
                       <input
+                        id={ids.quantity}
                         type="number"
                         value={prescription.quantity}
                         onChange={(e) => setPrescription({ ...prescription, quantity: parseInt(e.target.value) || 0 })}
@@ -227,8 +239,9 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Sig (Directions)</label>
+                    <label htmlFor={ids.sig} className="block text-[10px] text-gray-600 mb-0.5">Sig (Directions)</label>
                     <select
+                      id={ids.sig}
                       value={prescription.sig}
                       onChange={(e) => setPrescription({ ...prescription, sig: e.target.value })}
                       className="ehr-input w-full mb-1"
@@ -242,14 +255,16 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                       value={prescription.sig}
                       onChange={(e) => setPrescription({ ...prescription, sig: e.target.value })}
                       className="ehr-input w-full"
+                      aria-label="Custom directions"
                       placeholder="Or type custom directions..."
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">Refills</label>
+                      <label htmlFor={ids.refills} className="block text-[10px] text-gray-600 mb-0.5">Refills</label>
                       <select
+                        id={ids.refills}
                         value={prescription.refills}
                         onChange={(e) => setPrescription({ ...prescription, refills: parseInt(e.target.value) })}
                         className="ehr-input w-full"
@@ -259,8 +274,8 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                         ))}
                       </select>
                     </div>
-                    <div>
-                      <label className="block text-[10px] text-gray-600 mb-0.5">DAW</label>
+                    <div role="group" aria-labelledby={ids.daw}>
+                      <span id={ids.daw} className="block text-[10px] text-gray-600 mb-0.5">DAW</span>
                       <label className="flex items-center mt-1 cursor-pointer">
                         <input
                           type="checkbox"
@@ -274,8 +289,9 @@ export function PrescriptionDialog({ isOpen, onClose, patientName, patientMrn, p
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-600 mb-0.5">Pharmacy</label>
+                    <label htmlFor={ids.pharmacy} className="block text-[10px] text-gray-600 mb-0.5">Pharmacy</label>
                     <select
+                      id={ids.pharmacy}
                       value={prescription.pharmacy}
                       onChange={(e) => setPrescription({ ...prescription, pharmacy: e.target.value })}
                       className="ehr-input w-full"

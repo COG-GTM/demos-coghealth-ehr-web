@@ -371,6 +371,7 @@ export default function DashboardPage() {
                       key={tab.key}
                       onClick={() => setInboxTab(tab.key as InboxTab)}
                       className={`ehr-tab ${inboxTab === tab.key ? 'active' : ''}`}
+                      aria-pressed={inboxTab === tab.key}
                     >
                       {tab.label} {tab.count > 0 && <span className="ml-1 text-[9px]">({tab.count})</span>}
                     </button>
@@ -380,6 +381,7 @@ export default function DashboardPage() {
                     value={inboxPriority} 
                     onChange={(e) => setInboxPriority(e.target.value as InboxPriority)}
                     className="ehr-input text-[10px] py-0"
+                    aria-label="Inbox priority"
                   >
                     <option value="all">All Priority</option>
                     <option value="critical">Critical</option>
@@ -390,6 +392,7 @@ export default function DashboardPage() {
                     value={inboxReadFilter} 
                     onChange={(e) => setInboxReadFilter(e.target.value as InboxReadFilter)}
                     className="ehr-input text-[10px] py-0"
+                    aria-label="Read status"
                   >
                     <option value="all">All</option>
                     <option value="unread">Unread</option>
@@ -397,7 +400,7 @@ export default function DashboardPage() {
                   </select>
                   <div className="flex-1" />
                   <button className="ehr-toolbar-button p-0.5 text-[10px]" onClick={markAllAsRead}>Mark All Read</button>
-                  <button className="ehr-toolbar-button p-0.5"><RefreshCw className="w-3 h-3" /></button>
+                  <button className="ehr-toolbar-button p-0.5" aria-label="Refresh inbox" title="Refresh inbox"><RefreshCw className="w-3 h-3" aria-hidden="true" /></button>
                 </div>
                 <div className="flex-1 overflow-auto bg-white">
                   <table className="w-full text-[11px]">
@@ -472,16 +475,19 @@ export default function DashboardPage() {
                       key={filter.key}
                       onClick={() => setWorklistFilter(filter.key as WorklistFilter)}
                       className={`ehr-tab ${worklistFilter === filter.key ? 'active' : ''}`}
+                      aria-pressed={worklistFilter === filter.key}
                     >
                       {filter.label}
                     </button>
                   ))}
                   <span className="text-gray-400 mx-1">|</span>
-                  <span className="text-[10px] text-gray-600">Sort:</span>
+                  <label htmlFor="worklist-sort" className="text-[10px] text-gray-600">Sort:</label>
                   <select 
+                    id="worklist-sort"
                     value={worklistSort} 
                     onChange={(e) => setWorklistSort(e.target.value as WorklistSort)}
                     className="ehr-input text-[10px] py-0"
+                    aria-label="Sort worklist by"
                   >
                     <option value="status">Status</option>
                     <option value="name">Name</option>
@@ -490,8 +496,10 @@ export default function DashboardPage() {
                   <button 
                     className="ehr-toolbar-button p-0.5 text-[10px]" 
                     onClick={() => setWorklistSortAsc(!worklistSortAsc)}
+                    aria-label={`Sort ${worklistSortAsc ? 'ascending' : 'descending'}`}
+                    title={`Sort ${worklistSortAsc ? 'ascending' : 'descending'}`}
                   >
-                    {worklistSortAsc ? '↑' : '↓'}
+                    <span aria-hidden="true">{worklistSortAsc ? '↑' : '↓'}</span>
                   </button>
                   <div className="flex-1" />
                   <button className="ehr-button text-[10px] px-2 py-0.5 flex items-center" onClick={() => setShowPrintDialog(true)}>

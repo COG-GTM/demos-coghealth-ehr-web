@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { 
   User, 
   Bell, 
@@ -57,6 +57,8 @@ const defaultAppearance = {
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [saved, setSaved] = useState(false);
+  const [saveCount, setSaveCount] = useState(0);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['channels', 'alerts', 'security', 'hours']));
   const [showAlert, setShowAlert] = useState<{ title: string; message: string; type: 'success' | 'info' } | null>(null);
 
@@ -100,9 +102,13 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ profile, notifications, appearance }));
+    clearTimeout(savedTimer.current);
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaveCount((count) => count + 1);
+    savedTimer.current = setTimeout(() => setSaved(false), 2000);
   };
+
+  useEffect(() => () => clearTimeout(savedTimer.current), []);
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#d4d0c8' }}>
@@ -114,32 +120,37 @@ export default function SettingsPage() {
           className={`ehr-button flex items-center text-[10px] ${saved ? '' : 'ehr-button-primary'}`}
           style={saved ? { background: 'linear-gradient(to bottom, #66cc66 0%, #339933 100%)', color: 'white', border: '1px solid #206020' } : undefined}
         >
-          {saved ? <><Check className="w-3 h-3 mr-1" /> Saved</> : <><Save className="w-3 h-3 mr-1" /> Save Changes</>}
+          {saved ? <><Check className="w-3 h-3 mr-1" aria-hidden="true" /> Saved</> : <><Save className="w-3 h-3 mr-1" aria-hidden="true" /> Save Changes</>}
         </button>
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {saved && <span key={saveCount}>Settings saved</span>}
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Navigation */}
-        <div className="w-48 overflow-auto p-2 space-y-1" style={{ background: '#ece9d8' }}>
+        <nav aria-label="Settings sections" className="w-48 overflow-auto p-2 space-y-1" style={{ background: '#ece9d8' }}>
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id)}
+                aria-current={activeTab === tab.id ? 'page' : undefined}
                 className={`w-full flex items-center px-2 py-1.5 text-[11px] ${
                   activeTab === tab.id
                     ? 'bg-white border border-gray-400 font-semibold'
                     : 'hover:bg-white/50'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5 mr-2" />
+                <Icon className="w-3.5 h-3.5 mr-2" aria-hidden="true" />
                 {tab.label}
               </button>
             );
           })}
-        </div>
+        </nav>
 
         {/* Right Content */}
         <div className="flex-1 overflow-auto bg-white border-l border-gray-500 p-3">
@@ -388,14 +399,16 @@ export default function SettingsPage() {
                   {['light', 'dark', 'system'].map((theme) => (
                     <button
                       key={theme}
+                      type="button"
                       onClick={() => setAppearance({ ...appearance, theme })}
+                      aria-pressed={appearance.theme === theme}
                       className={`p-2 border text-center text-[11px] ${
                         appearance.theme === theme
                           ? 'border-gray-600 bg-white'
                           : 'border-gray-400 bg-gray-100 hover:bg-gray-50'
                       }`}
                     >
-                      <Monitor className="w-4 h-4 mx-auto mb-1 text-gray-600" />
+                      <Monitor className="w-4 h-4 mx-auto mb-1 text-gray-600" aria-hidden="true" />
                       <span className="capitalize">{theme}</span>
                     </button>
                   ))}

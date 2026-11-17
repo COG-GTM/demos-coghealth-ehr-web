@@ -524,7 +524,7 @@ export default function PatientSearchPage() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="ehr-subheader flex items-center justify-between">
             <span>Patient List - {searchResults.length} record(s) found</span>
-            <span className="text-gray-500">Double-click to open chart</span>
+            <span id="patient-list-instructions" className="text-gray-500">Double-click, or press Enter on the selected patient, to open chart</span>
           </div>
           <div className="flex-1 overflow-auto bg-white relative">
             <LoadingOverlay isLoading={loading} text="Loading patients..." />
@@ -583,7 +583,24 @@ export default function PatientSearchPage() {
                       </td>
                       <td className="px-1 py-0.5 font-mono">{patient.mrn}</td>
                       <td className="px-1 py-0.5 font-semibold">
-                        {patient.lastName}, {patient.firstName} {patient.middleName ? patient.middleName.charAt(0) + '.' : ''}
+                        <button
+                          type="button"
+                          aria-pressed={isSelected}
+                          aria-describedby="patient-list-instructions"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectPatient(patient);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && isSelected && !e.repeat) {
+                              e.preventDefault();
+                              handleOpenChart(patient.id);
+                            }
+                          }}
+                          className="text-left font-semibold cursor-pointer focus-visible:outline-1 focus-visible:outline-dotted focus-visible:outline-current focus-visible:outline-offset-1"
+                        >
+                          {patient.lastName}, {patient.firstName} {patient.middleName ? patient.middleName.charAt(0) + '.' : ''}
+                        </button>
                       </td>
                       <td className="px-1 py-0.5">{formatDate(patient.dob)} ({patient.age}y)</td>
                       <td className="px-1 py-0.5">{patient.gender}</td>
@@ -635,7 +652,7 @@ export default function PatientSearchPage() {
           <div className="w-72 flex flex-col border-l border-gray-500" style={{ background: '#f5f5f5' }}>
             <div className="ehr-header text-xs flex items-center justify-between">
               <span>Patient Details</span>
-              <button onClick={() => setSelectedPatient(null)} className="text-white/80 hover:text-white">
+              <button onClick={() => setSelectedPatient(null)} aria-label="Close patient details" className="text-white/80 hover:text-white">
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>

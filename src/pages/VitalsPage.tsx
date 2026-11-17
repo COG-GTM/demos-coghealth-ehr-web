@@ -312,16 +312,28 @@ export default function VitalsPage() {
             <div className="grid grid-cols-2 gap-3">
               {vitalSigns.map(vital => (
                 <div key={vital.key} className="flex items-center space-x-2">
-                  <label className="text-[11px] text-gray-600 w-20">{vital.name}:</label>
-                  <input type="number" className="ehr-input flex-1 text-[11px]" placeholder={`${vital.normalRange.min}-${vital.normalRange.max}`} />
-                  <span className="text-[10px] text-gray-500 w-10">{vital.unit}</span>
+                  <label htmlFor={`vital-${vital.key}`} className="text-[11px] text-gray-600 w-20">{vital.name}:</label>
+                  <input
+                    id={`vital-${vital.key}`}
+                    name={vital.key}
+                    type="number"
+                    className="ehr-input flex-1 text-[11px]"
+                    placeholder={`${vital.normalRange.min}-${vital.normalRange.max}`}
+                    aria-describedby={`vital-${vital.key}-unit vital-${vital.key}-range`}
+                  />
+                  <span id={`vital-${vital.key}-unit`} className="text-[10px] text-gray-500 w-10">{vital.unit}</span>
+                  <span id={`vital-${vital.key}-range`} className="sr-only">
+                    Normal range {vital.normalRange.min} to {vital.normalRange.max}
+                  </span>
                 </div>
               ))}
             </div>
           </fieldset>
           <fieldset className="ehr-fieldset">
-            <legend>Notes</legend>
-            <textarea className="ehr-input w-full h-16 text-[11px]" placeholder="Additional notes..."></textarea>
+            <legend>
+              <label htmlFor="vital-notes">Notes</label>
+            </legend>
+            <textarea id="vital-notes" name="notes" className="ehr-input w-full h-16 text-[11px]" placeholder="Additional notes..."></textarea>
           </fieldset>
         </div>
       </Modal>

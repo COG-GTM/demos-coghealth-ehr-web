@@ -1,0 +1,79 @@
+// CogHealth EHR Web - application architecture (as on main).
+// Edit this file, then run ./render.sh to regenerate architecture.png and architecture.svg.
+digraph architecture {
+  graph [rankdir=TB, compound=true, fontname="DejaVu Sans", fontsize=18, labelloc=t, nodesep=0.35, ranksep=0.55, pad=0.3,
+         label="CogHealth EHR Web — architecture (main)"];
+  node  [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=16, fillcolor=white, color="#4a5568"];
+  edge  [fontname="DejaVu Sans", fontsize=13, color="#4a5568"];
+
+  user [label="Clinician\n(browser)", shape=ellipse, fillcolor="#edf2f7"];
+
+  subgraph cluster_shell {
+    label="App shell — src/main.tsx → src/App.tsx"; style="rounded,filled"; fillcolor="#ebf8ff"; color="#3182ce";
+    router [label="BrowserRouter + Routes\n(10 routes)"];
+    nav    [label="Navigation header\nglobal patient search (fixed list)\n15-min session timer, logout"];
+    status [label="Status bar + session / logout\ndialogs (Modal)"];
+    {rank=same; router; nav; status;}
+  }
+
+  subgraph cluster_api_pages {
+    label="Pages that call the API — src/pages"; style="rounded,filled"; fillcolor="#f0fff4"; color="#38a169";
+    dash    [label="DashboardPage  /\ninbox, worklist, notes, orders"];
+    psearch [label="PatientSearchPage\n/patients"];
+    chart   [label="PatientChartPage\n/patients/:id"];
+    dir     [label="ProviderDirectoryPage\n/directory"];
+    {rank=same; dash; psearch; chart; dir;}
+  }
+
+  subgraph cluster_static_pages {
+    label="Pages with in-file demo data — src/pages"; style="rounded,filled"; fillcolor="#fffaf0"; color="#dd6b20";
+    sched [label="SchedulePage\n/schedule"];
+    labs  [label="LabResultsPage\n/labs"];
+    vit   [label="VitalsPage\n/vitals"];
+    meds  [label="MedicationsPage\n/medications"];
+    rep   [label="ReportsPage\n/reports"];
+    set   [label="SettingsPage\n/settings"];
+    {rank=same; sched; labs; vit;}
+    {rank=same; meds; rep; set;}
+    sched -> meds [style=invis]; labs -> rep [style=invis]; vit -> set [style=invis];
+  }
+
+  subgraph cluster_components {
+    label="Shared components — src/components"; style="rounded,filled"; fillcolor="#faf5ff"; color="#805ad5";
+    dialogs [label="ui/: Modal, AlertDialog, ConfirmDialog,\nPrintDialog, PrescriptionDialog,\nOrderDialog, LoadingOverlay"];
+    banner  [label="patient/PatientBanner"];
+    {rank=same; dialogs; banner;}
+  }
+
+  subgraph cluster_services {
+    label="Services — src/services"; style="rounded,filled"; fillcolor="#fff5f7"; color="#d53f8c";
+    patsvc  [label="patientService\nsearch, getById"];
+    provsvc [label="providerService\nsearch"];
+    encsvc  [label="encounterService\n(not used by any page)", style="rounded,filled,dashed"];
+    audit   [label="auditService\nlogPatientAccess, logLogout"];
+    apits   [label="api.ts — fetch wrapper\nbase URL = VITE_API_URL"];
+    {rank=same; patsvc; provsvc; encsvc; audit;}
+  }
+
+  storage [label="Browser storage\nlocalStorage: coghealth_audit_log,\ncoghealth_settings\nsessionStorage: coghealth_session_id", shape=cylinder, fillcolor="#edf2f7"];
+
+  backend [label="demos-coghealth-ehr-api (Spring Boot)\nhttp://localhost:8080/api\n/v1/patients · /v1/providers · /v1/encounters", fillcolor="#e2e8f0", penwidth=2];
+  db      [label="PostgreSQL", shape=cylinder, fillcolor="#e2e8f0"];
+
+  user -> router;
+  router -> dash; router -> psearch; router -> chart; router -> dir;
+  router -> labs [lhead=cluster_static_pages];
+  nav -> chart [label="select patient", style=dashed];
+  nav -> audit [label="logout"];
+
+  dash -> patsvc; psearch -> patsvc; chart -> patsvc; dir -> provsvc;
+  chart -> audit [label="chart opened"];
+  chart -> banner;
+  dash -> dialogs; set -> storage [label="save settings"];
+  sched -> dialogs; meds -> dialogs;
+
+  patsvc -> apits; provsvc -> apits; encsvc -> apits [style=dashed];
+  audit -> storage;
+  apits -> backend [label="HTTP JSON (CORS)", penwidth=2];
+  backend -> db;
+}

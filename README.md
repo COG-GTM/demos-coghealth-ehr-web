@@ -2,7 +2,9 @@
 
 React frontend for the CogHealth EHR system.
 
-> **Full setup instructions:** See the [main README](https://github.com/cogdeasy/demos-coghealth-ehr-data#readme) for complete setup with all three repos.
+> **Full setup instructions:** See the [data repo README](https://github.com/COG-GTM/demos-coghealth-ehr-data#readme) for complete setup with all three repos.
+>
+> **Architecture:** See [docs/architecture.md](docs/architecture.md) for the pages, services, data flow and an editable diagram.
 
 ## Quick Start
 
@@ -17,24 +19,41 @@ Runs at http://localhost:5173. Requires the [API](https://github.com/COG-GTM/dem
 
 ## Tech Stack
 
-- React 18
+- React 19
 - TypeScript
-- Vite
-- Tailwind CSS
-- TanStack Query
-- Zustand
+- Vite 7
+- Tailwind CSS 4
+- React Router 7
+- lucide-react icons
+- Jest + Puppeteer (end-to-end tests)
+
+Page state is plain React state; `zustand` and `@tanstack/react-query` are installed but not used yet.
 
 ## Project Structure
 
 ```
 src/
-├── components/      # UI components
-├── pages/           # Page components
-├── services/        # API services
-├── stores/          # Zustand stores
-├── types/           # TypeScript types
-└── utils/           # Utilities
+├── App.tsx          # Router, header, session timeout, status bar
+├── components/
+│   ├── patient/     # PatientBanner
+│   └── ui/          # Modal, print / e-Prescribe / order dialogs
+├── pages/           # One component per route
+├── services/        # API client, patient/provider/encounter services, audit log
+└── types/           # API payload types
+tests/
+└── e2e.test.ts      # Puppeteer end-to-end suite
 ```
+
+## Testing
+
+```bash
+npm run lint
+npm run build
+npm run dev &            # e2e tests drive http://localhost:5173
+npx jest --testPathPatterns=tests/e2e
+```
+
+The e2e suite needs the dev server and the API running. `npm run test:e2e` passes `--testPathPattern`, which Jest 30 no longer accepts, so call Jest directly as above. CI runs lint and build but no tests.
 
 ## Environment Variables
 

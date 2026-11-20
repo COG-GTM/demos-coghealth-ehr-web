@@ -21,7 +21,7 @@ The diagram source is [`diagrams/architecture.dot`](diagrams/architecture.dot) (
 | Route | Page | Data source |
 |---|---|---|
 | `/` | `DashboardPage` (inbox, patient worklist, unsigned notes, pending orders, critical alerts) | `patientService.search('')`; inbox and worklist rows are generated from the first 20 patients returned |
-| `/patients` | `PatientSearchPage` (patient list, filters, detail pane) | `patientService.search(query)` |
+| `/patients` | `PatientSearchPage` (patient list, filters, detail pane) | `patientService.search('', 0, 100)` on load and Refresh; the search box and filters only filter those 100 patients in the browser |
 | `/patients/:id` | `PatientChartPage` (banner, demographics, tabs) | `patientService.getById(id)` for the patient; problems, medications, allergies, encounters, vitals and labs are in-file demo data |
 | `/directory` | `ProviderDirectoryPage` (search providers by last name) | `providerService.search(lastName)` |
 | `/schedule` | `SchedulePage` | In-file demo appointments |

@@ -15,21 +15,20 @@ npm run dev
 
 Runs at http://localhost:5173. Requires the [API](https://github.com/COG-GTM/demos-coghealth-ehr-api) running at http://localhost:8080/api first. Its README covers the shared Neon DB, which needs credentials from your team lead.
 
-Without Neon credentials, run the API against a local PostgreSQL instead (needs Docker, Java 11 to 21 and Maven; JDK 24+ fails to compile the API's Lombok version). Flyway creates the schema and seeds demo patients on first start:
+Without Neon credentials, run the API against a local PostgreSQL instead (needs Docker, Java 11 to 21 and Maven; JDK 24+ fails to compile the API's Lombok version). Flyway creates the schema and seeds demo patients on first start.
+
+This replaces the data repo's Docker Compose PostgreSQL for the API: Compose creates a `coghealth` database with different credentials than the API defaults, and both bind port 5432. If it is running, stop it first with `docker compose stop postgres` in the data repo.
 
 ```bash
+# start PostgreSQL, then wait up to 60s until it accepts TCP connections (Flyway fails if it starts too early)
 docker run -d --name ehr-postgres -p 127.0.0.1:5432:5432 \
   -e POSTGRES_DB=medchart_ehr -e POSTGRES_USER=medchart -e POSTGRES_PASSWORD=medchart_dev \
-  postgres:14
-
-# wait until PostgreSQL accepts TCP connections, or Flyway fails at API startup
-until docker exec ehr-postgres pg_isready -h 127.0.0.1 -U medchart; do sleep 1; done
+  postgres:14 && \
+for i in $(seq 1 30); do docker exec ehr-postgres pg_isready -h 127.0.0.1 -U medchart && break; sleep 2; done
 
 # in your demos-coghealth-ehr-api checkout
 mvn spring-boot:run
 ```
-
-This replaces the data repo's Docker Compose PostgreSQL for the API: Compose creates a `coghealth` database with different credentials than the API defaults, and both bind port 5432. Stop the Compose `postgres` service first if it is running (`docker compose stop postgres` in the data repo).
 
 ## Tech Stack
 

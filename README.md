@@ -33,7 +33,7 @@ DB_URL=jdbc:postgresql://localhost:55432/medchart_ehr DB_USERNAME=medchart DB_PA
 
 The credentials are the API's built-in local defaults, set explicitly so exported `DB_USERNAME` / `DB_PASSWORD` values don't override them; they only reach this container. Don't point the API at the data repo's Compose PostgreSQL as-is: its `coghealth` database uses different credentials than the API defaults.
 
-Next time, start the existing container with `docker start ehr-postgres`, because `docker run` fails while the name is taken. `docker rm -f ehr-postgres` deletes it and its data.
+Next time, start the existing container with `docker start ehr-postgres`, because `docker run` fails while the name is taken. `docker rm -f -v ehr-postgres` deletes it and its data volume.
 
 ## Tech Stack
 

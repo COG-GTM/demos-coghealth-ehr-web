@@ -24,13 +24,16 @@ docker run -d --name ehr-postgres -p 127.0.0.1:55432:5432 \
   postgres:14
 
 # in your demos-coghealth-ehr-api checkout; Flyway retries until PostgreSQL finishes starting,
-# and the API listens on localhost only
+# the API listens on localhost only, and the default profile overrides an exported `dev` (Neon) profile
 DB_URL=jdbc:postgresql://localhost:55432/medchart_ehr DB_USERNAME=medchart DB_PASSWORD=medchart_dev \
-  SPRING_FLYWAY_CONNECT_RETRIES=30 SPRING_FLYWAY_CONNECT_RETRIES_INTERVAL=2s SERVER_ADDRESS=127.0.0.1 \
+  SPRING_PROFILES_ACTIVE=default SERVER_ADDRESS=127.0.0.1 \
+  SPRING_FLYWAY_CONNECT_RETRIES=30 SPRING_FLYWAY_CONNECT_RETRIES_INTERVAL=2s \
   mvn spring-boot:run
 ```
 
 The credentials are the API's built-in local defaults, set explicitly so exported `DB_USERNAME` / `DB_PASSWORD` values don't override them; they only reach this container. Don't point the API at the data repo's Compose PostgreSQL as-is: its `coghealth` database uses different credentials than the API defaults.
+
+Next time, start the existing container with `docker start ehr-postgres`, because `docker run` fails while the name is taken. `docker rm -f ehr-postgres` deletes it and its data.
 
 ## Tech Stack
 

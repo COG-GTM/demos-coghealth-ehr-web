@@ -15,7 +15,7 @@ npm run dev
 
 Runs at http://localhost:5173. Requires the [API](https://github.com/COG-GTM/demos-coghealth-ehr-api) running at http://localhost:8080/api first. Its README covers the shared Neon DB, which needs credentials from your team lead.
 
-Without Neon credentials, run the API against a throwaway local PostgreSQL instead (needs Docker, Java 11 to 21 and Maven; JDK 24+ fails to compile the API's Lombok version). Flyway creates the schema and seeds demo patients on first start:
+Without Neon credentials, run the API against a throwaway local PostgreSQL instead (needs Docker, Java 11 to 21 and Maven; JDK 24+ fails to compile the API's Lombok version). Flyway creates the schema and seeds demo patients on first start. Run these in a shell without other `SPRING_*` or `DB_*` exports, such as a `SPRING_FLYWAY_URL` from another setup, which Spring Boot would apply instead:
 
 ```bash
 # host port 55432 avoids clashing with any PostgreSQL already on 5432 (e.g. the data repo's Compose stack)
@@ -36,7 +36,7 @@ The credentials are the API's built-in local defaults, set as `SPRING_DATASOURCE
 
 Next time, start the existing container with `docker start ehr-postgres`, because `docker run` fails while the name is taken. `docker rm -f -v ehr-postgres` deletes it and its data volume.
 
-Then start the web app with `VITE_API_URL=http://localhost:8080/api npm run dev`, so a `VITE_API_URL` from your shell or any `.env*` file can't send requests to another backend.
+Then start the web app with `VITE_API_URL=http://localhost:8080/api npm run dev -- --strictPort`, so a `VITE_API_URL` from your shell or any `.env*` file can't send requests to another backend. Stop any dev server already on 5173 first: `--strictPort` fails instead of moving to another port, which the API's CORS rules reject.
 
 ## Tech Stack
 

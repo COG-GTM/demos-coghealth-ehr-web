@@ -15,20 +15,20 @@ npm run dev
 
 Runs at http://localhost:5173. Requires the [API](https://github.com/COG-GTM/demos-coghealth-ehr-api) running at http://localhost:8080/api first. Its README covers the shared Neon DB, which needs credentials from your team lead.
 
-Without Neon credentials, run the API against a local PostgreSQL instead (needs Docker, Java 11 to 21 and Maven; JDK 24+ fails to compile the API's Lombok version). Flyway creates the schema and seeds demo patients on first start.
-
-This replaces the data repo's Docker Compose PostgreSQL for the API: Compose creates a `coghealth` database with different credentials than the API defaults, and both bind port 5432. If it is running, stop it first with `docker compose stop postgres` in the data repo.
+Without Neon credentials, run the API against a throwaway local PostgreSQL instead (needs Docker, Java 11 to 21 and Maven; JDK 24+ fails to compile the API's Lombok version). Flyway creates the schema and seeds demo patients on first start:
 
 ```bash
-# start PostgreSQL, then wait up to 60s until it accepts TCP connections (Flyway fails if it starts too early)
-docker run -d --name ehr-postgres -p 127.0.0.1:5432:5432 \
+# host port 55432 avoids clashing with any PostgreSQL already on 5432 (e.g. the data repo's Compose stack)
+docker run -d --name ehr-postgres -p 127.0.0.1:55432:5432 \
   -e POSTGRES_DB=medchart_ehr -e POSTGRES_USER=medchart -e POSTGRES_PASSWORD=medchart_dev \
-  postgres:14 && \
-for i in $(seq 1 30); do docker exec ehr-postgres pg_isready -h 127.0.0.1 -U medchart && break; sleep 2; done
+  postgres:14
 
-# in your demos-coghealth-ehr-api checkout
-mvn spring-boot:run
+# in your demos-coghealth-ehr-api checkout; Flyway retries until PostgreSQL finishes starting
+DB_URL=jdbc:postgresql://localhost:55432/medchart_ehr SPRING_FLYWAY_CONNECT_RETRIES=30 SPRING_FLYWAY_CONNECT_RETRIES_INTERVAL=2s \
+  mvn spring-boot:run
 ```
+
+The credentials are the API's built-in local defaults and only reach this container. Don't point the API at the data repo's Compose PostgreSQL as-is: its `coghealth` database uses different credentials than the API defaults.
 
 ## Tech Stack
 

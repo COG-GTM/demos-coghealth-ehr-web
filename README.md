@@ -35,6 +35,8 @@ The credentials are the API's built-in local defaults, set explicitly so exporte
 
 Next time, start the existing container with `docker start ehr-postgres`, because `docker run` fails while the name is taken. `docker rm -f -v ehr-postgres` deletes it and its data volume.
 
+If `VITE_API_URL` is exported in your shell or set in a `.env` file, unset it or set it to `http://localhost:8080/api`, or `npm run dev` sends requests to that backend instead of this API.
+
 ## Tech Stack
 
 - React 18

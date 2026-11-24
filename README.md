@@ -36,7 +36,7 @@ The credentials are the API's built-in local defaults, set as `SPRING_DATASOURCE
 
 Next time, start the existing container with `docker start ehr-postgres`, because `docker run` fails while the name is taken. `docker rm -f -v ehr-postgres` deletes it and its data volume.
 
-Then start the web app with `VITE_API_URL=http://localhost:8080/api npm run dev -- --strictPort`, so a `VITE_API_URL` from your shell or any `.env*` file can't send requests to another backend. Stop any dev server already on 5173 first: `--strictPort` fails instead of moving to another port, which the API's CORS rules reject.
+Then start the web app with `VITE_API_URL=http://localhost:8080/api npm run dev -- --strictPort` instead of the plain `npm run dev` above (stop that one if it's running). The inline `VITE_API_URL` beats any value from your shell or `.env*` files, and `--strictPort` fails instead of moving to another port, which the API's CORS rules reject.
 
 ## Tech Stack
 

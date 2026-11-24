@@ -15,7 +15,7 @@ npm run dev
 
 Runs at http://localhost:5173. Requires the [API](https://github.com/COG-GTM/demos-coghealth-ehr-api) running at http://localhost:8080/api first. Its README covers the shared Neon DB, which needs credentials from your team lead.
 
-Without Neon credentials, run the API against a throwaway local PostgreSQL instead (needs Docker, Java 11 to 21 and Maven; JDK 24+ fails to compile the API's Lombok version). Flyway creates the schema and seeds demo patients on first start. Run these in a shell without other `SPRING_*` or `DB_*` exports, such as a `SPRING_FLYWAY_URL` from another setup, which Spring Boot would apply instead:
+Without Neon credentials, run the API against a throwaway local PostgreSQL instead (needs Docker, Java 11 to 21 and Maven; JDK 24+ fails to compile the API's Lombok version). Flyway creates the schema and seeds demo patients on first start. Run these in a shell without other `SPRING_*`, `SERVER_*` or `DB_*` exports (e.g. `SPRING_FLYWAY_URL`, `SERVER_PORT`, `SERVER_SERVLET_CONTEXT_PATH` from another setup), which Spring Boot would apply instead:
 
 ```bash
 # host port 55432 avoids clashing with any PostgreSQL already on 5432 (e.g. the data repo's Compose stack)
